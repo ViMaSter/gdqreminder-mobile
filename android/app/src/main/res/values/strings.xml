@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GDQ Reminder</string>
+    <string name="title_activity_main">GDQ Reminder</string>
+    <string name="package_name">ke.mahn.gdqreminder</string>
+    <string name="custom_url_scheme">ke.mahn.gdqreminder</string>
+</resources>

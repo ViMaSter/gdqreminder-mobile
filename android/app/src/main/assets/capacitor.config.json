@@ -1,0 +1,6 @@
+{
+	"appId": "ke.mahn.gdqreminder",
+	"appName": "GDQ Reminder",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}
