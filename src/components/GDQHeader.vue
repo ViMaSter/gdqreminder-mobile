@@ -1,6 +1,6 @@
 <script lang="ts">
 import ky from 'ky';
-import {Ref, onMounted, ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import '@material/mwc-list';
 import '@material/mwc-drawer';
 import '@material/mwc-top-app-bar-fixed';
@@ -19,6 +19,15 @@ interface GDQEventDataFields
 }
 interface GDQEventData {
     fields : GDQEventDataFields
+}
+interface GDQRunDataFields
+{
+  display_name : string
+  deprecated_runners : string
+}
+interface GDQRunData {
+    pk : number
+    fields : GDQRunDataFields
 };
 
 export default {
@@ -29,18 +38,66 @@ export default {
           drawer.value!.open = !drawer.value!.open;
       });
     });
+    const currentEvent = ref("");
+    const runs = ref<[pk : number, data : GDQRunData][]>([]);
+    const reminder = ref<number[]>([]);
+    const updateCurrentEvent = (newEvent : string) => {
+      currentEvent.value = newEvent;
+      drawer!.value!.open = false;
+      const loadRuns = async (eventShort : string) => {
+        runs.value = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json()).map((run : GDQRunData) => [run.pk, run.fields]);
+      };
 
+      loadRuns(eventByShorthands.value[newEvent].short);
+    }
+    const toggleReminder = (runPK : number) => {
+      const run = runs.value.find(([pk]) => pk === runPK);
+      if (!run) {
+        throw new Error(`Run with pk '${runPK}' not found`);
+      }
+      if (reminder.value.includes(runPK))
+      {
+        reminder.value = reminder.value.filter((pk) => pk !== runPK);
+      }
+      else
+      {
+        reminder.value.push(runPK);
+      }
+    };
     const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event")).json();
-    const eventShorthands = ref(eventData.filter((a : GDQEventData) => a.fields.short.toLowerCase().includes("gdq")).sort((a : GDQEventData, b : GDQEventData) => {
-      return new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime();
-      }).map((singleEvent : GDQEventData) => singleEvent.fields.short.toUpperCase()));
+    const eventByShorthands = ref(Object.fromEntries(
+      eventData
+      .filter((a : GDQEventData) => a.fields.short.toLowerCase().includes("gdq"))
+      .sort((a : GDQEventData, b : GDQEventData) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
+      .map((singleEvent : GDQEventData) => [singleEvent.fields.short.toUpperCase(), singleEvent.fields])
+    ));
+    const generateClass = (runPK : number) => {
+      if (reminder.value.includes(runPK))
+      {
+        return "hasReminder";
+      }
+      return "";
+    };
+    const generateAttributes = (runPK : number) => {
+      if (reminder.value.includes(runPK))
+      {
+        return "selected";
+      }
+      return "";
+    };
     const drawer = ref<TopAppBarFixedWithOpen>();
     return {
       propagateChange: (event : Event) => {
         emit('eventChanged', (event.target as HTMLSelectElement).value);
       },
-      runs: eventShorthands,
-      drawer
+      eventByShorthands,
+      drawer,
+      currentEvent,
+      updateCurrentEvent,
+      runs,
+      generateClass,
+      toggleReminder,
+      generateAttributes
     };
   },
 }
@@ -49,33 +106,29 @@ export default {
 <template>
   <div>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
-        <span slot="title">Available runs</span>
+        <span slot="title">Available events</span>
         <mwc-list>
-          <mwc-list-item v-for="run in runs" :key="run">{{run}}</mwc-list-item>
+          <mwc-list-item v-for="[displayName, data] in Object.entries(eventByShorthands)" :key="displayName" @click="updateCurrentEvent(displayName)">{{displayName}}</mwc-list-item>
         </mwc-list>
         <div slot="appContent">
             <mwc-top-app-bar-fixed>
                 <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
-                <div slot="title">Title</div>
+                <div slot="title">{{currentEvent}}</div>
             </mwc-top-app-bar-fixed>
             <div>
-                <p>Main Content!</p>
+              <mwc-list activatable multi>
+                <template v-for="[runPK, runData] in runs" :key="runPK">
+                  <mwc-list-item twoline @click="toggleReminder(runPK)">
+                    <span>{{runData.display_name}}</span>
+                    <span slot="secondary">{{runData.deprecated_runners}}</span>
+                  </mwc-list-item>
+                  <li divider role="separator" padded></li>
+                </template>
+              </mwc-list>
             </div>
         </div>
     </mwc-drawer>
   </div>
-<!-- <mwc-top-app-bar-fixed>
-    <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-    <div class="right" >
-      <select class="form-control" ref="eventSelector" @change="propagateChange($event)">
-        <option value="AGDQ2020">AGDQ2020</option>
-        <option value="SGDQ2020">SGDQ2020</option>
-        <option value="AGDQ2021">AGDQ2021</option>
-        <option value="SGDQ2021">SGDQ2021</option>
-        <option value="AGDQ2022">AGDQ2022</option>
-      </select>
-    </div>
-</mwc-top-app-bar-fixed> -->
 </template>
 
 <style lang="scss" scoped>
@@ -104,5 +157,13 @@ export default {
     {
         height: 48pt;
         width: 48pt;
+    }
+    
+    .hasReminder {
+      --mdc-theme-primary: blue;
+      --mdc-list-vertical-padding: 0px;
+      --mdc-list-side-padding: 30px;
+      border-radius: 10px;
+      overflow: hidden;
     }
 </style>
