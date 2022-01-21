@@ -12,10 +12,21 @@ const echo = (msg: string) => {
 </script>
 
 <template>
-  <GDQHeader v-on:eventChanged="echo($event)" />
+
+  <Suspense>
+    <GDQHeader v-on:eventChanged="echo($event)" />
+  </Suspense>
   <RouterLink to="/">Home</RouterLink>
   <RouterLink to="/about">About</RouterLink>
   <RouterView />
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
 </template>
-
-<style src="halfmoon/css/halfmoon-variables.min.css"></style>
+<style>
+body.dark-mode
+{
+  margin: 0;
+  background: black;
+  color: white;
+}
+</style>
