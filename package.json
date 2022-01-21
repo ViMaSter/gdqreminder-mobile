@@ -4,6 +4,7 @@
   "author": "Vincent Mahnke (vincent@mahn.ke)",
   "scripts": {
     "dev": "vite",
+    "android": "npm run build && npx cap sync && npx cap open android",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --port 5050",
     "test:unit": "vitest --environment jsdom",
