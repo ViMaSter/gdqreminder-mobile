@@ -15,22 +15,35 @@ export default {
 <template>
   <header>
     <img alt="Vue logo" class="logo" src="@/assets/gdq-logo.png" width="125" height="125" />
-    <select @change="propagateChange($event)">
-      <option value="AGDQ2020">AGDQ2020</option>
-      <option value="SGDQ2020">SGDQ2020</option>
-      <option value="AGDQ2021">AGDQ2021</option>
-      <option value="SGDQ2021">SGDQ2021</option>
-      <option value="AGDQ2022">AGDQ2022</option>
-    </select>
+    <div class="right" >
+      <select class="form-control" ref="eventSelector" @change="propagateChange($event)">
+        <option value="AGDQ2020">AGDQ2020</option>
+        <option value="SGDQ2020">SGDQ2020</option>
+        <option value="AGDQ2021">AGDQ2021</option>
+        <option value="SGDQ2021">SGDQ2021</option>
+        <option value="AGDQ2022">AGDQ2022</option>
+      </select>
+    </div>
   </header>
 </template>
 
 <style lang="scss" scoped>
+    select
+    {
+      height: 100%;
+      font-size: 32pt;
+    }
+    .right
+    {
+      display: flex;
+      align-items: stretch;
+      align-content: stretch;
+    }
     header
     {
         overflow: hidden;
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: space-between;
         width: 100%;
         background-color: var(--color-primary);
