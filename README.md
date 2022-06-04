@@ -2,18 +2,20 @@
 
 This template should help get you started developing with Vue 3 in Vite.
 
-## Recommended Setup for Local Development
+## Local Development
 
 1. [VSCode](https://code.visualstudio.com/)
 2. Recommended extensions
 3. [`nvm-windows 1.1.9`](https://github.com/coreybutler/nvm-windows) for npm + node.js version management
 4. `nvm install latest` (node.js >=18.3.0, npm >= 8.12.1)
 5. `nvm use latest` (>= 18.3.0)
+6. `npm run dev`
+7. Open `http://localhost:437`
 
-## Recommended Setup for on Device Development
+## Device Development
 
-1. [Android Studio](https://developer.android.com/studio) (it is not required to select anything custom here)
-2. Run `npx cap open android`
+1. Instll [Android Studio](https://developer.android.com/studio) (it is not required to select anything custom here)
+2. Run `npx run android`
 3. Select `File` -> `Sync Project with Gradle Files`
 4. (Optional) Pair your device with Android Studio
 5. Click "Run"
