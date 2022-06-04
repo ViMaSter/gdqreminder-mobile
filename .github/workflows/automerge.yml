@@ -1,0 +1,21 @@
+name: Merge `autoupdate` branches
+
+on:
+  workflow_dispatch:
+  check_suite:
+    types:
+      - completed
+  status: {}
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Automatically merge branches labeled as `autoupdate`
+        uses: "pascalgn/automerge-action@v0.15.3"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_LABELS: "autoupdate"
+          MERGE_METHOD: "rebase"
+          UPDATE_METHOD: "rebase"
+          UPDATE_RETRIES : 10
+          UPDATE_RETRY_SLEEP: 30
