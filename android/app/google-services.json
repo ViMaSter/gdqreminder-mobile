@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "358208879608",
+    "project_id": "gdqreminder",
+    "storage_bucket": "gdqreminder.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358208879608:android:ab2244108955a0e188f40d",
+        "android_client_info": {
+          "package_name": "ke.mahn.gdqreminder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "358208879608-s5ceflann0o5o6l652hp294d2e4p3dg2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ke.mahn.gdqreminder",
+            "certificate_hash": "7fe44ce9c30884431b9b5d36c699806a0bf158ce"
+          }
+        },
+        {
+          "client_id": "358208879608-2uhoonf0nglcsdcff2hafj986jddkom2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGTENBAzr0ztlESS_X7KNZEU8WashuOYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "358208879608-2uhoonf0nglcsdcff2hafj986jddkom2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,6 +1,8 @@
 <script lang="ts">
 import { defineComponent, ref, inject, Ref } from "vue";
+import "../utilities/pushNotificationHelper"
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
+import PushNotificationHelper from "../utilities/pushNotificationHelper";
 export default defineComponent({
   props: {
     pk: {
@@ -21,10 +23,12 @@ export default defineComponent({
     const toggleReminder = () => {
       if (reminder.value.includes(props.pk.toString())) {
         reminder.value = reminder.value.filter((pk) => pk !== props.pk.toString());
+        PushNotificationHelper.unsubscribeFromStartOfRun(props.pk.toString());
         return false;
       }
       
       reminder.value.push(props.pk.toString());
+      PushNotificationHelper.subscribeToStartOfRun(props.pk.toString());
       return true;
     };
 
@@ -64,7 +68,7 @@ export default defineComponent({
   </mwc-list-item>
   <li divider role="separator" padded></li>
 </template>
-<style lang="css">
+<style scoped lang="css">
 
 span[slot="meta"] {
   display: flex;
@@ -85,5 +89,19 @@ span.left {
     width: calc(100vw - (32px + (60pt + 16px)));
     text-overflow: ellipsis;
     overflow: hidden;
+}
+
+.dark-mode * {
+  color: hsl(0deg 0% 89%);
+}
+
+.dark-mode *[slot="meta"], *[slot="secondary"]
+{
+  color: hsl(0deg 0% 66%);
+}
+
+.dark-mode li[divider]
+{
+  border-bottom-color: rgba(255, 255, 255, 0.45) !important;
 }
 </style>

@@ -84,9 +84,10 @@ export default defineComponent({
             });
         };
         const currentEvent = ref("");
-        const runs = ref<{
+        const runsByID = ref<{
             [pk: string]: GDQRunDataFields;
         }>({});
+        const runIDsInOrder = ref<string[]>([]);
         const runners = ref<{
             [pk: string]: GDQRunnerDataFields;
         }>({});
@@ -97,15 +98,18 @@ export default defineComponent({
             currentEvent.value = newEvent;
             drawer.value!.open = false;
             const loadRuns = async (eventShort: string) => {
-                const currentRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json()).map((run: GDQRunData) => [run.pk, run.fields]);
-                const allRunner = currentRuns.map((run: [
+                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json())
+                                    .sort((a : GDQRunData, b : GDQRunData) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
+                                    .map((run: GDQRunData) => [run.pk, run.fields]);
+                const allRunners = orderedRuns.map((run: [
                     number,
                     GDQRunDataFields
                 ]) => run[1].runners).flat();
-                const uniqueRunner = [...new Set(allRunner)];
+                const uniqueRunner = [...new Set(allRunners)];
                 const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json()).map((runner: GDQRunnerData) => [runner.pk, runner.fields]));
                 runners.value = { ...runners.value, ...runnerDataForRunnersOfThisRun };
-                runs.value = Object.fromEntries<GDQRunDataFields>(currentRuns);
+                runsByID.value = Object.fromEntries<GDQRunDataFields>(orderedRuns);
+                runIDsInOrder.value = orderedRuns.map(([pk, _] : [string, undefined]) => pk);
             };
             loadRuns(eventByShorthands.value[newEvent].short);
         };
@@ -125,16 +129,14 @@ export default defineComponent({
         };
 
         return {
-            propagateChange: (event: Event) => {
-                emit("eventChanged", (event.target as HTMLSelectElement).value);
-            },
             eventByShorthands,
             drawer,
             snackbar,
             showSnackbar,
             currentEvent,
             updateCurrentEvent,
-            runs,
+            runsByID,
+            runIDsInOrder,
             runners,
             reminder
         };
@@ -159,8 +161,8 @@ export default defineComponent({
             </mwc-top-app-bar-fixed>
             <div>
               <mwc-list activatable multi>
-                <template v-for="[runPK, runData] in Object.entries(runs)" :key="runPK">
-                  <GDQRun :pk="runPK" :fields="runData" :runner-names="runData.runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
+                <template v-for="runPK in runIDsInOrder" :key="runPK">
+                  <GDQRun :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
                 </template>
               </mwc-list>
             </div>

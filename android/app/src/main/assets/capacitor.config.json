@@ -2,5 +2,14 @@
 	"appId": "ke.mahn.gdqreminder",
 	"appName": "GDQ Reminder",
 	"webDir": "dist",
-	"bundledWebRuntime": false
+	"bundledWebRuntime": false,
+	"plugins": {
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		}
+	}
 }
