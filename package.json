@@ -14,7 +14,7 @@
   "dependencies": {
     "@capacitor/android": "^3.4.0",
     "@capacitor/cli": "^3.5.1",
-    "@capacitor/core": "^3.4.0",
+    "@capacitor/core": "^3.5.1",
     "@material/mwc-button": "^0.26.1",
     "@material/mwc-drawer": "^0.25.3",
     "@material/mwc-icon-button": "^0.26.1",
