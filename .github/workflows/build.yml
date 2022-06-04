@@ -1,8 +1,7 @@
-name: Node.js build + capacitor sync
+name: Android build
 
 on:
   push:
-    branches: [ main ]
   pull_request:
 
 jobs:
@@ -14,3 +13,9 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx cap sync
+      - run: cd android && ./gradlew assembleDebug
+        shell: bash
+      - uses: actions/upload-artifact@v2
+        with:
+          name: apk-v${{ github.run_number }}
+          path: ./android/app/build/outputs/apk/app-debug.apk
