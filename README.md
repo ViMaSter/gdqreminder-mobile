@@ -12,8 +12,11 @@ This template should help get you started developing with Vue 3 in Vite.
 
 ## Recommended Setup for on Device Development
 
-1. [Android Studio](https://developer.android.com/studio)
-2. 
+1. [Android Studio](https://developer.android.com/studio) (it is not required to select anything custom here)
+2. Run `npx cap open android`
+3. Select `File` -> `Sync Project with Gradle Files`
+4. (Optional) Pair your device with Android Studio
+5. Click "Run"
 
 ## Type Support for `.vue` Imports in TS
 
