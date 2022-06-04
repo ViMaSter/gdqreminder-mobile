@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, inject } from "vue";
+import { defineComponent, ref, inject, Ref } from "vue";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
 export default defineComponent({
   props: {
@@ -17,26 +17,18 @@ export default defineComponent({
     },
   },
   setup(props) {
-    let reminder: string[] = inject("reminder")!;
+    let reminder = inject<Ref<string[]>>("reminder")!;
     const toggleReminder = () => {
-      if (reminder.includes(props.pk.toString())) {
-        reminder = reminder.filter((pk) => pk !== props.pk.toString());
-      } else {
-        reminder.push(props.pk.toString());
+      if (reminder.value.includes(props.pk.toString())) {
+        reminder.value = reminder.value.filter((pk) => pk !== props.pk.toString());
+        return false;
       }
+      
+      reminder.value.push(props.pk.toString());
+      return true;
     };
-    const generateClass = (runPK: string) => {
-      if (reminder.includes(runPK)) {
-        return "hasReminder";
-      }
-      return "";
-    };
-    const generateAttributes = (runPK: string) => {
-      if (reminder.includes(runPK)) {
-        return "selected";
-      }
-      return "";
-    };
+
+    const isTrackedRun = ref(reminder.value.includes(props.pk.toString()));
 
     const start = new Date(props.fields.starttime).toLocaleTimeString();
     const end = new Date(props.fields.endtime).toLocaleTimeString();
@@ -45,30 +37,27 @@ export default defineComponent({
     );
 
     return {
-      generateClass,
-      generateAttributes,
       toggleReminder,
       start,
       end,
       secondary,
       display_name: props.fields.display_name,
+      isTrackedRun
     };
   },
 });
 </script>
 
 <template>
-  <div>
-    <mwc-list-item twoline @click="toggleReminder()" hasMeta>
-      <span class="left">{{ display_name }}</span>
-      <span class="left" slot="secondary">{{ secondary }}</span>
-      <span slot="meta">
-        <span class="start">{{ start }}</span>
-        <span class="end">{{ end }}</span>
-      </span>
-    </mwc-list-item>
-    <li divider role="separator" padded></li>
-  </div>
+  <mwc-list-item twoline @click="toggleReminder()" hasMeta :activated="isTrackedRun ? true : false">
+    <span class="left">{{ display_name }}</span>
+    <span class="left" slot="secondary">{{ secondary }}</span>
+    <span slot="meta">
+      <span class="start">{{ start }}</span>
+      <span class="end">{{ end }}</span>
+    </span>
+  </mwc-list-item>
+  <li divider role="separator" padded></li>
 </template>
 <style lang="css">
 

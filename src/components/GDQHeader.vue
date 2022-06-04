@@ -155,38 +155,4 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-    select
-    {
-      height: 100%;
-      font-size: 32pt;
-    }
-    .right
-    {
-      display: flex;
-      align-items: stretch;
-      align-content: stretch;
-    }
-    header
-    {
-        overflow: hidden;
-        display: flex;
-        align-items: stretch;
-        justify-content: space-between;
-        width: 100%;
-        background-color: var(--color-primary);
-    }
-
-    img
-    {
-        height: 48pt;
-        width: 48pt;
-    }
-    
-    .hasReminder {
-      --mdc-theme-primary: blue;
-      --mdc-list-vertical-padding: 0px;
-      --mdc-list-side-padding: 30px;
-      border-radius: 10px;
-      overflow: hidden;
-    }
 </style>
