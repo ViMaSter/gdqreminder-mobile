@@ -27,7 +27,7 @@
     "@webcomponents/webcomponentsjs": "^2.6.0",
     "ky": "^0.30.0",
     "pinia": "^2.0.14",
-    "vue": "^3.2.27",
+    "vue": "^3.2.36",
     "vue-router": "^4.0.15"
   },
   "devDependencies": {
