@@ -1,6 +1,6 @@
 <script lang="ts">
 import ky from 'ky';
-import {onMounted, ref} from 'vue';
+import {onMounted, ref, defineComponent} from 'vue';
 import '@material/mwc-list';
 import '@material/mwc-drawer';
 import '@material/mwc-top-app-bar-fixed';
@@ -23,14 +23,26 @@ interface GDQEventData {
 interface GDQRunDataFields
 {
   display_name : string
-  deprecated_runners : string
+  runners : number[]
 }
 interface GDQRunData {
     pk : number
     fields : GDQRunDataFields
 };
+interface GDQRunnerData {
+    pk : number
+    fields : GDQRunDataFields
+};
+interface GDQRunnerDataFields
+{
+  public : string
+}
 
-export default {
+type Entries<T> = {
+    [K in keyof T]: [K, T[K]];
+}[keyof T][];
+
+export default defineComponent({
   async setup(props : {}, {emit} : SetupContext) {
     onMounted(() => {
       const container = drawer!.value!.parentNode;
@@ -108,19 +120,25 @@ export default {
     };
 
     const currentEvent = ref("");
-    const runs = ref<[pk : number, data : GDQRunData][]>([]);
-    const reminder = ref<number[]>([]);
+    const runs = ref<{[pk : string]: GDQRunDataFields}>({});
+    const runners = ref<{[pk : string]: GDQRunnerDataFields}>({});
+    const reminder = ref<string[]>([]);
     const updateCurrentEvent = (newEvent : string) => {
       currentEvent.value = newEvent;
       drawer!.value!.open = false;
       const loadRuns = async (eventShort : string) => {
-        runs.value = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json()).map((run : GDQRunData) => [run.pk, run.fields]);
+        const currentRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json()).map((run : GDQRunData) => [run.pk, run.fields]);
+        const allRunner = currentRuns.map((run: [number, GDQRunDataFields]) => run[1].runners).flat();
+        const uniqueRunner = [...new Set(allRunner)];
+        const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json()).map((runner : GDQRunnerData) => [runner.pk, runner.fields]));
+        runners.value = {...runners.value, ...runnerDataForRunnersOfThisRun};
+        runs.value = Object.fromEntries<GDQRunDataFields>(currentRuns);
       };
 
       loadRuns(eventByShorthands.value[newEvent].short);
     }
-    const toggleReminder = (runPK : number) => {
-      const run = runs.value.find(([pk]) => pk === runPK);
+    const toggleReminder = (runPK : string) => {
+      const run = runs.value[runPK];
       if (!run) {
         throw new Error(`Run with pk '${runPK}' not found`);
       }
@@ -140,14 +158,14 @@ export default {
       .sort((a : GDQEventData, b : GDQEventData) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
       .map((singleEvent : GDQEventData) => [singleEvent.fields.short.toUpperCase(), singleEvent.fields])
     ));
-    const generateClass = (runPK : number) => {
+    const generateClass = (runPK : string) => {
       if (reminder.value.includes(runPK))
       {
         return "hasReminder";
       }
       return "";
     };
-    const generateAttributes = (runPK : number) => {
+    const generateAttributes = (runPK : string) => {
       if (reminder.value.includes(runPK))
       {
         return "selected";
@@ -164,12 +182,13 @@ export default {
       currentEvent,
       updateCurrentEvent,
       runs,
+      runners,
       generateClass,
       toggleReminder,
       generateAttributes
     };
   },
-}
+});
 </script>
 
 <template>
@@ -177,7 +196,7 @@ export default {
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
         <span slot="title">Available events</span>
         <mwc-list>
-          <mwc-list-item v-for="[displayName, data] in Object.entries(eventByShorthands)" :key="displayName" @click="updateCurrentEvent(displayName)">{{displayName}}</mwc-list-item>
+          <mwc-list-item v-for="[displayName, data] in (Object.entries(eventByShorthands))" :key="displayName" @click="updateCurrentEvent(displayName)">{{displayName}}</mwc-list-item>
         </mwc-list>
         <div slot="appContent">
             <mwc-top-app-bar-fixed>
@@ -186,10 +205,10 @@ export default {
             </mwc-top-app-bar-fixed>
             <div>
               <mwc-list activatable multi>
-                <template v-for="[runPK, runData] in runs" :key="runPK">
+                <template v-for="[runPK, runData] in Object.entries(runs)" :key="runPK">
                   <mwc-list-item twoline @click="toggleReminder(runPK)">
-                    <span>{{runData.fields.display_name}}</span>
-                    <span slot="secondary">{{runData.fields.deprecated_runners}}</span>
+                    <span>{{runData.display_name}}</span>
+                    <span slot="secondary">{{runData.runners.map((runner)=>runners[runner].public).join(", ")}}</span>
                   </mwc-list-item>
                   <li divider role="separator" padded></li>
                 </template>
