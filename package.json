@@ -21,7 +21,7 @@
     "@material/mwc-list": "^0.25.3",
     "@material/mwc-snackbar": "^0.26.1",
     "@material/mwc-top-app-bar-fixed": "^0.25.3",
-    "@robingenz/capacitor-android-dark-mode-support": "^1.0.0",
+    "@robingenz/capacitor-android-dark-mode-support": "^1.0.1",
     "@webcomponents/webcomponentsjs": "^2.6.0",
     "ky": "^0.28.7",
     "pinia": "^2.0.9",
