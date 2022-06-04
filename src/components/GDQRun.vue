@@ -14,9 +14,9 @@ export default defineComponent({
     runnerNames: {
       type: Array as () => string[],
       required: true,
-    },
+    }
   },
-  setup(props) {
+  setup(props, {emit}) {
     let reminder = inject<Ref<string[]>>("reminder")!;
     const toggleReminder = () => {
       if (reminder.value.includes(props.pk.toString())) {
@@ -28,8 +28,12 @@ export default defineComponent({
       return true;
     };
 
-    const isTrackedRun = ref(reminder.value.includes(props.pk.toString()));
+    const onFocus = () => {
+      emit("showSnackbar", `"${primary} (${props.fields.category})" run by "${props.runnerNames.join(", ")}"`);
+    };
 
+    const isTrackedRun = ref(reminder.value.includes(props.pk.toString()));
+    const primary = props.fields.display_name;
     const start = new Date(props.fields.starttime).toLocaleTimeString();
     const end = new Date(props.fields.endtime).toLocaleTimeString();
     const secondary = ref(
@@ -38,10 +42,11 @@ export default defineComponent({
 
     return {
       toggleReminder,
+      onFocus,
       start,
       end,
       secondary,
-      display_name: props.fields.display_name,
+      primary: props.fields.display_name,
       isTrackedRun
     };
   },
@@ -49,8 +54,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <mwc-list-item twoline @click="toggleReminder()" hasMeta :activated="isTrackedRun ? true : false">
-    <span class="left">{{ display_name }}</span>
+  <mwc-list-item twoline @click="toggleReminder()" @focus="onFocus()" hasMeta :activated="isTrackedRun ? true : false">
+    <span class="left">{{ primary }}</span>
     <span class="left" slot="secondary">{{ secondary }}</span>
     <span slot="meta">
       <span class="start">{{ start }}</span>

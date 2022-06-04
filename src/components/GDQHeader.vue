@@ -2,6 +2,8 @@
 import ky from 'ky';
 import {onMounted, ref, provide, defineComponent} from 'vue';
 import '@material/mwc-list';
+import '@material/mwc-snackbar';
+import { Snackbar } from '@material/mwc-snackbar';
 import '@material/mwc-drawer';
 import '@material/mwc-top-app-bar-fixed';
 import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
@@ -19,7 +21,7 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 export default defineComponent({
     async setup(props: {}, { emit }: SetupContext) {
         onMounted(() => {
-            const container = drawer!.value!.parentNode;
+            const container = drawer.value!.parentNode;
             container!.addEventListener("MDCTopAppBar:nav", () => {
                 drawer.value!.open = !drawer.value!.open;
             });
@@ -55,7 +57,7 @@ export default defineComponent({
                 if (!touchStartEvent.touches[0]) {
                     return;
                 }
-                if (!drawer!.open) {
+                if (!drawer.open) {
                     if (touchStartEvent.touches[0].clientX > clientXThreshold) {
                         return;
                     }
@@ -76,7 +78,7 @@ export default defineComponent({
                 if (Array.from(touchEndEvent.touches).find(touch => touch.identifier == touchIdentifier)) {
                     return;
                 }
-                drawer!.open = calculateVelocity() > 0;
+                drawer.open = calculateVelocity() > 0;
                 velocity = [];
                 touchIdentifier = -1;
             });
@@ -93,7 +95,7 @@ export default defineComponent({
         provide('reminder', reminder)
         const updateCurrentEvent = (newEvent: string) => {
             currentEvent.value = newEvent;
-            drawer!.value!.open = false;
+            drawer.value!.open = false;
             const loadRuns = async (eventShort: string) => {
                 const currentRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json()).map((run: GDQRunData) => [run.pk, run.fields]);
                 const allRunner = currentRuns.map((run: [
@@ -112,13 +114,24 @@ export default defineComponent({
             .filter((a: GDQEventData) => a.fields.short.toLowerCase().includes("gdq"))
             .sort((a: GDQEventData, b: GDQEventData) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
             .map((singleEvent: GDQEventData) => [singleEvent.fields.short.toUpperCase(), singleEvent.fields])));
-        const drawer = ref<TopAppBarFixedWithOpen>();
+        const drawer = ref<TopAppBarFixedWithOpen>()!;
+
+        const snackbar = ref<Snackbar>();
+        const showSnackbar = (text : string) => {
+          snackbar.value!.stacked = false;
+          snackbar.value!.leading = false;
+          snackbar.value!.open = true;
+          snackbar.value!.labelText = text;
+        };
+
         return {
             propagateChange: (event: Event) => {
                 emit("eventChanged", (event.target as HTMLSelectElement).value);
             },
             eventByShorthands,
             drawer,
+            snackbar,
+            showSnackbar,
             currentEvent,
             updateCurrentEvent,
             runs,
@@ -132,6 +145,8 @@ export default defineComponent({
 
 <template>
   <div>
+    <mwc-snackbar ref="snackbar" timeoutMs="10000">
+    </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
         <span slot="title">Available events</span>
         <mwc-list>
@@ -145,7 +160,7 @@ export default defineComponent({
             <div>
               <mwc-list activatable multi>
                 <template v-for="[runPK, runData] in Object.entries(runs)" :key="runPK">
-                  <GDQRun :pk="runPK" :fields="runData" :runner-names="runData.runners.map((runner)=>runners[runner].public)" />
+                  <GDQRun :pk="runPK" :fields="runData" :runner-names="runData.runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
                 </template>
               </mwc-list>
             </div>
