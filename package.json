@@ -12,7 +12,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
-    "@capacitor/android": "^3.4.0",
+    "@capacitor/android": "^3.5.1",
     "@capacitor/cli": "^3.5.1",
     "@capacitor/core": "^3.4.0",
     "@material/mwc-button": "^0.26.1",
