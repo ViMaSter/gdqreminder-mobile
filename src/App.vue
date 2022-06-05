@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import GDQHeader from './components/GDQHeader.vue'
 import { PushNotifications, Channel as g } from '@capacitor/push-notifications';
+import { EventHandler, NestedEventCallbacks} from './utilities/eventHandler';
+import { AppLauncher } from '@capacitor/app-launcher';
+import { Capacitor } from '@capacitor/core';
 
 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
 {
@@ -8,6 +11,26 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
 }
 
 const addListeners = async () => {
+  const handler : NestedEventCallbacks = {
+      run: {
+        start: async (remaining : string[]) => {
+          const [pk] = remaining;
+          if(await AppLauncher.canOpenUrl({ url: "twitch://open"}))
+          {
+              AppLauncher.openUrl({url: `twitch://stream/gamesdonequick`});
+              return;
+          }
+          if(await AppLauncher.canOpenUrl({ url: "https://twitch.tv/gamesdonequick"}))
+          {
+              AppLauncher.openUrl({url: `https://twitch.tv/gamesdonequick`});
+              return;
+          }
+
+          throw new Error("Neither the Twitch app nor a web browser is installed");
+        }
+      }
+  };
+
   await PushNotifications.addListener('registration', token => {
     console.info('Registration token: ', token.value);
   });
@@ -21,7 +44,13 @@ const addListeners = async () => {
   });
 
   await PushNotifications.addListener('pushNotificationActionPerformed', notification => {
-    console.log('Push notification action performed', notification.actionId, notification.inputValue);
+    console.log('Push notification action performed', notification.actionId, JSON.stringify(notification));
+    if (!notification.notification.data.event)
+    {
+        console.warn("Handling notification without event data");
+        return;
+    }
+    EventHandler.handleCustomEvent(notification.notification.data.event, handler);
   });
 }
 
@@ -39,9 +68,22 @@ const registerNotifications = async () => {
   await PushNotifications.register();
 }
 
-registerNotifications().then(() => {
-  addListeners();
-})
+console.log(Capacitor.isPluginAvailable("PushNotification"));
+registerNotifications()
+  .then(async () => {
+    addListeners()
+      .catch(e => {
+        console.groupCollapsed("Supressed PushNotification error on web");
+        console.error(e);
+        console.groupEnd();
+      });
+  })
+  .catch(e => {
+    console.groupCollapsed("Supressed PushNotification error on web");
+    console.error(e);
+    console.groupEnd();
+  });
+
 </script>
 
 <template>

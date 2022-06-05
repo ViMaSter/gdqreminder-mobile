@@ -13,6 +13,7 @@ import {GDQEventData} from '../interfaces/GDQEvent'
 import {GDQRunData, GDQRunDataFields} from '../interfaces/GDQRun'
 import {GDQRunnerData, GDQRunnerDataFields} from '../interfaces/GDQRunner'
 import GDQRun from './GDQRun.vue';
+import Version from '@/plugins/versionPlugin';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -20,6 +21,9 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 
 export default defineComponent({
     async setup(props: {}, { emit }: SetupContext) {
+        const reminder = ref<string[]>([]);
+        provide('reminder', reminder)
+
         onMounted(() => {
             const container = drawer.value!.parentNode;
             container!.addEventListener("MDCTopAppBar:nav", () => {
@@ -83,7 +87,7 @@ export default defineComponent({
                 touchIdentifier = -1;
             });
         };
-        const currentEvent = ref("");
+        const currentEvent = ref(`v${(await Version.getCurrent()).versionName} (${(await Version.getCurrent()).versionCode})`);
         const runsByID = ref<{
             [pk: string]: GDQRunDataFields;
         }>({});
@@ -91,9 +95,6 @@ export default defineComponent({
         const runners = ref<{
             [pk: string]: GDQRunnerDataFields;
         }>({});
-
-        const reminder = ref<string[]>([]);
-        provide('reminder', reminder)
         const updateCurrentEvent = (newEvent: string) => {
             currentEvent.value = newEvent;
             drawer.value!.open = false;

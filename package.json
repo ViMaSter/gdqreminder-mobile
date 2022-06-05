@@ -14,6 +14,7 @@
   "dependencies": {
     "@capacitor-community/fcm": "^2.0.2",
     "@capacitor/android": "^3.5.1",
+    "@capacitor/app-launcher": "^1.0.9",
     "@capacitor/cli": "^3.5.1",
     "@capacitor/core": "^3.4.0",
     "@capacitor/push-notifications": "^1.0.9",
