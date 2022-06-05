@@ -15,7 +15,7 @@ const addListeners = async () => {
       run: {
         start: async (remaining : string[]) => {
           const [pk] = remaining;
-          if(await AppLauncher.canOpenUrl({ url: "twitch://open"}))
+          if((await AppLauncher.canOpenUrl({ url: "twitch://open"})).value)
           {
               AppLauncher.openUrl({url: `twitch://stream/gamesdonequick`});
               return;
