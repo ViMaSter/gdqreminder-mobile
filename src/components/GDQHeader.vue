@@ -87,7 +87,7 @@ export default defineComponent({
                 touchIdentifier = -1;
             });
         };
-        const currentEvent = ref(`v${(await Version.getCurrent()).versionName} (${(await Version.getCurrent()).versionCode})`);
+        const currentEvent = ref(`${(await Version.getCurrent()).versionName}.${(await Version.getCurrent()).versionCode}`);
         const runsByID = ref<{
             [pk: string]: GDQRunDataFields;
         }>({});
