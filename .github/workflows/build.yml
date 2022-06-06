@@ -36,6 +36,6 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
           packageName: ke.mahn.gdqreminder
-          track: internal
+          track: alpha
           status: completed
           releaseFiles: ./android/app/build/outputs/bundle/release/app-release.aab
