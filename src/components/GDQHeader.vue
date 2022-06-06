@@ -14,6 +14,7 @@ import {GDQRunData, GDQRunDataFields} from '../interfaces/GDQRun'
 import {GDQRunnerData, GDQRunnerDataFields} from '../interfaces/GDQRunner'
 import GDQRun from './GDQRun.vue';
 import Version from '@/plugins/versionPlugin';
+import GDQDayDivider from './GDQDayDivider.vue';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -91,7 +92,9 @@ export default defineComponent({
         const runsByID = ref<{
             [pk: string]: GDQRunDataFields;
         }>({});
+        const orderedDays = ref<string[]>([]);
         const runIDsInOrder = ref<string[]>([]);
+        const runsByDay = ref<{[day : string] : string[]}>({});
         const runners = ref<{
             [pk: string]: GDQRunnerDataFields;
         }>({});
@@ -111,6 +114,16 @@ export default defineComponent({
                 runners.value = { ...runners.value, ...runnerDataForRunnersOfThisRun };
                 runsByID.value = Object.fromEntries<GDQRunDataFields>(orderedRuns);
                 runIDsInOrder.value = orderedRuns.map(([pk, _] : [string, undefined]) => pk);
+
+                orderedDays.value = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
+                runIDsInOrder.value.forEach(runID => {
+                    const dayOfRun = new Date(runsByID.value[runID].starttime).toLocaleDateString();
+                    if (!Object.keys(runsByDay.value).includes(dayOfRun))
+                    {
+                        runsByDay.value[dayOfRun] = [];
+                    }
+                    runsByDay.value[dayOfRun].push(runID);
+                });
             };
             loadRuns(eventByShorthands.value[newEvent].short);
         };
@@ -138,11 +151,12 @@ export default defineComponent({
             updateCurrentEvent,
             runsByID,
             runIDsInOrder,
+            runsByDay,
             runners,
             reminder
         };
     },
-    components: { GDQRun }
+    components: { GDQRun, GDQDayDivider }
 });
 </script>
 
@@ -162,8 +176,11 @@ export default defineComponent({
             </mwc-top-app-bar-fixed>
             <div>
               <mwc-list activatable multi>
-                <template v-for="runPK in runIDsInOrder" :key="runPK">
-                  <GDQRun :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
+                <template v-for="(runs, day, _) in runsByDay" :key="day">
+                    <GDQDayDivider :day="(day as string)" />
+                    <template v-for="(runPK, _) in runs" :key="runPK">
+                        <GDQRun :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
+                    </template>
                 </template>
               </mwc-list>
             </div>

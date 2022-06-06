@@ -14,16 +14,16 @@ const addListeners = async () => {
   const handler : NestedEventCallbacks = {
       run: {
         start: async (remaining : string[]) => {
-          const [pk] = remaining;
-          if((await AppLauncher.canOpenUrl({ url: "twitch://open"})).value)
-          {
-              AppLauncher.openUrl({url: `twitch://stream/gamesdonequick`});
+          const urls = [
+            "twitch://stream/gamesdonequick",
+            "https://twitch.tv/gamesdonequick"
+          ];
+          for (const url of urls) {
+            const {completed} = await AppLauncher.openUrl({url});
+            if (completed)
+            {
               return;
-          }
-          if(await AppLauncher.canOpenUrl({ url: "https://twitch.tv/gamesdonequick"}))
-          {
-              AppLauncher.openUrl({url: `https://twitch.tv/gamesdonequick`});
-              return;
+            }
           }
 
           throw new Error("Neither the Twitch app nor a web browser is installed");
