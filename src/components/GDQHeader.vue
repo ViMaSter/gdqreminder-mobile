@@ -142,6 +142,10 @@ export default defineComponent({
           snackbar.value!.labelText = text;
         };
 
+        const toggleDarkMode = () => {
+            document.body.classList.toggle('dark-mode');
+        };
+
         return {
             eventByShorthands,
             drawer,
@@ -153,7 +157,8 @@ export default defineComponent({
             runIDsInOrder,
             runsByDay,
             runners,
-            reminder
+            reminder,
+            toggleDarkMode
         };
     },
     components: { GDQRun, GDQDayDivider }
@@ -173,6 +178,7 @@ export default defineComponent({
             <mwc-top-app-bar-fixed>
                 <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
                 <div slot="title">{{currentEvent}}</div>
+                <mwc-icon-button icon="dark_mode" slot="actionItems" @click="toggleDarkMode"></mwc-icon-button>
             </mwc-top-app-bar-fixed>
             <div>
               <mwc-list activatable multi>
