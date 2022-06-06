@@ -10,6 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+      - uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
       - run: npm ci
       - run: npm run build
       - run: npx cap sync
@@ -31,4 +37,5 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
           packageName: ke.mahn.gdqreminder
           track: internal
+          status: completed
           releaseFiles: ./android/app/build/outputs/bundle/release/app-release.aab
