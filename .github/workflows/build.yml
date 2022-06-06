@@ -13,9 +13,15 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx cap sync
-      - run: cd android && ./gradlew assembleDebug
+      - run: cd android && ./gradlew :app:bundleRelease
         shell: bash
       - uses: actions/upload-artifact@v2
         with:
           name: apk-v${{ github.run_number }}
-          path: ./android/app/build/outputs/apk/debug/app-debug.apk
+          path: ./android/app/build/outputs/bundle/release/app-release.aab
+      - uses: r0adkll/upload-google-play@v1.0.16
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
+          packageName: ke.mahn.gdqreminder
+          track: internal
+          releaseFiles: ./android/app/build/outputs/bundle/release/app-release.aab
