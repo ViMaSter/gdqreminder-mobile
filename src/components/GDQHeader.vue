@@ -172,7 +172,7 @@ export default defineComponent({
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
         <span slot="title">Available events</span>
         <mwc-list>
-          <mwc-list-item v-for="[displayName, data] in (Object.entries(eventByShorthands))" :key="displayName" @click="updateCurrentEvent(displayName)">{{displayName}}</mwc-list-item>
+          <mwc-list-item v-for="[displayName] in (Object.entries(eventByShorthands))" :key="displayName" @click="updateCurrentEvent(displayName)">{{displayName}}</mwc-list-item>
         </mwc-list>
         <div slot="appContent">
             <mwc-top-app-bar-fixed>
@@ -184,8 +184,9 @@ export default defineComponent({
               <mwc-list activatable multi>
                 <template v-for="(runs, day, _) in runsByDay" :key="day">
                     <GDQDayDivider :day="(day as string)" />
-                    <template v-for="(runPK, _) in runs" :key="runPK">
-                        <GDQRun :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
+                    <template v-for="(runPK, index) in runs" :key="runPK">   
+                        <GDQRun v-if="index == (Object.keys(runs).length - 1)" :last="true"  :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
+                        <GDQRun v-if="index != (Object.keys(runs).length - 1)" :last="false" :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
                     </template>
                 </template>
               </mwc-list>

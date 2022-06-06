@@ -16,6 +16,10 @@ export default defineComponent({
     runnerNames: {
       type: Array as () => string[],
       required: true,
+    },
+    last: {
+      type: Boolean,
+      required: true,
     }
   },
   setup(props, {emit}) {
@@ -66,7 +70,7 @@ export default defineComponent({
       <span class="end">{{ end }}</span>
     </span>
   </mwc-list-item>
-  <li divider role="separator" padded></li>
+  <li v-if="!last" divider role="separator" padded></li>
 </template>
 <style scoped lang="css">
 
