@@ -21,7 +21,7 @@ jobs:
       - run: npx cap sync
       - run: cd android && ./gradlew :app:bundleRelease
         shell: bash
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: apk-v${{ github.run_number }}
           path: ./android/app/build/outputs/bundle/release/app-release.aab
