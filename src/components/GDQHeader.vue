@@ -171,7 +171,18 @@ export default defineComponent({
             runsByDay,
             runners,
             reminder,
-            toggleDarkMode
+            toggleDarkMode,
+            className: () => {
+                if (currentEvent.value.startsWith("SGDQ"))
+                {
+                    return "sgdq";
+                }
+                if (currentEvent.value.startsWith("AGDQ"))
+                {
+                    return "agdq";
+                }
+                return "";
+            }
         };
     },
     components: { GDQRun, GDQDayDivider, GDQHeaderBar }
@@ -179,7 +190,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
+  <div :class="className()">
     <mwc-snackbar ref="snackbar" timeoutMs="10000">
     </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
