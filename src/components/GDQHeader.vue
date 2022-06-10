@@ -8,20 +8,20 @@ import '@material/mwc-drawer';
 import '@material/mwc-top-app-bar-fixed';
 import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
-import { SetupContext } from '@vue/runtime-core';
 import {GDQEventData} from '../interfaces/GDQEvent'
 import {GDQRunData, GDQRunDataFields} from '../interfaces/GDQRun'
 import {GDQRunnerData, GDQRunnerDataFields} from '../interfaces/GDQRunner'
 import GDQRun from './GDQRun.vue';
 import Version from '@/plugins/versionPlugin';
 import GDQDayDivider from './GDQDayDivider.vue';
+import GDQHeaderBar from './GDQHeaderBar.vue';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
 }
 
 export default defineComponent({
-    async setup(props: {}, { emit }: SetupContext) {
+    async setup() {
         const reminder = ref<string[]>([]);
         provide('reminder', reminder)
 
@@ -125,10 +125,10 @@ export default defineComponent({
                 const uniqueRunner = [...new Set(allRunners)];
                 const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json()).map((runner: GDQRunnerData) => [runner.pk, runner.fields]));
                 runners.value = { ...runners.value, ...runnerDataForRunnersOfThisRun };
-                runsByID.value = Object.fromEntries<GDQRunDataFields>(orderedRuns);
+                runsByID.value = { ...runsByID.value, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
                 runIDsInOrder.value = orderedRuns.map(([pk, _] : [string, undefined]) => pk);
-
                 orderedDays.value = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
+                runsByDay.value = {};
                 runIDsInOrder.value.forEach(runID => {
                     const dayOfRun = new Date(runsByID.value[runID].starttime).toLocaleDateString();
                     if (!Object.keys(runsByDay.value).includes(dayOfRun))
@@ -174,7 +174,7 @@ export default defineComponent({
             toggleDarkMode
         };
     },
-    components: { GDQRun, GDQDayDivider }
+    components: { GDQRun, GDQDayDivider, GDQHeaderBar }
 });
 </script>
 
@@ -188,11 +188,7 @@ export default defineComponent({
           <mwc-list-item v-for="[displayName] in (Object.entries(eventByShorthands))" :key="displayName" @click="updateCurrentEvent(displayName)">{{displayName}}</mwc-list-item>
         </mwc-list>
         <div slot="appContent">
-            <mwc-top-app-bar-fixed>
-                <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
-                <div slot="title">{{currentEvent}}</div>
-                <mwc-icon-button icon="dark_mode" slot="actionItems" @click="toggleDarkMode"></mwc-icon-button>
-            </mwc-top-app-bar-fixed>
+            <GDQHeaderBar @toggleDarkMode="toggleDarkMode" :currentEvent="currentEvent"></GDQHeaderBar>
             <div>
               <mwc-list activatable multi>
                 <template v-for="(runs, day, _) in runsByDay" :key="day">
@@ -210,4 +206,13 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+    .dark-mode mwc-drawer
+    {
+      --mdc-theme-surface: black;
+    }
+
+    .dark-mode mwc-drawer *
+    {
+      color: white !important;
+    }
 </style>
