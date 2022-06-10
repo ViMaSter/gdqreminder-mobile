@@ -23,7 +23,7 @@ jobs:
         shell: bash
       - uses: actions/upload-artifact@v3
         with:
-          name: apk-v${{ github.run_number }}
+          name: aab-v${{ github.run_number }}
           path: ./android/app/build/outputs/bundle/release/app-release.aab
           
   publish:
@@ -33,10 +33,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@v3
         with:
-          name: apk-v${{ github.run_number }}
+          name: aab-v${{ github.run_number }}
+          path: aab
       - uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: ./android/app/build/outputs/bundle/release
+          releaseDirectory: ./aab
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -47,4 +48,4 @@ jobs:
           packageName: ke.mahn.gdqreminder
           track: alpha
           status: completed
-          releaseFiles: ./android/app/build/outputs/bundle/release/app-release.aab
+          releaseFiles: ./aab/app-release.aab
