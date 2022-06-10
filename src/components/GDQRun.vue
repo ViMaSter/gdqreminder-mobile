@@ -41,7 +41,7 @@ export default defineComponent({
     };
 
     const isTrackedRun = ref(reminder.value.includes(props.pk.toString()));
-    const primary = props.fields.display_name;
+    const primary = props.fields.display_name.replaceAll("\\n", " ");
     const start = new Date(props.fields.starttime).toLocaleTimeString();
     const end = new Date(props.fields.endtime).toLocaleTimeString();
     const secondary = ref(
@@ -54,7 +54,7 @@ export default defineComponent({
       start,
       end,
       secondary,
-      primary: props.fields.display_name,
+      primary,
       isTrackedRun
     };
   },
