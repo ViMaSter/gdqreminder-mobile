@@ -45,15 +45,23 @@ export default defineComponent({
                 console.log(calculateVelocity());
             };
             const calculateVelocity = () => {
-                let average = 0;
+                let averageX = 0;
+                let averageY = 0;
                 if (velocity.length == 1) {
-                    return average;
+                    return averageX;
                 }
                 for (let i: number = 1; i < velocity.length; i++) {
-                    average += velocity[i].clientX - velocity[i - 1].clientX;
+                    averageX += velocity[i].clientX - velocity[i - 1].clientX;
+                    averageY += velocity[i].clientY - velocity[i - 1].clientY;
                 }
-                average /= velocity.length;
-                return average;
+                averageX /= velocity.length;
+                averageY /= velocity.length;
+                if (Math.abs(averageY) > Math.abs(averageX))
+                {
+                    console.log("y>x");
+                    return null;
+                }
+                return averageX;
             };
             window.addEventListener("touchstart", (touchStartEvent) => {
                 if (touchIdentifier != -1) {
@@ -83,7 +91,12 @@ export default defineComponent({
                 if (Array.from(touchEndEvent.touches).find(touch => touch.identifier == touchIdentifier)) {
                     return;
                 }
-                drawer.open = calculateVelocity() > 0;
+                let calculatedVelocity = calculateVelocity();
+                if (calculatedVelocity == null)
+                {
+                    return;
+                }
+                drawer.open = calculatedVelocity > 0;
                 velocity = [];
                 touchIdentifier = -1;
             });
