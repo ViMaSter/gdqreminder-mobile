@@ -4,6 +4,7 @@ import "../utilities/pushNotificationHelper";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
 import PushNotificationHelper from "../utilities/pushNotificationHelper";
 import "@material/mwc-icon"
+import { watch } from "fs";
 export default defineComponent({
   props: {
     pk: {
@@ -39,6 +40,7 @@ export default defineComponent({
       return true;
     };
 
+    const hasActiveReminder = reminder.value.includes(props.pk.toString());
     const showSnackbar = inject<(text : string) => void>("showSnackbar")!;
     const onFocus = () => {
       showSnackbar(
@@ -84,10 +86,14 @@ export default defineComponent({
       return "";
     };
 
+    const rand = Math.random()>0.5;
+    console.log(rand)
+
     return {
       toggleReminder,
       onFocus,
-      className: generateClassName(),
+      className: 'run ' + generateClassName(),
+      reminderClasses: 'reminder ' + (Math.random() > 0.5 ? 'is-set' : ''),
       startString,
       durationHMMSS,
       runners,
@@ -106,24 +112,42 @@ export default defineComponent({
     :class="className"
     :activated="isTrackedRun ? true : false"
   >
-    <span class="runName">{{ runName }}</span>
-    <span class="meta">
-      <span class="meta-entry schedule"><mwc-icon>schedule</mwc-icon>{{ startString }}</span>
-      <span class="meta-entry timer"><mwc-icon>timer</mwc-icon>{{ durationHMMSS }}</span>
-      <span class="meta-entry person"><mwc-icon>person</mwc-icon> {{runners}}</span>
-    </span>
+    <div class="content">
+      <span class="runName">{{ runName }}</span>
+      <span class="meta">
+        <span class="meta-entry schedule"><mwc-icon>schedule</mwc-icon>{{ startString }}</span>
+        <span class="meta-entry timer"><mwc-icon>timer</mwc-icon>{{ durationHMMSS }}</span>
+        <span class="meta-entry person"><mwc-icon>person</mwc-icon> {{runners}}</span>
+      </span>
+    </div>
+    <div :class="reminderClasses"><mwc-icon>alarm</mwc-icon></div>
   </div>
 </template>
 <style scoped lang="scss">
 // layout
-div
+.run
 {
+  position: relative;
+
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: stretch;
+
   border-radius: 11px;
   margin-bottom: 14px;
-  
+  overflow: hidden;
+
+  .content
+  {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    
+    flex-grow: 1;
+    flex-shrink: 1;
+  }
+
   span
   {
     $text-size: 14px;
@@ -134,6 +158,7 @@ div
     &.runName, &.meta
     {
       margin: 0.1em 0.75em;
+      flex-shrink: 1;
     }
 
     &.runName
@@ -147,6 +172,7 @@ div
     &.meta
     {
       display: flex;
+      flex-shrink: 1;
     }
 
     &.meta-entry
@@ -154,13 +180,16 @@ div
       display: inline-block;
       vertical-align: top;
       text-align: left;
+      white-space: nowrap;
+      overflow-x: hidden;
+      
       &.schedule
       {
-        min-width: 100px;
+        flex: 0 0 100px;
       }
       &.timer
       {
-        min-width: 90px;
+        flex: 0 0 90px;
       }
       &.person
       {
@@ -176,56 +205,75 @@ div
       vertical-align: middle;
       margin-top: -2px;
       margin-right: 4px;
+      --mdc-icon-size: $text-size;
+    }
+  }
+
+  .reminder
+  {
+    &.is-set
+    {
+      display: flex;
     }
 
+    display: none;
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
+    flex: 0 0 auto;
+    aspect-ratio: 1/1;
+
+    background: var(--background-alarm);
+    
     mwc-icon
     {
-      --mdc-icon-size: $text-size;
+      --mdc-icon-size: 32px;
     }
   }
 }
 
 
 // coloring
-div {
+.content {
   background: var(--vote-purple);
   --mdc-theme-primary: color.adjust(var(--vote-purple, $lightness: +100%));
-  &.in-person {
+}
+  .in-person .content {
     background: var(--vote-blue);
     --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
   }
-  &.bonus-game {
+  .bonus-game .content {
     background: var(--vote-cyan);
     --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
   }
-}
 .agdq {
-  div {
+  .content {
     background: var(--vote-cyan);
-    ;
-    &.in-person {
+    --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+  }
+    .in-person .content {
         background: var(--vote-blue);
         --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
     }
-    &.bonus-game {
+    .bonus-game .content {
         background: var(--vote-red);
         --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
     }
   }
-}
 
 .sgdq {
-  div {
+  .content {
     background: var(--vote-red);
     --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
-    &.in-person {
-        background: var(--vote-blue);
-        --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
-    }
-    &.bonus-game {
-        background: var(--vote-cyan);
-        --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
-    }
+  }
+  .in-person .content {
+      background: var(--vote-blue);
+      --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+  }
+  .bonus-game .content {
+      background: var(--vote-cyan);
+      --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
   }
 }
 

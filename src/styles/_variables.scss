@@ -10,6 +10,8 @@
     --background-red: hsla(0, 0%, 100%, 1);
     --background-cyan: hsla(0, 0%, 100%, 1);
     --background-purple: hsla(0, 0%, 100%, 1);
+
+    --background-alarm: hsla(52, 95%, 50%, 1);
     
     .dark-mode &
     {
@@ -24,5 +26,7 @@
         --background-red: hsla(347, 89%, 52%, 0.2);
         --background-cyan: hsla(180, 100%, 50%, 0.1);
         --background-purple: hsla(281, 100%, 51%, 0.2);
+
+        --background-alarm: hsla(52, 76%, 51%, 0.5);
     }
 }
