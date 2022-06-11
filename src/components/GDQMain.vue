@@ -25,9 +25,9 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 export default defineComponent({
     async setup() {
         const reminder = ref<string[]>([]);
-        provide('reminder', reminder)
-
         onMounted(() => {
+            provide("reminder", reminder);
+            
             const container = drawer.value!.parentNode;
             container!.addEventListener("MDCTopAppBar:nav", () => {
                 drawer.value!.open = !drawer.value!.open;

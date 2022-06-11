@@ -1,10 +1,9 @@
 <script lang="ts">
-import { defineComponent, ref, inject, Ref } from "vue";
+import { defineComponent, ref, inject, Ref, watchEffect } from "vue";
 import "../utilities/pushNotificationHelper";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
 import PushNotificationHelper from "../utilities/pushNotificationHelper";
 import "@material/mwc-icon"
-import { watch } from "fs";
 export default defineComponent({
   props: {
     pk: {
@@ -26,21 +25,6 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     let reminder = inject<Ref<string[]>>("reminder")!;
-    const toggleReminder = () => {
-      if (reminder.value.includes(props.pk.toString())) {
-        reminder.value = reminder.value.filter(
-          (pk) => pk !== props.pk.toString()
-        );
-        PushNotificationHelper.unsubscribeFromStartOfRun(props.pk.toString());
-        return false;
-      }
-
-      reminder.value.push(props.pk.toString());
-      PushNotificationHelper.subscribeToStartOfRun(props.pk.toString());
-      return true;
-    };
-
-    const hasActiveReminder = reminder.value.includes(props.pk.toString());
     const showSnackbar = inject<(text : string) => void>("showSnackbar")!;
     const onFocus = () => {
       showSnackbar(
@@ -50,7 +34,8 @@ export default defineComponent({
       );
     };
 
-    const isTrackedRun = ref(reminder.value.includes(props.pk.toString()));
+    const hasActiveReminder = ref(reminder.value.includes(props.pk.toString()));
+
     const runName = props.fields.display_name.replaceAll("\\n", " ");
     const start = new Date(props.fields.starttime);
     const end = new Date(props.fields.endtime);
@@ -61,6 +46,11 @@ export default defineComponent({
     const durationHMMSS = `${duration.getUTCHours()}:${duration.getUTCMinutes().toString().padStart(2, '0')}:${duration.getUTCSeconds().toString().padStart(2, '0')}`;
     const runners = ref(`${props.runnerNames.join(", ")}`);
 
+    let reminderClasses = ref("");
+    watchEffect(() => {
+      reminderClasses.value = 'reminder ' + (hasActiveReminder.value ? 'is-set' : '');
+    });
+    
     const generateClassName = () => {
       if (props.fields.display_name == "Pre-Show") {
         return "in-person";
@@ -86,20 +76,36 @@ export default defineComponent({
       return "";
     };
 
-    const rand = Math.random()>0.5;
-    console.log(rand)
-
     return {
-      toggleReminder,
+      pk: props.pk,
       onFocus,
       className: 'run ' + generateClassName(),
-      reminderClasses: 'reminder ' + (Math.random() > 0.5 ? 'is-set' : ''),
+      reminderClasses,
       startString,
       durationHMMSS,
       runners,
       runName,
-      isTrackedRun,
+      hasActiveReminder,
+      reminder
     };
+  },
+  methods: {
+    toggleReminder: function() {
+      if (this.reminder.includes(this.pk.toString()))
+      {
+        this.reminder = this.reminder.filter(
+          (pk) => pk !== this.pk.toString()
+        );
+        PushNotificationHelper.unsubscribeFromStartOfRun(this.pk.toString());
+        this.hasActiveReminder = false;
+        return false;
+      }
+
+      this.reminder.push(this.pk.toString());
+      PushNotificationHelper.subscribeToStartOfRun(this.pk.toString());
+      this.hasActiveReminder = true;
+      return true;
+    }
   }
 });
 </script>
@@ -110,7 +116,6 @@ export default defineComponent({
     @focus="onFocus()"
     tabindex="0"
     :class="className"
-    :activated="isTrackedRun ? true : false"
   >
     <div class="content">
       <span class="runName">{{ runName }}</span>
@@ -213,10 +218,14 @@ export default defineComponent({
   {
     &.is-set
     {
-      display: flex;
+      transition: 0.15s ease-out all;
+      margin-right: 0px;
     }
 
-    display: none;
+    display: flex;
+    transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1) all;
+    margin-right: -50px;
+
     justify-content: center;
     align-items: center;
 
@@ -226,8 +235,22 @@ export default defineComponent({
 
     background: var(--background-alarm);
     
+    &.is-set mwc-icon
+    {
+      margin-left: 0px;
+      transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
+      transform: rotateZ(0deg);
+      transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
+    }
+
     mwc-icon
     {
+      margin-left: 50px;
+      transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
+      transform: rotateZ(90deg);
+      transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
+
+      transform-origin: bottom center;
       --mdc-icon-size: 32px;
     }
   }
