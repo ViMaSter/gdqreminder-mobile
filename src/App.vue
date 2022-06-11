@@ -4,9 +4,9 @@ import { PushNotifications, Channel as g } from '@capacitor/push-notifications';
 import { EventHandler, NestedEventCallbacks} from './utilities/eventHandler';
 import { AppLauncher } from '@capacitor/app-launcher';
 import { Capacitor } from '@capacitor/core';
-import * as pinia from 'pinia'
+import { Theme, useThemeStore } from '@/stores/theme';
 
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+if (useThemeStore().currentTheme === Theme.Dark)
 {
     document.body.classList.add('dark-mode');
 }
@@ -14,7 +14,7 @@ if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').match
 const addListeners = async () => {
   const handler : NestedEventCallbacks = {
       run: {
-        start: async (remaining : string[]) => {
+        start: async () => {
           const urls = [
             "twitch://stream/gamesdonequick",
             "https://twitch.tv/gamesdonequick"
@@ -74,13 +74,13 @@ registerNotifications()
   .then(async () => {
     addListeners()
       .catch(e => {
-        console.groupCollapsed("Supressed PushNotification error on web");
+        console.groupCollapsed("Suppressed PushNotification error on web");
         console.error(e);
         console.groupEnd();
       });
   })
   .catch(e => {
-    console.groupCollapsed("Supressed PushNotification error on web");
+    console.groupCollapsed("Suppressed PushNotification error on web");
     console.error(e);
     console.groupEnd();
   });

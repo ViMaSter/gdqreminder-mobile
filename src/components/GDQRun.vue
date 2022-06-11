@@ -25,7 +25,7 @@ export default defineComponent({
       required: true,
     },
   },
-  setup(props, { emit }) {
+  setup(props) {
     let reminder = useRunReminderStore();
     const showSnackbar = inject<(text : string) => void>("showSnackbar")!;
     const onFocus = () => {

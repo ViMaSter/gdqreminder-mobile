@@ -6,6 +6,7 @@ import '@material/mwc-snackbar';
 import { Snackbar } from '@material/mwc-snackbar';
 import '@material/mwc-drawer';
 import '@material/mwc-top-app-bar-fixed';
+import { Theme, useThemeStore } from '@/stores/theme';
 import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
 import {GDQEventData} from '../interfaces/GDQEvent'
@@ -161,7 +162,9 @@ export default defineComponent({
         const snackbar = ref<Snackbar>();
 
         const toggleDarkMode = () => {
+            const themeStore = useThemeStore();
             document.body.classList.toggle('dark-mode');
+            themeStore.override(document.body.classList.contains('dark-mode') ? Theme.Dark : Theme.Light);
         };
 
         return {
