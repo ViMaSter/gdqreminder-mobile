@@ -15,6 +15,7 @@ import GDQRun from './GDQRun.vue';
 import Version from '@/plugins/versionPlugin';
 import GDQDayDivider from './GDQDayDivider.vue';
 import GDQHeaderBar from './GDQHeaderBar.vue';
+import GDQSidebar from './GDQSidebar.vue';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -101,7 +102,7 @@ export default defineComponent({
                 touchIdentifier = -1;
             });
         };
-        const currentEvent = ref(`${(await Version.getCurrent()).versionName}.${(await Version.getCurrent()).versionCode}`);
+        const currentEventName = ref(`${(await Version.getCurrent()).versionName}.${(await Version.getCurrent()).versionCode}`);
         const runsByID = ref<{
             [pk: string]: GDQRunDataFields;
         }>({});
@@ -112,7 +113,7 @@ export default defineComponent({
             [pk: string]: GDQRunnerDataFields;
         }>({});
         const updateCurrentEvent = (newEvent: string) => {
-            currentEvent.value = newEvent;
+            currentEventName.value = newEvent;
             drawer.value!.open = false;
             const loadRuns = async (eventShort: string) => {
                 const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json())
@@ -163,8 +164,9 @@ export default defineComponent({
             eventByShorthands,
             drawer,
             snackbar,
+            orderedDays,
             showSnackbar,
-            currentEvent,
+            currentEventName,
             updateCurrentEvent,
             runsByID,
             runIDsInOrder,
@@ -172,34 +174,65 @@ export default defineComponent({
             runners,
             reminder,
             toggleDarkMode,
-            className: () => {
-                if (currentEvent.value.startsWith("SGDQ"))
+            generateContainerClassNames: () => {
+                let classNames = ["container"];
+                if (currentEventName.value.startsWith("SGDQ"))
                 {
-                    return "sgdq";
+                    classNames.push("sgdq");
                 }
-                if (currentEvent.value.startsWith("AGDQ"))
+                if (currentEventName.value.startsWith("AGDQ"))
                 {
-                    return "agdq";
+                    classNames.push("agdq");
                 }
-                return "";
+                return classNames.join(" ");
             }
         };
     },
-    components: { GDQRun, GDQDayDivider, GDQHeaderBar }
+    components: { GDQRun, GDQDayDivider, GDQHeaderBar, GDQSidebar },
+    methods: {
+        updateCurrentEvent: function(newEventName : string) {
+            this.currentEventName = newEventName;
+            this.drawer!.open = false;
+            const loadRuns = async (eventShort : string) => {
+                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json())
+                                    .sort((a : GDQRunData, b : GDQRunData) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
+                                    .map((run: GDQRunData) => [run.pk, run.fields]);
+                const allRunners = orderedRuns.map((run: [
+                    number,
+                    GDQRunDataFields
+                ]) => run[1].runners).flat();
+                const uniqueRunner = [...new Set(allRunners)];
+                const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json()).map((runner: GDQRunnerData) => [runner.pk, runner.fields]));
+                this.runners = { ...this.runners, ...runnerDataForRunnersOfThisRun };
+                this.runsByID = { ...this.runsByID, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
+                this.runIDsInOrder = orderedRuns.map(([pk, _] : [string, undefined]) => pk);
+                this.orderedDays = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
+                this.runsByDay = {};
+                this.runIDsInOrder.forEach(runID => {
+                    const dayOfRun = new Date(this.runsByID[runID].starttime).toLocaleDateString();
+                    if (!Object.keys(this.runsByDay).includes(dayOfRun))
+                    {
+                        this.runsByDay[dayOfRun] = [];
+                    }
+                    this.runsByDay[dayOfRun].push(runID);
+                });
+            };
+            loadRuns(this.eventByShorthands.value[newEventName].short);
+        }
+    }
 });
 </script>
 
 <template>
-  <div :class="className()">
+<link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
+  <div :class="generateContainerClassNames()">
     <mwc-snackbar ref="snackbar" timeoutMs="10000">
     </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
         <span slot="title">Available events</span>
-        <mwc-list>
-          <mwc-list-item v-for="[displayName] in (Object.entries(eventByShorthands))" :key="displayName" @click="updateCurrentEvent(displayName)">{{displayName}}</mwc-list-item>
-        </mwc-list>
+        <GDQSidebar :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
         <div slot="appContent">
-            <GDQHeaderBar @toggleDarkMode="toggleDarkMode" :currentEvent="currentEvent"></GDQHeaderBar>
+            <GDQHeaderBar @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeaderBar>
             <div>
               <mwc-list activatable multi>
                 <template v-for="(runs, day, _) in runsByDay" :key="day">
@@ -217,13 +250,41 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-    .dark-mode mwc-drawer
+    mwc-list
     {
-      --mdc-theme-surface: black;
+        margin-left: 52.5pt;
+        margin-right: 10pt;
     }
 
-    .dark-mode mwc-drawer *
+    .container
     {
-      color: white !important;
+        height: 100vh;
+    }
+
+    .dark-mode {
+        .container
+        {
+            background: hsla(281, 100%, 51%, 0.2);
+
+            &.sgdq
+            {
+                background: hsla(347, 89%, 52%, 0.2);
+            }
+
+            &.agdq
+            {
+                background: hsla(180, 100%, 50%, 0.1);
+            }
+        }
+
+        mwc-drawer
+        {
+            --mdc-theme-surface: black;
+        }
+
+        mwc-drawer *
+        {
+            color: hsl(0deg 0% 87%) !important;
+        }
     }
 </style>

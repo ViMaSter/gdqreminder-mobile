@@ -1,6 +1,7 @@
 export interface GDQRunDataFields
 {
   display_name : string
+  console : string
   category : string
   starttime : string
   endtime: string

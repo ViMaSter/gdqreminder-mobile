@@ -20,6 +20,7 @@
     "@capacitor/push-notifications": "^1.0.9",
     "@material/mwc-button": "^0.26.1",
     "@material/mwc-drawer": "^0.26.1",
+    "@material/mwc-icon": "^0.26.1",
     "@material/mwc-icon-button": "^0.26.1",
     "@material/mwc-list": "^0.26.1",
     "@material/mwc-snackbar": "^0.26.1",

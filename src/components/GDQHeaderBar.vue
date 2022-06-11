@@ -1,16 +1,12 @@
 <script lang="ts">
-import { propsToAttrMap } from '@vue/shared';
 import {defineComponent} from 'vue';
 
 export default defineComponent({
     props: {
-        currentEvent: {
+        currentEventName: {
             type: String,
             required: true,
         },
-    },
-
-    async setup() {
     }
 });
 </script>
@@ -18,7 +14,7 @@ export default defineComponent({
 <template>
   <mwc-top-app-bar-fixed>
       <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
-      <div slot="title">{{currentEvent}}</div>
+      <div slot="title">{{currentEventName}}</div>
       <mwc-icon-button slot="actionItems" icon="search" @click="$emit('toggleSearch')"></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="dark_mode" @click="$emit('toggleDarkMode')"></mwc-icon-button>
   </mwc-top-app-bar-fixed>
