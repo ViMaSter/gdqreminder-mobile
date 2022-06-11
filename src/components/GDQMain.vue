@@ -17,7 +17,6 @@ import GDQDay from './GDQDay.vue';
 import GDQDayDivider from './GDQDayDivider.vue';
 import GDQHeader from './GDQHeader.vue';
 import GDQSidebar from './GDQSidebar.vue';
-import { time } from 'console';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -34,6 +33,14 @@ export default defineComponent({
                 drawer.value!.open = !drawer.value!.open;
             });
             setupSwipeLogic(drawer.value!);
+                
+            const showSnackbar = (text : string) => {
+                snackbar.value!.stacked = false;
+                snackbar.value!.leading = false;
+                snackbar.value!.open = true;
+                snackbar.value!.labelText = text;
+            };
+            provide<(text : string) => void>("showSnackbar", showSnackbar);
         });
         const setupSwipeLogic = (drawer: TopAppBarFixedWithOpen) => {
             let touchIdentifier = -1;
@@ -153,12 +160,6 @@ export default defineComponent({
         const drawer = ref<TopAppBarFixedWithOpen>()!;
 
         const snackbar = ref<Snackbar>();
-        const showSnackbar = (text : string) => {
-          snackbar.value!.stacked = false;
-          snackbar.value!.leading = false;
-          snackbar.value!.open = true;
-          snackbar.value!.labelText = text;
-        };
 
         const toggleDarkMode = () => {
             document.body.classList.toggle('dark-mode');
@@ -169,7 +170,6 @@ export default defineComponent({
             drawer,
             snackbar,
             orderedDays,
-            showSnackbar,
             currentEventName,
             updateCurrentEvent,
             runsByID,

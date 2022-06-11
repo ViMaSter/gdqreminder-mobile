@@ -39,9 +39,9 @@ export default defineComponent({
       return true;
     };
 
+    const showSnackbar = inject<(text : string) => void>("showSnackbar")!;
     const onFocus = () => {
-      emit(
-        "showSnackbar",
+      showSnackbar(
         `"${runName} (${
           props.fields.category
         })" run by "${props.runnerNames.join(", ")}"`
@@ -102,14 +102,15 @@ export default defineComponent({
   <div
     @click="toggleReminder()"
     @focus="onFocus()"
+    tabindex="0"
     :class="className"
     :activated="isTrackedRun ? true : false"
   >
     <span class="runName">{{ runName }}</span>
     <span class="meta">
-      <span class="meta-entry schedule"><mwc-icon class="ïcon">schedule</mwc-icon>{{ startString }}</span>
-      <span class="meta-entry timer"><mwc-icon class="ïcon">timer</mwc-icon>{{ durationHMMSS }}</span>
-      <span class="meta-entry person"><mwc-icon class="ïcon">person</mwc-icon> {{runners}}</span>
+      <span class="meta-entry schedule"><mwc-icon>schedule</mwc-icon>{{ startString }}</span>
+      <span class="meta-entry timer"><mwc-icon>timer</mwc-icon>{{ durationHMMSS }}</span>
+      <span class="meta-entry person"><mwc-icon>person</mwc-icon> {{runners}}</span>
     </span>
   </div>
 </template>
