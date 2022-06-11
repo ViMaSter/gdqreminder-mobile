@@ -17,6 +17,7 @@ import GDQDay from './GDQDay.vue';
 import GDQDayDivider from './GDQDayDivider.vue';
 import GDQHeader from './GDQHeader.vue';
 import GDQSidebar from './GDQSidebar.vue';
+import { time } from 'console';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -113,7 +114,7 @@ export default defineComponent({
         const runners = ref<{
             [pk: string]: GDQRunnerDataFields;
         }>({});
-        const updateCurrentEvent = (newEvent: string) => {
+        const updateCurrentEvent = async (newEvent: string) => {
             currentEventName.value = newEvent;
             drawer.value!.open = false;
             const loadRuns = async (eventShort: string) => {
@@ -132,7 +133,9 @@ export default defineComponent({
                 orderedDays.value = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
                 runsByDay.value = {};
                 runIDsInOrder.value.forEach(runID => {
-                    const dayOfRun = new Date(runsByID.value[runID].starttime).getTime();
+                    const timeOfRun = new Date(runsByID.value[runID].starttime);
+                    timeOfRun.setHours(0, 0, 0, 0);
+                    const dayOfRun = timeOfRun.getTime();
                     if (!Object.keys(runsByDay.value).includes(dayOfRun.toString()))
                     {
                         runsByDay.value[dayOfRun] = [];
@@ -140,7 +143,7 @@ export default defineComponent({
                     runsByDay.value[dayOfRun].push(runID);
                 });
             };
-            loadRuns(eventByShorthands.value[newEvent].short);
+            await loadRuns(eventByShorthands.value[newEvent].short);
         };
         const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event")).json();
         const eventByShorthands = ref(Object.fromEntries(eventData
@@ -210,7 +213,9 @@ export default defineComponent({
                 this.orderedDays = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
                 this.runsByDay = {};
                 this.runIDsInOrder.forEach(runID => {
-                    const dayOfRun = new Date(this.runsByID[runID].starttime).getTime();
+                    let timeOfRun = new Date(this.runsByID[runID].starttime);
+                    timeOfRun.setHours(0,0,0,0);
+                    const dayOfRun = timeOfRun.getTime();
                     if (!Object.keys(this.runsByDay).includes(dayOfRun.toString()))
                     {
                         this.runsByDay[dayOfRun] = [];

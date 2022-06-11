@@ -20,27 +20,30 @@ export default defineComponent({
 
 <template>
   <div :id="'day-divider-'+day">
-    <span>{{dayNumber}}</span>
-    <span>{{dayName}}</span>
+    <span class="dayName">{{dayName}}</span>
+    <span class="dayNumber">{{dayNumber}}</span>
   </div>
 </template>
 
 <style lang="css" scoped>
-.dark-mode span
+div
 {
-    color: hsl(0deg 0% 89%);
+    margin-top: .45em;
 }
-.dark-mode li[divider]
+span
 {
-  border-bottom-color: rgba(255, 255, 255, 0.45) !important;
+    color: var(--calendar-day);
+    display: block;
+    text-align: center;
+    line-height: 1;
 }
-mwc-list-item
+
+.dayName
 {
-  justify-content: right;
-  font-size: 1.5em;
+  font-size: 15px;
 }
-mwc-list-item span
+.dayNumber
 {
-  color: #00aeef !important;
+  font-size: 24px;
 }
 </style>

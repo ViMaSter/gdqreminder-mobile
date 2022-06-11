@@ -1,0 +1,28 @@
+* {
+    --primary-text: hsla(0, 0%, 100%, 1);
+    --calendar-day: hsla(0, 0%, 0%, 1);
+    
+    --vote-red: hsla(343, 95%, 40%, 1);
+    --vote-cyan: hsla(180, 95%, 40%, 1);
+    --vote-blue: hsla(230, 95%, 40%, 1);
+    --vote-purple: hsla(272, 95%, 40%, 1);
+    
+    --background-red: hsla(0, 0%, 100%, 1);
+    --background-cyan: hsla(0, 0%, 100%, 1);
+    --background-purple: hsla(0, 0%, 100%, 1);
+    
+    .dark-mode &
+    {
+        --primary-text: hsla(0, 0%, 100%, 1);
+        --calendar-day: hsla(0, 0%, 100%, 1);
+    
+        --vote-red: hsla(347, 89%, 52%, 0.3);
+        --vote-cyan: hsla(180, 100%, 50%, 0.3);
+        --vote-blue: hsla(230, 100%, 51%, 0.3);
+        --vote-purple: hsla(265, 100%, 63%, 0.3);
+    
+        --background-red: hsla(347, 89%, 52%, 0.2);
+        --background-cyan: hsla(180, 100%, 50%, 0.1);
+        --background-purple: hsla(281, 100%, 51%, 0.2);
+    }
+}

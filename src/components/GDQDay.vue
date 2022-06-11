@@ -41,19 +41,33 @@ export default defineComponent({
           <GDQRun class="r" v-if="index == (Object.keys(runsIDsInOrder).length - 1)" :last="true"  :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
           <GDQRun class="r" v-if="index != (Object.keys(runsIDsInOrder).length - 1)" :last="false" :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" @showSnackbar="showSnackbar" />
       </template>
+      <span></span>
   </div>
 </template>
 
 <style lang="css" scoped>
+span {
+  display: block;
+  clear: both;
+}
+.day
+{
+    margin-top: 14px;
+    margin-bottom: 12px;
+    padding-right: 10px;
+}
 .dd
 {
   float: left;
-  width: 52px;
+  width: 64px;
+  height: 50px;
 }
 
 .r
 {
   float: right;
+  width: calc(100% - 64px);
+  height: 50px;
 }
 
 .dark-mode span

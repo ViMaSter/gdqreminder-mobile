@@ -106,103 +106,124 @@ export default defineComponent({
     :activated="isTrackedRun ? true : false"
   >
     <span class="runName">{{ runName }}</span>
-     
-
-    <span class="meta"> <mwc-icon>schedule</mwc-icon>{{ startString }}<mwc-icon>timer</mwc-icon>{{ durationHMMSS }}<mwc-icon>person</mwc-icon> {{runners}} </span>
+    <span class="meta">
+      <span class="meta-entry schedule"><mwc-icon class="ïcon">schedule</mwc-icon>{{ startString }}</span>
+      <span class="meta-entry timer"><mwc-icon class="ïcon">timer</mwc-icon>{{ durationHMMSS }}</span>
+      <span class="meta-entry person"><mwc-icon class="ïcon">person</mwc-icon> {{runners}}</span>
+    </span>
   </div>
 </template>
 <style scoped lang="scss">
+// layout
+div
+{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 11px;
+  margin-bottom: 14px;
+  
+  span
+  {
+    $text-size: 14px;
+
+    display: block;
+    font-size: $text-size;
+
+    &.runName, &.meta
+    {
+      margin: 0.1em 0.75em;
+    }
+
+    &.runName
+    {
+      font-weight: 500;
+      text-overflow: ellipsis;
+      overflow-x: hidden;
+      white-space: nowrap;
+    }
+
+    &.meta-entry
+    {
+      display: inline-block;
+      vertical-align: top;
+      text-align: left;
+      &.schedule
+      {
+        width: 93px;
+      }
+      &.timer
+      {
+        width: 80px;
+      }
+      &.person
+      {
+        width: 120px;
+        text-overflow: ellipsis;
+        overflow-x: hidden;
+        white-space: nowrap;
+      }
+    }
+
+    mwc-icon
+    {
+      vertical-align: middle;
+      margin-top: -2px;
+      margin-right: 4px;
+    }
+
+    mwc-icon
+    {
+      --mdc-icon-size: $text-size;
+    }
+  }
+}
+
+
+// coloring
 div {
-  background: hsla(272, 95%, 40%, 1);
-  --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
+  background: var(--vote-purple);
+  --mdc-theme-primary: color.adjust(var(--vote-purple, $lightness: +100%));
   &.in-person {
-    background: hsla(230, 95%, 40%, 1);
-    --mdc-theme-primary: hsla(230, 100%, 100%, 0.3);
+    background: var(--vote-blue);
+    --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
   }
   &.bonus-game {
-  background: hsla(180, 95%, 40%, 1);
-  --mdc-theme-primary: hsla(347, 89%, 100%, 0.3);
+    background: var(--vote-cyan);
+    --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
   }
 }
 .agdq {
   div {
-    background: hsla(180, 95%, 40%, 1);
-    --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
+    background: var(--vote-cyan);
+    ;
     &.in-person {
-      background: hsla(230, 95%, 40%, 1);
-      --mdc-theme-primary: hsla(230, 100%, 100%, 0.3);
+        background: var(--vote-blue);
+        --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
     }
     &.bonus-game {
-    background: hsla(343, 95%, 40%, 1);
-    --mdc-theme-primary: hsla(347, 89%, 100%, 0.3);
+        background: var(--vote-red);
+        --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
     }
   }
 }
 
 .sgdq {
   div {
-    background: hsla(343, 95%, 40%, 1);
-    --mdc-theme-primary: hsla(347, 89%, 100%, 0.3);
+    background: var(--vote-red);
+    --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
     &.in-person {
-      background: hsla(230, 95%, 40%, 1);
-      --mdc-theme-primary: hsla(230, 100%, 100%, 0.3);
+        background: var(--vote-blue);
+        --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
     }
     &.bonus-game {
-      background: hsla(180, 95%, 40%, 1);
-      --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
+        background: var(--vote-cyan);
+        --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
     }
   }
 }
 
 * {
-  color: #FFF;
-}
-
-.dark-mode {
-  div {
-    background: hsla(265, 100%, 63%, 0.3);
-    --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
-    &.in-person {
-      background: hsla(230, 100%, 50%, 0.3);
-      --mdc-theme-primary: hsla(230, 100%, 100%, 0.3);
-    }
-    &.bonus-game {
-    background: hsla(180, 100%, 50%, 0.3);
-    --mdc-theme-primary: hsla(347, 89%, 100%, 0.3);
-    }
-  }
-  .agdq {
-    div {
-      background: hsla(180, 100%, 50%, 0.3);
-      --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
-      &.in-person {
-        background: hsla(230, 100%, 50%, 0.3);
-        --mdc-theme-primary: hsla(230, 100%, 100%, 0.3);
-      }
-      &.bonus-game {
-      background: hsla(347, 89%, 50%, 0.3);
-      --mdc-theme-primary: hsla(347, 89%, 100%, 0.3);
-      }
-    }
-  }
-  
-  .sgdq {
-    div {
-      background: hsla(347, 89%, 50%, 0.3);
-      --mdc-theme-primary: hsla(347, 89%, 100%, 0.3);
-      &.in-person {
-        background: hsla(230, 100%, 50%, 0.3);
-        --mdc-theme-primary: hsla(230, 100%, 100%, 0.3);
-      }
-      &.bonus-game {
-        background: hsla(180, 100%, 50%, 0.3);
-        --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
-      }
-    }
-  }
-
-  * {
-    color: #FFF;
-  }
+  color: var(--primary-text);
 }
 </style>

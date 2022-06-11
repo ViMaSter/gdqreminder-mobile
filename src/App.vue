@@ -96,6 +96,7 @@ registerNotifications()
 <style>
 body
 {
+  font-family: Roboto;
   margin: 0;
 }
 body.dark-mode
