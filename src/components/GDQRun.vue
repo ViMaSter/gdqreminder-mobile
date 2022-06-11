@@ -144,6 +144,11 @@ div
       white-space: nowrap;
     }
 
+    &.meta
+    {
+      display: flex;
+    }
+
     &.meta-entry
     {
       display: inline-block;
@@ -151,18 +156,18 @@ div
       text-align: left;
       &.schedule
       {
-        width: 93px;
+        min-width: 100px;
       }
       &.timer
       {
-        width: 80px;
+        min-width: 90px;
       }
       &.person
       {
-        width: 120px;
         text-overflow: ellipsis;
         overflow-x: hidden;
         white-space: nowrap;
+        flex-grow: 1;
       }
     }
 

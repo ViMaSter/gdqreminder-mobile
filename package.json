@@ -6,7 +6,7 @@
     "dev": "vite",
     "android": "npm run build && npx cap sync && npx cap open android",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview --port 5050",
+    "preview": "vite preview --port 437",
     "test:unit": "vitest --environment jsdom",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
