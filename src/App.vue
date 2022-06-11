@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GDQHeader from './components/GDQHeader.vue'
+import GDQMain from './components/GDQMain.vue'
 import { PushNotifications, Channel as g } from '@capacitor/push-notifications';
 import { EventHandler, NestedEventCallbacks} from './utilities/eventHandler';
 import { AppLauncher } from '@capacitor/app-launcher';
@@ -88,7 +88,7 @@ registerNotifications()
 
 <template>
   <Suspense>
-    <GDQHeader />
+    <GDQMain />
   </Suspense>
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">

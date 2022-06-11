@@ -42,111 +42,77 @@ export default defineComponent({
     const onFocus = () => {
       emit(
         "showSnackbar",
-        `"${primary} (${
+        `"${runName} (${
           props.fields.category
         })" run by "${props.runnerNames.join(", ")}"`
       );
     };
 
     const isTrackedRun = ref(reminder.value.includes(props.pk.toString()));
-    const primary = props.fields.display_name.replaceAll("\\n", " ");
-    const start = new Date(props.fields.starttime).toLocaleTimeString();
-    const end = new Date(props.fields.endtime).toLocaleTimeString();
-    const secondary = ref(
-      `${props.runnerNames.join(", ")} - ${props.fields.category}`
-    );
+    const runName = props.fields.display_name.replaceAll("\\n", " ");
+    const start = new Date(props.fields.starttime);
+    const end = new Date(props.fields.endtime);
+    const duration = new Date(end.getTime() - start.getTime());
+    const hours = start.getHours() > 12 ? start.getHours() - 12 : start.getHours();
+    const ampm = start.getHours() > 12 ? "p.m." : "a.m.";
+    const startString = hours+":"+start.getMinutes().toString().padStart(2, '0') + " " + ampm;
+    const durationHMMSS = `${duration.getUTCHours()}:${duration.getUTCMinutes().toString().padStart(2, '0')}:${duration.getUTCSeconds().toString().padStart(2, '0')}`;
+    const runners = ref(`${props.runnerNames.join(", ")}`);
+
+    const generateClassName = () => {
+      if (props.fields.display_name == "Pre-Show") {
+        return "in-person";
+      }
+      if (props.runnerNames.join(", ") == "Tech Crew") {
+        return "in-person";
+      }
+      if (props.fields.console == "SGDQ") {
+        return "in-person";
+      }
+      if (props.fields.console == "AGDQ") {
+        return "in-person";
+      }
+      if (props.fields.console == "Live") {
+        return "in-person";
+      }
+      if (props.fields.console == "GDQ Stage") {
+        return "in-person";
+      }
+      if (props.fields.display_name.toLowerCase().includes("bonus game")) {
+        return "bonus-game";
+      }
+      return "";
+    };
 
     return {
       toggleReminder,
       onFocus,
-      className: () => {
-        if (props.fields.display_name == "Pre-Show") {
-          return "in-person";
-        }
-        if (props.runnerNames.join(", ") == "Tech Crew") {
-          return "in-person";
-        }
-        if (props.fields.console == "SGDQ") {
-          return "in-person";
-        }
-        if (props.fields.console == "AGDQ") {
-          return "in-person";
-        }
-        if (props.fields.console == "Live") {
-          return "in-person";
-        }
-        if (props.fields.console == "GDQ Stage") {
-          return "in-person";
-        }
-        if (props.fields.display_name.toLowerCase().includes("bonus game")) {
-          return "bonus-game";
-        }
-        return "";
-      },
-      start,
-      end,
-      secondary,
-      primary,
+      className: generateClassName(),
+      startString,
+      durationHMMSS,
+      runners,
+      runName,
       isTrackedRun,
     };
-  },
+  }
 });
 </script>
 
 <template>
-  <mwc-list-item
-    twoline
+  <div
     @click="toggleReminder()"
     @focus="onFocus()"
-    :class="className()"
-    hasMeta
+    :class="className"
     :activated="isTrackedRun ? true : false"
   >
-    <span class="left">{{ primary }}</span>
-    <span class="left" slot="secondary"><mwc-icon>AccessTime</mwc-icon>{{ secondary }}<mwc-icon>Timer</mwc-icon><mwc-icon>Person</mwc-icon></span>
-    <span slot="meta">
-      <span class="start">{{ start }}</span>
-      <span class="end">{{ end }}</span>
-    </span>
-  </mwc-list-item>
-  <li v-if="!last" divider role="separator" padded></li>
+    <span class="runName">{{ runName }}</span>
+     
+
+    <span class="meta"> <mwc-icon>schedule</mwc-icon>{{ startString }}<mwc-icon>timer</mwc-icon>{{ durationHMMSS }}<mwc-icon>person</mwc-icon> {{runners}} </span>
+  </div>
 </template>
 <style scoped lang="scss">
-mwc-list-item
-{
-  --mdc-typography-body2-font-size: 1em;
-}
-
-span {
-  font-size: 1em !important;
-}
-span[slot="meta"] {
-  display: flex;
-  margin-left: calc(-60pt + 100%);
-  text-align: right;
-  width: 60pt !important;
-  flex-direction: column;
-  align-content: flex-end;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: nowrap;
-  height: 175%;
-  margin-top: -45.5%;
-}
-
-span.left {
-  display: inline-block;
-  width: calc(100vw - (62.5pt + (32px + (60pt + 16px))));
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
-mwc-list-item {
-  border-radius: 13px;
-  margin-bottom: 37px;
-}
-
-mwc-list-item {
+div {
   background: hsla(272, 95%, 40%, 1);
   --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
   &.in-person {
@@ -159,7 +125,7 @@ mwc-list-item {
   }
 }
 .agdq {
-  mwc-list-item {
+  div {
     background: hsla(180, 95%, 40%, 1);
     --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
     &.in-person {
@@ -174,7 +140,7 @@ mwc-list-item {
 }
 
 .sgdq {
-  mwc-list-item {
+  div {
     background: hsla(343, 95%, 40%, 1);
     --mdc-theme-primary: hsla(347, 89%, 100%, 0.3);
     &.in-person {
@@ -193,7 +159,7 @@ mwc-list-item {
 }
 
 .dark-mode {
-  mwc-list-item {
+  div {
     background: hsla(265, 100%, 63%, 0.3);
     --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
     &.in-person {
@@ -206,7 +172,7 @@ mwc-list-item {
     }
   }
   .agdq {
-    mwc-list-item {
+    div {
       background: hsla(180, 100%, 50%, 0.3);
       --mdc-theme-primary: hsla(180, 100%, 100%, 0.3);
       &.in-person {
@@ -221,7 +187,7 @@ mwc-list-item {
   }
   
   .sgdq {
-    mwc-list-item {
+    div {
       background: hsla(347, 89%, 50%, 0.3);
       --mdc-theme-primary: hsla(347, 89%, 100%, 0.3);
       &.in-person {

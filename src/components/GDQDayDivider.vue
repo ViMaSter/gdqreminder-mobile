@@ -8,16 +8,21 @@ export default defineComponent({
             required: true,
         },
     },
-    async setup(props: {}) {
-    }
+    setup(props) {
+        const dayDate = new Date(parseInt(props.day));
+        return {
+          dayName: dayDate.toLocaleDateString(undefined, { weekday: 'long' }).slice(0, 2),
+          dayNumber: dayDate.getDate(),
+        };
+    },
 });
 </script>
 
 <template>
-  <mwc-list-item noninteractive>
-    <span>{{ day }}</span>
-  </mwc-list-item>
-  <li divider role="separator" padded></li>
+  <div :id="'day-divider-'+day">
+    <span>{{dayNumber}}</span>
+    <span>{{dayName}}</span>
+  </div>
 </template>
 
 <style lang="css" scoped>
