@@ -3,6 +3,13 @@ name: Android build
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      forceRelease:
+        description: Force Google Play release?
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -28,7 +35,7 @@ jobs:
           
   publish:
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceRelease)
     needs: build
     steps:
       - uses: actions/download-artifact@v3
@@ -46,6 +53,6 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
           packageName: ke.mahn.gdqreminder
-          track: alpha
+          track: internal
           status: completed
           releaseFiles: ./aab/app-release.aab
