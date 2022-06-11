@@ -4,6 +4,8 @@ import "../utilities/pushNotificationHelper";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
 import PushNotificationHelper from "../utilities/pushNotificationHelper";
 import "@material/mwc-icon"
+import { useRunReminderStore } from "@/stores/runReminders"
+
 export default defineComponent({
   props: {
     pk: {
@@ -24,7 +26,7 @@ export default defineComponent({
     },
   },
   setup(props, { emit }) {
-    let reminder = inject<Ref<string[]>>("reminder")!;
+    let reminder = useRunReminderStore();
     const showSnackbar = inject<(text : string) => void>("showSnackbar")!;
     const onFocus = () => {
       showSnackbar(
@@ -34,7 +36,7 @@ export default defineComponent({
       );
     };
 
-    const hasActiveReminder = ref(reminder.value.includes(props.pk.toString()));
+    const hasActiveReminder = ref(reminder.allReminders.includes(props.pk.toString()));
 
     const runName = props.fields.display_name.replaceAll("\\n", " ");
     const start = new Date(props.fields.starttime);
@@ -85,23 +87,21 @@ export default defineComponent({
       durationHMMSS,
       runners,
       runName,
-      hasActiveReminder,
-      reminder
+      hasActiveReminder
     };
   },
   methods: {
     toggleReminder: function() {
-      if (this.reminder.includes(this.pk.toString()))
+      const reminderStore = useRunReminderStore();
+      if (reminderStore.allReminders.includes(this.pk.toString()))
       {
-        this.reminder = this.reminder.filter(
-          (pk) => pk !== this.pk.toString()
-        );
+        reminderStore.remove(this.pk.toString());
         PushNotificationHelper.unsubscribeFromStartOfRun(this.pk.toString());
         this.hasActiveReminder = false;
         return false;
       }
 
-      this.reminder.push(this.pk.toString());
+      reminderStore.add(this.pk.toString());
       PushNotificationHelper.subscribeToStartOfRun(this.pk.toString());
       this.hasActiveReminder = true;
       return true;

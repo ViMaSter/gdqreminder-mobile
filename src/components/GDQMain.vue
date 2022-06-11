@@ -68,7 +68,6 @@ export default defineComponent({
                 averageY /= velocity.length;
                 if (Math.abs(averageY) > Math.abs(averageX))
                 {
-                    console.log("y>x");
                     return null;
                 }
                 return averageX;

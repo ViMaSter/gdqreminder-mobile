@@ -4,6 +4,7 @@ import { PushNotifications, Channel as g } from '@capacitor/push-notifications';
 import { EventHandler, NestedEventCallbacks} from './utilities/eventHandler';
 import { AppLauncher } from '@capacitor/app-launcher';
 import { Capacitor } from '@capacitor/core';
+import * as pinia from 'pinia'
 
 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
 {
