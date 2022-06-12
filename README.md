@@ -10,7 +10,7 @@ This template should help get you started developing with Vue 3 in Vite.
 4. `nvm install latest` (node.js >=18.3.0, npm >= 8.12.1)
 5. `nvm use latest` (>= 18.3.0)
 6. `npm run dev`
-7. Open `http://localhost:437`
+7. Open `http://localhost:4437`
 
 ## Device Development
 

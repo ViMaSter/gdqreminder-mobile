@@ -20,7 +20,7 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 437
+    port: 4437
   },
   css: {
     preprocessorOptions:
