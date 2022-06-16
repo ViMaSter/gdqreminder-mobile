@@ -35,10 +35,20 @@ jobs:
           name: aab-v${{ github.run_number }}
           path: ./android/app/build/outputs/bundle/release/app-release.aab
           
+  determineChanges:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: dorny/paths-filter@v2
+      id: versionChange
+      with:
+        filters: |
+          src:
+            - 'android/app/build.gradle'
+          
   publish:
     runs-on: ubuntu-latest
-    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceRelease)
-    needs: build
+    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changes.outputs.src == 'true') || github.event.inputs.forceRelease)
+    needs: [build, determineChanges]
     steps:
       - uses: actions/download-artifact@v3
         with:
