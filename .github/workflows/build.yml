@@ -42,12 +42,12 @@ jobs:
       id: versionChange
       with:
         filters: |
-          src:
+          gradle:
             - 'android/app/build.gradle'
           
   publish:
     runs-on: ubuntu-latest
-    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changes.outputs.src == 'true') || github.event.inputs.forceRelease)
+    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.determineChanges.outputs.gradle == 'true') || github.event.inputs.forceRelease)
     needs: [build, determineChanges]
     steps:
       - uses: actions/download-artifact@v3
