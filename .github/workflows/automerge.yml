@@ -1,7 +1,7 @@
 name: Merge `autoupdate` branches
 on:
   check_run: 
-      - types: [completed]
+    types: [completed]
 jobs:
   automerge:
     runs-on: ubuntu-latest
