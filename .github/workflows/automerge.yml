@@ -1,16 +1,19 @@
 name: Merge `autoupdate` branches
 on:
-  check_run: 
-    types: [completed]
+  workflow_run:
+    workflows: ["Android build"]
+    types: 
+      - completed
+
 jobs:
-  automerge:
+  do-stuff:
     runs-on: ubuntu-latest
     steps:
       - id: automerge
         name: automerge
         uses: "pascalgn/automerge-action@v0.15.3"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
           MERGE_LABELS: "autoupdate"
           MERGE_METHOD: "rebase"
           UPDATE_METHOD: "rebase"
