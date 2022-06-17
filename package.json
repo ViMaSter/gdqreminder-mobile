@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@capacitor-community/fcm": "^2.0.2",
-    "@capacitor/android": "^3.5.1",
+    "@capacitor/android": "^3.6.0",
     "@capacitor/app-launcher": "^1.0.9",
     "@capacitor/cli": "^3.6.0",
     "@capacitor/core": "^3.6.0",
