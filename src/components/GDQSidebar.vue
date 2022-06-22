@@ -1,6 +1,6 @@
 <script lang="ts">
 import '@material/mwc-list';
-import {defineComponent, ref} from 'vue';
+import {defineComponent, watch, toRefs} from 'vue';
 export default defineComponent({
     props: {
         eventsByShorthand: {
@@ -9,7 +9,7 @@ export default defineComponent({
         },
     },
     async setup(props) {
-      const eventByShorthands = ref(props.eventsByShorthand);
+      let eventByShorthands = toRefs(props).eventsByShorthand;
       return {
         eventByShorthands
       }

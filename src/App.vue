@@ -88,21 +88,48 @@ registerNotifications()
 </script>
 
 <template>
-  <Suspense>
-    <GDQMain />
-  </Suspense>
+  <div class="wrapper">
+    <Suspense>
+      <GDQMain />
+    </Suspense>
+  </div>
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
 </template>
-<style>
+<style lang="scss">
 body
+{
+  margin: 0;
+  
+  &.dark-mode
+  {
+    background: black;
+  }
+}
+
+.wrapper
 {
   font-family: Roboto;
   margin: 0;
-}
-body.dark-mode
-{
-  background: black;
+  padding: 0;
+
+  width: 100vw;
+  height: 100vh;
+
   color: white;
+
+  .dark-mode & {  
+    background: hsla(281, 100%, 51%, 0.2);
+  }
+
+  .dark-mode.sgdq &
+  {
+      background: hsla(347, 89%, 52%, 0.2);
+  }
+
+  .dark-mode.agdq &
+  {
+      background: hsla(180, 100%, 50%, 0.1);
+  }
 }
 </style>

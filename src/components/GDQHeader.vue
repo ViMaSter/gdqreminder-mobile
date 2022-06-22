@@ -1,5 +1,6 @@
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent, watch, toRefs, ref} from 'vue';
+import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
 
 export default defineComponent({
     props: {
@@ -7,12 +8,31 @@ export default defineComponent({
             type: String,
             required: true,
         },
+    },
+    async setup(props) {
+      const item = toRefs(props).currentEventName;
+      const bar = ref<TopAppBarFixed>()!;
+      watch(item, () => {
+        let a = getComputedStyle(document.body).getPropertyValue('--vote-red');
+        const regex = /\((\d+)/m;
+        let currentValue = regex.exec(getComputedStyle(bar.value!).getPropertyValue('--mdc-theme-primary'));
+        let newValue = regex.exec(a);
+        let currentHue = currentValue![1];
+        let newHue = newValue![1];
+        (async () => {
+          
+          bar.value!.style.setProperty("--mdc-theme-primary", a);
+        })();
+      });
+      return {
+        bar
+      };
     }
 });
 </script>
 
 <template>
-  <mwc-top-app-bar-fixed>
+  <mwc-top-app-bar-fixed ref="bar">
       <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
       <div slot="title">{{currentEventName}}</div>
       <mwc-icon-button slot="actionItems" icon="search" @click="$emit('toggleSearch')"></mwc-icon-button>
@@ -20,7 +40,22 @@ export default defineComponent({
   </mwc-top-app-bar-fixed>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
+.mdc-top-app-bar--fixed
+{
+  transition: 1s --mdc-theme-primary cubic-bezier(0.25, 1, 0.5, 1);
+}
+mwc-top-app-bar-fixed
+{
+  transform: translateY(-100%);
+  transition: 0.20s transform cubic-bezier(0.25, 1, 0.5, 1);
+
+  .loaded &
+  {
+      transform: translateY(0%);
+  }
+}
+
 mwc-top-app-bar-fixed
 {
   --mdc-theme-primary: hsl(272deg 95% 40%);
@@ -43,17 +78,18 @@ mwc-top-app-bar-fixed
     --mdc-theme-primary: hsl(272deg 68% 26%);
   }
 
-  .agdq mwc-top-app-bar-fixed
+  &.agdq mwc-top-app-bar-fixed
   {
     --mdc-theme-primary: hsl(180deg 100% 15%);
   }
 
-  .sgdq mwc-top-app-bar-fixed
+  &.sgdq mwc-top-app-bar-fixed
   {
     --mdc-theme-primary: hsl(343deg 49% 19%);
   }
 }
-
+</style>
+<style lang="scss" scoped>
 .dark-mode
 {
   span

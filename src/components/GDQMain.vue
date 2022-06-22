@@ -1,6 +1,6 @@
 <script lang="ts">
 import ky from 'ky';
-import {onMounted, ref, provide, defineComponent} from 'vue';
+import {onMounted, ref, provide, defineComponent, Ref, watch} from 'vue';
 import '@material/mwc-list';
 import '@material/mwc-snackbar';
 import { Snackbar } from '@material/mwc-snackbar';
@@ -24,7 +24,7 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 }
 
 export default defineComponent({
-    async setup() {
+    async setup(props) {
         const reminder = ref<string[]>([]);
         onMounted(() => {
             provide("reminder", reminder);
@@ -121,42 +121,8 @@ export default defineComponent({
         const runners = ref<{
             [pk: string]: GDQRunnerDataFields;
         }>({});
-        const updateCurrentEvent = async (newEvent: string) => {
-            currentEventName.value = newEvent;
-            drawer.value!.open = false;
-            const loadRuns = async (eventShort: string) => {
-                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json())
-                                    .sort((a : GDQRunData, b : GDQRunData) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
-                                    .map((run: GDQRunData) => [run.pk, run.fields]);
-                const allRunners = orderedRuns.map((run: [
-                    number,
-                    GDQRunDataFields
-                ]) => run[1].runners).flat();
-                const uniqueRunner = [...new Set(allRunners)];
-                const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json()).map((runner: GDQRunnerData) => [runner.pk, runner.fields]));
-                runners.value = { ...runners.value, ...runnerDataForRunnersOfThisRun };
-                runsByID.value = { ...runsByID.value, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
-                runIDsInOrder.value = orderedRuns.map(([pk, _] : [string, undefined]) => pk);
-                orderedDays.value = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
-                runsByDay.value = {};
-                runIDsInOrder.value.forEach(runID => {
-                    const timeOfRun = new Date(runsByID.value[runID].starttime);
-                    timeOfRun.setHours(0, 0, 0, 0);
-                    const dayOfRun = timeOfRun.getTime();
-                    if (!Object.keys(runsByDay.value).includes(dayOfRun.toString()))
-                    {
-                        runsByDay.value[dayOfRun] = [];
-                    }
-                    runsByDay.value[dayOfRun].push(runID);
-                });
-            };
-            await loadRuns(eventByShorthands.value[newEvent].short);
-        };
-        const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event")).json();
-        const eventByShorthands = ref(Object.fromEntries(eventData
-            .filter((a: GDQEventData) => a.fields.short.toLowerCase().includes("gdq"))
-            .sort((a: GDQEventData, b: GDQEventData) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
-            .map((singleEvent: GDQEventData) => [singleEvent.fields.short.toUpperCase(), singleEvent.fields])));
+        let eventByShorthands : Ref<{[k:string]:any}> = ref({});
+        
         const drawer = ref<TopAppBarFixedWithOpen>()!;
 
         const snackbar = ref<Snackbar>();
@@ -167,31 +133,56 @@ export default defineComponent({
             themeStore.override(document.body.classList.contains('dark-mode') ? Theme.Dark : Theme.Light);
         };
 
+        const loadEventData = async () => {
+            const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event")).json();
+            eventByShorthands.value = Object.fromEntries(eventData
+                .filter((a: GDQEventData) => a.fields.short.toLowerCase().includes("gdq"))
+                .sort((a: GDQEventData, b: GDQEventData) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
+                .map((singleEvent: GDQEventData) => [singleEvent.fields.short.toUpperCase(), singleEvent.fields]));
+        }
+
+        let containerClasses = ref(["container"]);
+
+        watch(eventByShorthands, async(newEvents) => {
+            if (Object.keys(newEvents).length > 0)
+            {
+                containerClasses.value.push("loaded");
+            }
+        });
+        watch(currentEventName, async(newEventName) => {
+            if (newEventName.toLowerCase().includes("sgdq"))
+            {
+                document.body.classList.add("sgdq");
+            } 
+            else
+            {
+                document.body.classList.remove("sgdq");
+            }
+            if (newEventName.toLowerCase().includes("agdq"))
+            {
+                document.body.classList.add("agdq");
+            }
+            else
+            {
+                document.body.classList.remove("agdq");
+            }
+        });
+
+        loadEventData();
+
         return {
             eventByShorthands,
             drawer,
             snackbar,
             orderedDays,
             currentEventName,
-            updateCurrentEvent,
             runsByID,
             runIDsInOrder,
             runsByDay,
             runners,
             reminder,
             toggleDarkMode,
-            generateContainerClassNames: () => {
-                let classNames = ["container"];
-                if (currentEventName.value.startsWith("SGDQ"))
-                {
-                    classNames.push("sgdq");
-                }
-                if (currentEventName.value.startsWith("AGDQ"))
-                {
-                    classNames.push("agdq");
-                }
-                return classNames.join(" ");
-            }
+            containerClasses
         };
     },
     components: { GDQRun, GDQDay, GDQDayDivider, GDQHeader, GDQSidebar },
@@ -225,14 +216,14 @@ export default defineComponent({
                     this.runsByDay[dayOfRun].push(runID);
                 });
             };
-            loadRuns(this.eventByShorthands.value[newEventName].short);
+            loadRuns(this.eventByShorthands[newEventName].short);
         }
     }
 });
 </script>
 
 <template>
-  <div :class="generateContainerClassNames()">
+  <div :class="containerClasses.join(' ')">
     <mwc-snackbar ref="snackbar" timeoutMs="10000">
     </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
@@ -257,20 +248,6 @@ export default defineComponent({
     }
 
     .dark-mode {
-        .container
-        {
-            background: hsla(281, 100%, 51%, 0.2);
-
-            &.sgdq
-            {
-                background: hsla(347, 89%, 52%, 0.2);
-            }
-
-            &.agdq
-            {
-                background: hsla(180, 100%, 50%, 0.1);
-            }
-        }
 
         mwc-drawer
         {
