@@ -13,6 +13,7 @@ import PushNotificationHelper from "../utilities/pushNotificationHelper";
 import "@material/mwc-icon";
 import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
+import { AppLauncher } from '@capacitor/app-launcher';
 
 export default defineComponent({
   props: {
@@ -103,12 +104,12 @@ export default defineComponent({
     );
 
     const run = ref<HTMLDivElement>();
+    const isActive = start < now && now < end;
     onMounted(() => {
       if (start < now && now < end) {
         run.value!.scrollIntoView(true);
         scrollRunContainerBy!(0, -150);
       }
-      const isActive = start < now && now < end;
       if (isActive)
       {
         const currentRun = inject<Ref<[HTMLDivElement, GDQRunDataFields]>>("currentRun")!;
@@ -134,11 +135,29 @@ export default defineComponent({
       runName,
       hasActiveReminder,
       run,
+      isActive,
       isInThePast
     };
   },
   methods: {
-    toggleReminder: function () {
+    toggleReminder: async function () {
+      if (this.isActive)
+      {
+        const urls = [
+          "twitch://stream/gamesdonequick",
+          "https://twitch.tv/gamesdonequick"
+        ];
+        for (const url of urls) {
+          const {completed} = await AppLauncher.openUrl({url});
+          if (completed)
+          {
+            return;
+          }
+        }
+
+        throw new Error("Neither the Twitch app nor a web browser is installed");
+      }
+      
       if (this.isInThePast)
       {
         return;
