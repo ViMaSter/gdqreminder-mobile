@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { provide } from 'vue'
 import GDQMain from './components/GDQMain.vue'
 import { PushNotifications, Channel as g } from '@capacitor/push-notifications';
 import { EventHandler, NestedEventCallbacks} from './utilities/eventHandler';
@@ -84,7 +85,6 @@ registerNotifications()
     console.error(e);
     console.groupEnd();
   });
-
 </script>
 
 <template>

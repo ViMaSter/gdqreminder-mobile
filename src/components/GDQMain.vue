@@ -1,6 +1,6 @@
 <script lang="ts">
 import ky from 'ky';
-import {onMounted, ref, Ref, provide, defineComponent} from 'vue';
+import {onMounted, ref, Ref, provide, defineComponent, inject} from 'vue';
 import '@material/mwc-list';
 import '@material/mwc-snackbar';
 import { Snackbar } from '@material/mwc-snackbar';
@@ -18,6 +18,10 @@ import GDQDay from './GDQDay.vue';
 import GDQDayDivider from './GDQDayDivider.vue';
 import GDQHeader from './GDQHeader.vue';
 import GDQSidebar from './GDQSidebar.vue';
+import { DateProvider } from '@/interfaces/DateProvider';
+import { RealDateProvider } from '@/services/RealDateProvider';
+import { FakeDateProvider } from '@/services/FakeDateProvider';
+import { LocationHashParameters } from '@/services/LocationHashParameters';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -25,6 +29,22 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 
 export default defineComponent({
     async setup() {
+        const scrollable = ref<HTMLDivElement>();
+        provide<(x: number, y: number) => void>("scrollRunContainerBy", (x : number, y : number) => {
+            scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")!.scrollBy(x, y)
+        });
+
+        const parameters = new LocationHashParameters();
+        const date = parameters.getKey("date");
+        if (date)
+        {
+            provide<DateProvider>("dateProvider", new FakeDateProvider(new Date(decodeURIComponent(date))));
+        }
+        else
+        {
+            provide<DateProvider>("dateProvider", new RealDateProvider());
+        }
+
         const reminder = ref<string[]>([]);
         onMounted(() => {
             provide("reminder", reminder);
@@ -176,6 +196,7 @@ export default defineComponent({
             runsByDay,
             runners,
             reminder,
+            scrollable,
             toggleDarkMode,
             generateContainerClassNames: () => {
                 let classNames = ["container"];
@@ -232,7 +253,7 @@ export default defineComponent({
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
         <span slot="title">Available events</span>
         <GDQSidebar :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
-        <div slot="appContent">
+        <div slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
             <div id="runs">
                 <template v-for="(runs, day, _) in runsByDay" :key="day">

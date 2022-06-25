@@ -1,10 +1,18 @@
 <script lang="ts">
-import { defineComponent, ref, inject, Ref, watchEffect } from "vue";
+import {
+  defineComponent,
+  ref,
+  inject,
+  onMounted,
+  watchEffect,
+  provide,
+} from "vue";
 import "../utilities/pushNotificationHelper";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
 import PushNotificationHelper from "../utilities/pushNotificationHelper";
-import "@material/mwc-icon"
-import { useRunReminderStore } from "@/stores/runReminders"
+import "@material/mwc-icon";
+import { useRunReminderStore } from "@/stores/runReminders";
+import { DateProvider } from "@/interfaces/DateProvider";
 
 export default defineComponent({
   props: {
@@ -27,7 +35,7 @@ export default defineComponent({
   },
   setup(props) {
     let reminder = useRunReminderStore();
-    const showSnackbar = inject<(text : string) => void>("showSnackbar")!;
+    const showSnackbar = inject<(text: string) => void>("showSnackbar")!;
     const onFocus = () => {
       showSnackbar(
         `"${runName} (${
@@ -36,24 +44,37 @@ export default defineComponent({
       );
     };
 
-    const hasActiveReminder = ref(reminder.allReminders.includes(props.pk.toString()));
+    const hasActiveReminder = ref(
+      reminder.allReminders.includes(props.pk.toString())
+    );
+
+    const now = inject<DateProvider>("dateProvider")!.getCurrent();
 
     const runName = props.fields.display_name.replaceAll("\\n", " ");
     const start = new Date(props.fields.starttime);
     const end = new Date(props.fields.endtime);
     const duration = new Date(end.getTime() - start.getTime());
-    const hours = start.getHours() > 12 ? start.getHours() - 12 : start.getHours();
+    const hours =
+      start.getHours() > 12 ? start.getHours() - 12 : start.getHours();
     const ampm = start.getHours() > 12 ? "p.m." : "a.m.";
-    const startString = hours+":"+start.getMinutes().toString().padStart(2, '0') + " " + ampm;
-    const durationHMMSS = `${duration.getUTCHours()}:${duration.getUTCMinutes().toString().padStart(2, '0')}:${duration.getUTCSeconds().toString().padStart(2, '0')}`;
+    const startString =
+      hours + ":" + start.getMinutes().toString().padStart(2, "0") + " " + ampm;
+    const durationHMMSS = `${duration.getUTCHours()}:${duration
+      .getUTCMinutes()
+      .toString()
+      .padStart(2, "0")}:${duration
+      .getUTCSeconds()
+      .toString()
+      .padStart(2, "0")}`;
     const runners = ref(`${props.runnerNames.join(", ")}`);
 
     let reminderClasses = ref("");
     watchEffect(() => {
-      reminderClasses.value = 'reminder ' + (hasActiveReminder.value ? 'is-set' : '');
+      reminderClasses.value =
+        "reminder " + (hasActiveReminder.value ? "is-set" : "");
     });
-    
-    const generateClassName = () => {
+
+    const generateRunTypeClassName = () => {
       if (props.fields.display_name == "Pre-Show") {
         return "in-person";
       }
@@ -77,24 +98,47 @@ export default defineComponent({
       }
       return "";
     };
+    const scrollRunContainerBy = inject<(x: number, y: number) => void>(
+      "scrollRunContainerBy"
+    );
+
+    const run = ref<HTMLDivElement>();
+    onMounted(() => {
+      if (start < now && now < end) {
+        run.value!.scrollIntoView(true);
+        scrollRunContainerBy!(0, -150);
+      }
+    });
+    const isInThePast = end < now;
+    const generateIsOverClassName = () => {
+      if (isInThePast) {
+        return "is-over";
+      }
+      return "";
+    };
 
     return {
       pk: props.pk,
       onFocus,
-      className: 'run ' + generateClassName(),
+      className: `run ${generateRunTypeClassName()} ${generateIsOverClassName()}`,
       reminderClasses,
       startString,
       durationHMMSS,
       runners,
       runName,
-      hasActiveReminder
+      hasActiveReminder,
+      run,
+      isInThePast
     };
   },
   methods: {
-    toggleReminder: function() {
-      const reminderStore = useRunReminderStore();
-      if (reminderStore.allReminders.includes(this.pk.toString()))
+    toggleReminder: function () {
+      if (this.isInThePast)
       {
+        return;
+      }
+      const reminderStore = useRunReminderStore();
+      if (reminderStore.allReminders.includes(this.pk.toString())) {
         reminderStore.remove(this.pk.toString());
         PushNotificationHelper.unsubscribeFromStartOfRun(this.pk.toString());
         this.hasActiveReminder = false;
@@ -105,8 +149,8 @@ export default defineComponent({
       PushNotificationHelper.subscribeToStartOfRun(this.pk.toString());
       this.hasActiveReminder = true;
       return true;
-    }
-  }
+    },
+  },
 });
 </script>
 
@@ -116,13 +160,20 @@ export default defineComponent({
     @focus="onFocus()"
     tabindex="0"
     :class="className"
+    ref="run"
   >
     <div class="content">
       <span class="runName">{{ runName }}</span>
       <span class="meta">
-        <span class="meta-entry schedule"><mwc-icon>schedule</mwc-icon>{{ startString }}</span>
-        <span class="meta-entry timer"><mwc-icon>timer</mwc-icon>{{ durationHMMSS }}</span>
-        <span class="meta-entry person"><mwc-icon>person</mwc-icon> {{runners}}</span>
+        <span class="meta-entry schedule"
+          ><mwc-icon>schedule</mwc-icon>{{ startString }}</span
+        >
+        <span class="meta-entry timer"
+          ><mwc-icon>timer</mwc-icon>{{ durationHMMSS }}</span
+        >
+        <span class="meta-entry person"
+          ><mwc-icon>person</mwc-icon> {{ runners }}</span
+        >
       </span>
     </div>
     <div :class="reminderClasses"><mwc-icon>alarm</mwc-icon></div>
@@ -130,8 +181,7 @@ export default defineComponent({
 </template>
 <style scoped lang="scss">
 // layout
-.run
-{
+.run {
   position: relative;
 
   display: flex;
@@ -142,62 +192,64 @@ export default defineComponent({
   margin-bottom: 14px;
   overflow: hidden;
 
-  .content
-  {
+  &.is-over {
+    .content {
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
+    .reminder {
+      opacity: 0.5;
+    }
+  }
+
+  .content {
     display: flex;
     flex-direction: column;
     justify-content: center;
     overflow: hidden;
-    
+
     flex-grow: 1;
     flex-shrink: 1;
   }
 
-  span
-  {
+  span {
     $text-size: 14px;
 
     display: block;
     font-size: $text-size;
 
-    &.runName, &.meta
-    {
+    &.runName,
+    &.meta {
       margin: 0.1em 0.75em;
       flex-shrink: 1;
     }
 
-    &.runName
-    {
+    &.runName {
       font-weight: 500;
       text-overflow: ellipsis;
       overflow-x: hidden;
       white-space: nowrap;
     }
 
-    &.meta
-    {
+    &.meta {
       display: flex;
       flex-shrink: 1;
     }
 
-    &.meta-entry
-    {
+    &.meta-entry {
       display: inline-block;
       vertical-align: top;
       text-align: left;
       white-space: nowrap;
       overflow-x: hidden;
-      
-      &.schedule
-      {
+
+      &.schedule {
         flex: 0 0 100px;
       }
-      &.timer
-      {
+      &.timer {
         flex: 0 0 90px;
       }
-      &.person
-      {
+      &.person {
         text-overflow: ellipsis;
         overflow-x: hidden;
         white-space: nowrap;
@@ -205,8 +257,7 @@ export default defineComponent({
       }
     }
 
-    mwc-icon
-    {
+    mwc-icon {
       vertical-align: middle;
       margin-top: -2px;
       margin-right: 4px;
@@ -214,10 +265,11 @@ export default defineComponent({
     }
   }
 
-  .reminder
-  {
-    &.is-set
-    {
+  .reminder {
+    .is-over & {
+      text-decoration: none;
+    }
+    &.is-set {
       transition: 0.15s ease-out all;
       margin-right: 0px;
     }
@@ -234,17 +286,15 @@ export default defineComponent({
     aspect-ratio: 1/1;
 
     background: var(--background-alarm);
-    
-    &.is-set mwc-icon
-    {
+
+    &.is-set mwc-icon {
       margin-left: 0px;
       transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
       transform: rotateZ(0deg);
       transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
     }
 
-    mwc-icon
-    {
+    mwc-icon {
       margin-left: 50px;
       transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
       transform: rotateZ(90deg);
@@ -256,34 +306,33 @@ export default defineComponent({
   }
 }
 
-
 // coloring
 .content {
   background: var(--vote-purple);
   --mdc-theme-primary: color.adjust(var(--vote-purple, $lightness: +100%));
 }
-  .in-person .content {
-    background: var(--vote-blue);
-    --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
-  }
-  .bonus-game .content {
-    background: var(--vote-cyan);
-    --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
-  }
+.in-person .content {
+  background: var(--vote-blue);
+  --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+}
+.bonus-game .content {
+  background: var(--vote-cyan);
+  --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+}
 .agdq {
   .content {
     background: var(--vote-cyan);
     --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
   }
-    .in-person .content {
-        background: var(--vote-blue);
-        --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
-    }
-    .bonus-game .content {
-        background: var(--vote-red);
-        --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
-    }
+  .in-person .content {
+    background: var(--vote-blue);
+    --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
   }
+  .bonus-game .content {
+    background: var(--vote-red);
+    --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
+  }
+}
 
 .sgdq {
   .content {
@@ -291,12 +340,12 @@ export default defineComponent({
     --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
   }
   .in-person .content {
-      background: var(--vote-blue);
-      --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+    background: var(--vote-blue);
+    --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
   }
   .bonus-game .content {
-      background: var(--vote-cyan);
-      --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+    background: var(--vote-cyan);
+    --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
   }
 }
 

@@ -1,9 +1,10 @@
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent, inject} from 'vue';
 import GDQRun from './GDQRun.vue';
 import GDQDayDivider from './GDQDayDivider.vue';
 import {GDQRunDataFields} from '../interfaces/GDQRun'
 import {GDQRunnerDataFields} from '../interfaces/GDQRunner'
+import { DateProvider } from "@/interfaces/DateProvider"
 
 export default defineComponent({
     props: {
@@ -26,7 +27,18 @@ export default defineComponent({
         }
     },
     async setup(props) {
-      return {...props};
+      const now = inject<DateProvider>("dateProvider")!.getCurrent();
+      const endOfDay = new Date(parseInt(props.day) + 1 * 1000 * 60 * 60 * 24);
+      const generateIsOverClassName = () => {
+        const isInThePast = endOfDay < now;
+        if (isInThePast)
+        {
+          return "is-over";
+        }
+        return "";
+      };
+      
+      return {...props, generateIsOverClassName};
     },
     components: {
       GDQRun, GDQDayDivider
@@ -35,7 +47,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="day" :id="'run-for-'+day">
+  <div :class="'day ' + generateIsOverClassName()" :id="'run-for-'+day">
       <GDQDayDivider class="dd" :day="day" />
       <template v-for="(runPK, index) in runsIDsInOrder" :key="runPK">   
           <GDQRun class="r" v-if="index == (Object.keys(runsIDsInOrder).length - 1)" :last="true"  :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" />
@@ -45,16 +57,29 @@ export default defineComponent({
   </div>
 </template>
 
-<style lang="css" scoped>
-span {
-  display: block;
-  clear: both;
-}
+<style lang="scss">
 .day
 {
     margin-top: 14px;
     margin-bottom: 12px;
     padding-right: 10px;
+
+    &.is-over .content
+    {
+      text-decoration: line-through;
+      
+      .day-divider
+      {
+        opacity: 0.5;
+      }
+    }
+}
+</style>
+
+<style lang="scss" scoped>
+span {
+  display: block;
+  clear: both;
 }
 .dd
 {
