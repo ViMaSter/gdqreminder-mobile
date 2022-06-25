@@ -51,7 +51,7 @@ export default defineComponent({
 .timeIndicator {
   position: absolute;
   left: 50px;
-  width: calc(100vw - 75px);
+  width: 100vw;
 
   display: none;
 
