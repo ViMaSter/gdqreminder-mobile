@@ -1,6 +1,6 @@
 <script lang="ts">
 import ky from 'ky';
-import {onMounted, ref, provide, defineComponent} from 'vue';
+import {onMounted, ref, Ref, provide, defineComponent} from 'vue';
 import '@material/mwc-list';
 import '@material/mwc-snackbar';
 import { Snackbar } from '@material/mwc-snackbar';
@@ -9,7 +9,7 @@ import '@material/mwc-top-app-bar-fixed';
 import { Theme, useThemeStore } from '@/stores/theme';
 import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
-import {GDQEventData} from '../interfaces/GDQEvent'
+import {GDQEventData, GDQEventDataFields} from '../interfaces/GDQEvent'
 import {GDQRunData, GDQRunDataFields} from '../interfaces/GDQRun'
 import {GDQRunnerData, GDQRunnerDataFields} from '../interfaces/GDQRunner'
 import GDQRun from './GDQRun.vue';
@@ -125,18 +125,15 @@ export default defineComponent({
             currentEventName.value = newEvent;
             drawer.value!.open = false;
             const loadRuns = async (eventShort: string) => {
-                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json())
-                                    .sort((a : GDQRunData, b : GDQRunData) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
-                                    .map((run: GDQRunData) => [run.pk, run.fields]);
-                const allRunners = orderedRuns.map((run: [
-                    number,
-                    GDQRunDataFields
-                ]) => run[1].runners).flat();
+                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json<GDQRunData[]>())
+                                    .sort((a, b) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
+                                    .map((run) : [string, GDQRunDataFields] => [run.pk.toString() , run.fields]);
+                const allRunners = orderedRuns.map((run) => run[1].runners).flat();
                 const uniqueRunner = [...new Set(allRunners)];
-                const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json()).map((runner: GDQRunnerData) => [runner.pk, runner.fields]));
+                const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json<GDQRunnerData[]>()).map((runner) => [runner.pk, runner.fields]));
                 runners.value = { ...runners.value, ...runnerDataForRunnersOfThisRun };
                 runsByID.value = { ...runsByID.value, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
-                runIDsInOrder.value = orderedRuns.map(([pk, _] : [string, undefined]) => pk);
+                runIDsInOrder.value = orderedRuns.map(([pk, _]) => pk);
                 orderedDays.value = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
                 runsByDay.value = {};
                 runIDsInOrder.value.forEach(runID => {
@@ -152,11 +149,11 @@ export default defineComponent({
             };
             await loadRuns(eventByShorthands.value[newEvent].short);
         };
-        const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event")).json();
-        const eventByShorthands = ref(Object.fromEntries(eventData
-            .filter((a: GDQEventData) => a.fields.short.toLowerCase().includes("gdq"))
-            .sort((a: GDQEventData, b: GDQEventData) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
-            .map((singleEvent: GDQEventData) => [singleEvent.fields.short.toUpperCase(), singleEvent.fields])));
+        const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event")).json<GDQEventData[]>();
+        const eventByShorthands : Ref<{[key: string] : GDQEventDataFields}> = ref(Object.fromEntries(eventData
+            .filter((a) => a.fields.short.toLowerCase().includes("gdq"))
+            .sort((a, b) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
+            .map((singleEvent) : [string, GDQEventDataFields] => [singleEvent.fields.short.toUpperCase(), singleEvent.fields])));
         const drawer = ref<TopAppBarFixedWithOpen>()!;
 
         const snackbar = ref<Snackbar>();
@@ -200,18 +197,15 @@ export default defineComponent({
             this.currentEventName = newEventName;
             this.drawer!.open = false;
             const loadRuns = async (eventShort : string) => {
-                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json())
-                                    .sort((a : GDQRunData, b : GDQRunData) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
-                                    .map((run: GDQRunData) => [run.pk, run.fields]);
-                const allRunners = orderedRuns.map((run: [
-                    number,
-                    GDQRunDataFields
-                ]) => run[1].runners).flat();
+                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json<GDQRunData[]>())
+                                    .sort((a, b) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
+                                    .map((run) : [string, GDQRunDataFields] => [run.pk.toString(), run.fields]);
+                const allRunners = orderedRuns.map((run) => run[1].runners).flat();
                 const uniqueRunner = [...new Set(allRunners)];
-                const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json()).map((runner: GDQRunnerData) => [runner.pk, runner.fields]));
+                const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json<GDQRunnerData[]>()).map((runner) => [runner.pk, runner.fields]));
                 this.runners = { ...this.runners, ...runnerDataForRunnersOfThisRun };
                 this.runsByID = { ...this.runsByID, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
-                this.runIDsInOrder = orderedRuns.map(([pk, _] : [string, undefined]) => pk);
+                this.runIDsInOrder = orderedRuns.map(([pk, _] : [string, unknown]) => pk);
                 this.orderedDays = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
                 this.runsByDay = {};
                 this.runIDsInOrder.forEach(runID => {
@@ -225,7 +219,7 @@ export default defineComponent({
                     this.runsByDay[dayOfRun].push(runID);
                 });
             };
-            loadRuns(this.eventByShorthands.value[newEventName].short);
+            loadRuns(this.eventByShorthands[newEventName].short);
         }
     }
 });
