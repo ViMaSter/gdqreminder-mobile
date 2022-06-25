@@ -37,6 +37,8 @@ jobs:
           
   determineChanges:
     runs-on: ubuntu-latest
+    outputs:
+      gradle: ${{ steps.versionChange.outputs.gradle }}
     steps:
     - uses: actions/checkout@v3
     - uses: dorny/paths-filter@v2
@@ -45,7 +47,7 @@ jobs:
         filters: |
           gradle:
             - 'android/app/build.gradle'
-          
+       
   publish:
     runs-on: ubuntu-latest
     if: ((github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.determineChanges.outputs.gradle == 'true') || github.event.inputs.forceRelease)
