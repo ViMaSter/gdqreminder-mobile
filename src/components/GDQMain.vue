@@ -18,6 +18,7 @@ import GDQDay from './GDQDay.vue';
 import GDQDayDivider from './GDQDayDivider.vue';
 import GDQHeader from './GDQHeader.vue';
 import GDQSidebar from './GDQSidebar.vue';
+import GDQTimeIndicator from './GDQTimeIndicator.vue';
 import { DateProvider } from '@/interfaces/DateProvider';
 import { RealDateProvider } from '@/services/RealDateProvider';
 import { FakeDateProvider } from '@/services/FakeDateProvider';
@@ -33,6 +34,9 @@ export default defineComponent({
         provide<(x: number, y: number) => void>("scrollRunContainerBy", (x : number, y : number) => {
             scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")!.scrollBy(x, y)
         });
+        
+        const currentRun : Ref<[HTMLDivElement, GDQRunDataFields] | null> = ref(null);
+        provide("currentRun", currentRun)!;
 
         const parameters = new LocationHashParameters();
         const date = parameters.getKey("date");
@@ -212,7 +216,7 @@ export default defineComponent({
             }
         };
     },
-    components: { GDQRun, GDQDay, GDQDayDivider, GDQHeader, GDQSidebar },
+    components: { GDQRun, GDQDay, GDQDayDivider, GDQHeader, GDQSidebar, GDQTimeIndicator },
     methods: {
         updateCurrentEvent: function(newEventName : string) {
             this.currentEventName = newEventName;
@@ -259,6 +263,7 @@ export default defineComponent({
                 <template v-for="(runs, day, _) in runsByDay" :key="day">
                     <GDQDay :runners="runners" :runsByID="runsByID" :runsIDsInOrder="runs" :day="(day as string)"></GDQDay>
                 </template>
+                <GDQTimeIndicator></GDQTimeIndicator>
             </div>
         </div>
     </mwc-drawer>

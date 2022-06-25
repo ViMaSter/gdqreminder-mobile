@@ -5,7 +5,7 @@ import {
   inject,
   onMounted,
   watchEffect,
-  provide,
+  Ref,
 } from "vue";
 import "../utilities/pushNotificationHelper";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
@@ -107,6 +107,12 @@ export default defineComponent({
       if (start < now && now < end) {
         run.value!.scrollIntoView(true);
         scrollRunContainerBy!(0, -150);
+      }
+      const isActive = start < now && now < end;
+      if (isActive)
+      {
+        const currentRun = inject<Ref<[HTMLDivElement, GDQRunDataFields]>>("currentRun")!;
+        currentRun.value = [run.value!, props.fields];
       }
     });
     const isInThePast = end < now;
