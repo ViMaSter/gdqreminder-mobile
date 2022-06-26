@@ -2,12 +2,15 @@ import { DateProvider } from "@/interfaces/DateProvider"
 
 export class FakeDateProvider implements DateProvider
 {
+    #startAt;
     #date;
     constructor(date : Date)
     {
+        this.#startAt = new Date().getTime();
         this.#date = date;
     }
     getCurrent(): Date {
-        return this.#date;
+        const offset = ((new Date().getTime() - this.#startAt) / 1000) * 1000 * 60 * 5;
+        return new Date(this.#date.getTime() + offset);
     }
 }

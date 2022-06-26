@@ -15,6 +15,23 @@ export default defineComponent({
         return ( n - a ) / ( b - a );
     }
 
+    setInterval(() => {
+        if (currentRun.value)
+        {
+            const [runElement, runData] = currentRun.value;
+            visibilityClasses.value = "timeIndicator shown";
+            const progress = inverseLerp(
+                new Date(runData.starttime).getTime(),
+                new Date(runData.endtime).getTime(), 
+                now.getCurrent().getTime()
+            );
+
+            offset.value = runElement.offsetTop + (runElement.clientHeight * progress);
+            return;
+        }
+        visibilityClasses.value = "timeIndicator";
+    }, 60000);
+
     watch(currentRun, (newValue) => {
         if (newValue)
         {
