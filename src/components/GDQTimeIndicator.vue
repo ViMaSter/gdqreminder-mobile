@@ -30,7 +30,7 @@ export default defineComponent({
             return;
         }
         visibilityClasses.value = "timeIndicator";
-    }, 60000);
+    }, 200);
 
     watch(currentRun, (newValue) => {
         if (newValue)
@@ -69,6 +69,7 @@ export default defineComponent({
   position: absolute;
   left: 50px;
   width: 100vw;
+  margin-top: -5px;
 
   display: none;
 

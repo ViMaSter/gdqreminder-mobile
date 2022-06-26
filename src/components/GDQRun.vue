@@ -5,6 +5,7 @@ import {
   inject,
   onMounted,
   watchEffect,
+  computed,
   Ref,
 } from "vue";
 import "../utilities/pushNotificationHelper";
@@ -48,8 +49,6 @@ export default defineComponent({
     const hasActiveReminder = ref(
       reminder.allReminders.includes(props.pk.toString())
     );
-
-    const now = inject<DateProvider>("dateProvider")!.getCurrent();
 
     const runName = props.fields.display_name.replaceAll("\\n", " ");
     const start = new Date(props.fields.starttime);
@@ -103,31 +102,40 @@ export default defineComponent({
       "scrollRunContainerBy"
     );
 
+    const timeProvider = inject<DateProvider>("dateProvider")!;
+    const now = timeProvider.getCurrent();
     const run = ref<HTMLDivElement>();
-    const isActive = start < now && now < end;
+    const isActive = ref(start < now && now < end);
+    let currentRun : Ref<[HTMLDivElement, GDQRunDataFields]> | null = null;
     onMounted(() => {
       if (start < now && now < end) {
         run.value!.scrollIntoView(true);
         scrollRunContainerBy!(0, -150);
       }
-      if (isActive)
+      currentRun = inject<Ref<[HTMLDivElement, GDQRunDataFields]>>("currentRun")!;
+      if (isActive.value)
       {
-        const currentRun = inject<Ref<[HTMLDivElement, GDQRunDataFields]>>("currentRun")!;
         currentRun.value = [run.value!, props.fields];
       }
     });
-    const isInThePast = end < now;
-    const generateIsOverClassName = () => {
-      if (isInThePast) {
-        return "is-over";
+    const isInThePast = ref(end < now);
+    const generateIsOverClassName = computed(() => `run ${generateRunTypeClassName()} ${isInThePast.value ?  "is-over" : ""}`);
+
+    setInterval(() => {
+      const now = timeProvider.getCurrent();
+      isInThePast.value = end < now;
+      isActive.value = start < now && now < end;
+
+      if (isActive.value)
+      {
+        currentRun!.value = [run.value!, props.fields];
       }
-      return "";
-    };
+    }, 200);
 
     return {
       pk: props.pk,
       onFocus,
-      className: `run ${generateRunTypeClassName()} ${generateIsOverClassName()}`,
+      className: generateIsOverClassName,
       reminderClasses,
       startString,
       durationHMMSS,
