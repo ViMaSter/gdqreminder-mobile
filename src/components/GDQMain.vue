@@ -40,14 +40,12 @@ export default defineComponent({
 
         const parameters = new LocationHashParameters();
         const date = parameters.getKey("date");
+        let dateProvider = new RealDateProvider();
         if (date)
         {
-            provide<DateProvider>("dateProvider", new FakeDateProvider(new Date(decodeURIComponent(date))));
+            dateProvider = new FakeDateProvider(new Date(decodeURIComponent(date)));
         }
-        else
-        {
-            provide<DateProvider>("dateProvider", new RealDateProvider());
-        }
+        provide<DateProvider>("dateProvider", dateProvider);
 
         const reminder = ref<string[]>([]);
         onMounted(() => {
@@ -145,32 +143,35 @@ export default defineComponent({
         const runners = ref<{
             [pk: string]: GDQRunnerDataFields;
         }>({});
+        const loadRuns = async (eventShort: string) => {
+            const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json<GDQRunData[]>())
+                                .sort((a, b) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
+                                .map((run) : [string, GDQRunDataFields] => [run.pk.toString() , run.fields]);
+            const allRunners = orderedRuns.map((run) => run[1].runners).flat();
+            const uniqueRunner = [...new Set(allRunners)];
+            const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json<GDQRunnerData[]>()).map((runner) => [runner.pk, runner.fields]));
+            runners.value = { ...runners.value, ...runnerDataForRunnersOfThisRun };
+            runsByID.value = { ...runsByID.value, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
+            runIDsInOrder.value = orderedRuns.map(([pk, _]) => pk);
+            orderedDays.value = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
+            runsByDay.value = {};
+            runIDsInOrder.value.forEach(runID => {
+                const timeOfRun = new Date(runsByID.value[runID].starttime);
+                timeOfRun.setHours(0, 0, 0, 0);
+                const dayOfRun = timeOfRun.getTime();
+                if (!Object.keys(runsByDay.value).includes(dayOfRun.toString()))
+                {
+                    runsByDay.value[dayOfRun] = [];
+                }
+                runsByDay.value[dayOfRun].push(runID);
+            });
+        };
         const updateCurrentEvent = async (newEvent: string) => {
             currentEventName.value = newEvent;
-            drawer.value!.open = false;
-            const loadRuns = async (eventShort: string) => {
-                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json<GDQRunData[]>())
-                                    .sort((a, b) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
-                                    .map((run) : [string, GDQRunDataFields] => [run.pk.toString() , run.fields]);
-                const allRunners = orderedRuns.map((run) => run[1].runners).flat();
-                const uniqueRunner = [...new Set(allRunners)];
-                const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json<GDQRunnerData[]>()).map((runner) => [runner.pk, runner.fields]));
-                runners.value = { ...runners.value, ...runnerDataForRunnersOfThisRun };
-                runsByID.value = { ...runsByID.value, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
-                runIDsInOrder.value = orderedRuns.map(([pk, _]) => pk);
-                orderedDays.value = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
-                runsByDay.value = {};
-                runIDsInOrder.value.forEach(runID => {
-                    const timeOfRun = new Date(runsByID.value[runID].starttime);
-                    timeOfRun.setHours(0, 0, 0, 0);
-                    const dayOfRun = timeOfRun.getTime();
-                    if (!Object.keys(runsByDay.value).includes(dayOfRun.toString()))
-                    {
-                        runsByDay.value[dayOfRun] = [];
-                    }
-                    runsByDay.value[dayOfRun].push(runID);
-                });
-            };
+            if (drawer.value)
+            {
+                drawer.value.open = false;
+            }
             await loadRuns(eventByShorthands.value[newEvent].short);
         };
         const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event")).json<GDQEventData[]>();
@@ -179,6 +180,19 @@ export default defineComponent({
             .sort((a, b) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
             .map((singleEvent) : [string, GDQEventDataFields] => [singleEvent.fields.short.toUpperCase(), singleEvent.fields])));
         const drawer = ref<TopAppBarFixedWithOpen>()!;
+
+        const lastEvent = Object.values(eventByShorthands.value).sort((a, b)=>new Date(a.datetime).getTime() - new Date(b.datetime).getTime()).at(-1)!;
+        await loadRuns(lastEvent.short);
+        const now = dateProvider.getCurrent();
+        const lastEventEnd = new Date(runsByID.value[runIDsInOrder.value.at(-1)!].endtime);
+        if (new Date(lastEvent.datetime) < now && now < lastEventEnd)
+        {
+            await updateCurrentEvent(lastEvent.short);
+        }
+        else
+        {
+            runsByDay.value = {};
+        }
 
         const snackbar = ref<Snackbar>();
 
