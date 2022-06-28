@@ -174,16 +174,34 @@ export default defineComponent({
             }
             await loadRuns(eventByShorthands.value[newEvent].short);
         };
-        const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event")).json<GDQEventData[]>();
-        const eventByShorthands : Ref<{[key: string] : GDQEventDataFields}> = ref(Object.fromEntries(eventData
+        const now = dateProvider.getCurrent();
+
+        const eventByShorthands : Ref<{[key: string] : GDQEventDataFields}> = ref({});
+
+        const loadEvents = async (eventsAfter : Date) => {
+            const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte="+eventsAfter.toISOString())).json<GDQEventData[]>();
+            eventByShorthands.value = {...eventByShorthands.value, ...Object.fromEntries(eventData
             .filter((a) => a.fields.short.toLowerCase().includes("gdq"))
             .sort((a, b) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
-            .map((singleEvent) : [string, GDQEventDataFields] => [singleEvent.fields.short.toUpperCase(), singleEvent.fields])));
+            .map((singleEvent) : [string, GDQEventDataFields] => [singleEvent.fields.short.toUpperCase(), singleEvent.fields]))};
+        };
+
+        const doneLoading = ref(false);
+
+        {
+            const roughly6MonthsAgo = dateProvider.getCurrent();
+            roughly6MonthsAgo.setTime(roughly6MonthsAgo.getTime()-1000 * 60 * 60 * 24 * 30 * 6);
+            await loadEvents(roughly6MonthsAgo);
+            setTimeout(async () => {
+                await loadEvents(new Date("2000-01-01"));
+                doneLoading.value = true;
+            }, 2000);
+        }
+
         const drawer = ref<TopAppBarFixedWithOpen>()!;
 
         const lastEvent = Object.values(eventByShorthands.value).sort((a, b)=>new Date(a.datetime).getTime() - new Date(b.datetime).getTime()).at(-1)!;
         await loadRuns(lastEvent.short);
-        const now = dateProvider.getCurrent();
         const lastEventEnd = new Date(runsByID.value[runIDsInOrder.value.at(-1)!].endtime);
         if (new Date(lastEvent.datetime) < now && now < lastEventEnd)
         {
@@ -203,6 +221,7 @@ export default defineComponent({
         };
 
         return {
+            doneLoading,
             eventByShorthands,
             drawer,
             snackbar,
@@ -230,37 +249,7 @@ export default defineComponent({
             }
         };
     },
-    components: { GDQRun, GDQDay, GDQDayDivider, GDQHeader, GDQSidebar, GDQTimeIndicator },
-    methods: {
-        updateCurrentEvent: function(newEventName : string) {
-            this.currentEventName = newEventName;
-            this.drawer!.open = false;
-            const loadRuns = async (eventShort : string) => {
-                const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json<GDQRunData[]>())
-                                    .sort((a, b) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
-                                    .map((run) : [string, GDQRunDataFields] => [run.pk.toString(), run.fields]);
-                const allRunners = orderedRuns.map((run) => run[1].runners).flat();
-                const uniqueRunner = [...new Set(allRunners)];
-                const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json<GDQRunnerData[]>()).map((runner) => [runner.pk, runner.fields]));
-                this.runners = { ...this.runners, ...runnerDataForRunnersOfThisRun };
-                this.runsByID = { ...this.runsByID, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
-                this.runIDsInOrder = orderedRuns.map(([pk, _] : [string, unknown]) => pk);
-                this.orderedDays = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
-                this.runsByDay = {};
-                this.runIDsInOrder.forEach(runID => {
-                    let timeOfRun = new Date(this.runsByID[runID].starttime);
-                    timeOfRun.setHours(0,0,0,0);
-                    const dayOfRun = timeOfRun.getTime();
-                    if (!Object.keys(this.runsByDay).includes(dayOfRun.toString()))
-                    {
-                        this.runsByDay[dayOfRun] = [];
-                    }
-                    this.runsByDay[dayOfRun].push(runID);
-                });
-            };
-            loadRuns(this.eventByShorthands[newEventName].short);
-        }
-    }
+    components: { GDQRun, GDQDay, GDQDayDivider, GDQHeader, GDQSidebar, GDQTimeIndicator }
 });
 </script>
 
@@ -270,7 +259,7 @@ export default defineComponent({
     </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
         <span slot="title">Available events</span>
-        <GDQSidebar :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
+        <GDQSidebar :doneLoading="doneLoading" :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
         <div slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
             <div id="runs">
