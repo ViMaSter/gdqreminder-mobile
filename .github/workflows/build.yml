@@ -52,7 +52,7 @@ jobs:
       - run: npx cap sync
       - run: cd android && ./gradlew :app:bundleRelease
         shell: bash
-        
+
       - uses: actions/upload-artifact@v3
         with:
           name: aab-v${{ github.run_number }}
@@ -76,6 +76,12 @@ jobs:
     if: ((github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.determineChanges.outputs.gradle == 'true') || github.event.inputs.forceRelease)
     needs: [buildAAB, determineChanges]
     steps:
+      - run: |
+          echo "github.event_name: ${{github.event_name}}"
+          echo "github.ref: ${{github.ref}}"
+          echo "needs.determineChanges.outputs.gradle: ${{needs.determineChanges.outputs.gradle}}"
+          echo "github.event.inputs.forceRelease: ${{github.event.inputs.forceRelease}}"
+
       - uses: actions/download-artifact@v3
         with:
           name: aab-v${{ github.run_number }}
