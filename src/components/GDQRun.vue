@@ -1,20 +1,11 @@
 <script lang="ts">
-import {
-  defineComponent,
-  ref,
-  inject,
-  onMounted,
-  watchEffect,
-  computed,
-  Ref,
-} from "vue";
+import { defineComponent, ref, inject, onMounted, watchEffect, computed, Ref } from "vue";
 import "../utilities/pushNotificationHelper";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
 import PushNotificationHelper from "../utilities/pushNotificationHelper";
 import "@material/mwc-icon";
 import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
-import { AppLauncher } from '@capacitor/app-launcher';
 
 export default defineComponent({
   props: {
@@ -132,6 +123,9 @@ export default defineComponent({
       }
     }, 200);
 
+    const jumpToTwitch = inject<()=>void>("jumpToTwitch")!;
+    const jumpToYouTube = inject<(runName: string, runnerNames: string[])=>void>("jumpToYouTube")!;
+
     return {
       pk: props.pk,
       onFocus,
@@ -144,31 +138,22 @@ export default defineComponent({
       hasActiveReminder,
       run,
       isActive,
-      isInThePast
+      isInThePast,
+      jumpToTwitch,
+      jumpToYouTube
     };
   },
   methods: {
     toggleReminder: async function () {
       if (this.isActive)
       {
-        const urls = [
-          "twitch://stream/gamesdonequick",
-          "https://twitch.tv/gamesdonequick"
-        ];
-        for (const url of urls) {
-          const {completed} = await AppLauncher.openUrl({url});
-          if (completed)
-          {
-            return;
-          }
-        }
-
-        throw new Error("Neither the Twitch app nor a web browser is installed");
+          this.jumpToTwitch();
       }
       
       if (this.isInThePast)
       {
-        return;
+          this.jumpToYouTube(this.runName, this.runnerNames);
+          return;
       }
       const reminderStore = useRunReminderStore();
       if (reminderStore.allReminders.includes(this.pk.toString())) {

@@ -1,38 +1,36 @@
 <script setup lang="ts">
-import { provide } from 'vue'
 import GDQMain from './components/GDQMain.vue'
 import { PushNotifications, Channel as g } from '@capacitor/push-notifications';
 import { EventHandler, NestedEventCallbacks} from './utilities/eventHandler';
 import { AppLauncher } from '@capacitor/app-launcher';
 import { Capacitor } from '@capacitor/core';
 import { Theme, useThemeStore } from '@/stores/theme';
+import { provide } from 'vue';
 
 if (useThemeStore().currentTheme === Theme.Dark)
 {
     document.body.classList.add('dark-mode');
 }
 
+const jumpToTwitch = async () => {
+  const urls = [
+    "twitch://stream/gamesdonequick",
+    "https://twitch.tv/gamesdonequick"
+  ];
+  for (const url of urls) {
+    const {completed} = await AppLauncher.openUrl({url});
+    if (completed)
+    {
+      return;
+    }
+  }
+
+  throw new Error("Neither the Twitch app nor a web browser is installed");
+};
+
+provide("jumpToTwitch", jumpToTwitch);
+
 const addListeners = async () => {
-  const handler : NestedEventCallbacks = {
-      run: {
-        start: async () => {
-          const urls = [
-            "twitch://stream/gamesdonequick",
-            "https://twitch.tv/gamesdonequick"
-          ];
-          for (const url of urls) {
-            const {completed} = await AppLauncher.openUrl({url});
-            if (completed)
-            {
-              return;
-            }
-          }
-
-          throw new Error("Neither the Twitch app nor a web browser is installed");
-        }
-      }
-  };
-
   await PushNotifications.addListener('registration', token => {
     console.info('Registration token: ', token.value);
   });
@@ -52,7 +50,7 @@ const addListeners = async () => {
         console.warn("Handling notification without event data");
         return;
     }
-    EventHandler.handleCustomEvent(notification.notification.data.event, handler);
+    EventHandler.handleCustomEvent(notification.notification.data.event, { run: jumpToTwitch });
   });
 }
 

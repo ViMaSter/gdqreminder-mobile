@@ -1,6 +1,7 @@
 <script lang="ts">
 import ky from 'ky';
-import {onMounted, ref, Ref, provide, defineComponent, inject} from 'vue';
+import {onMounted, ref, Ref, provide, defineComponent} from 'vue';
+import { AppLauncher } from '@capacitor/app-launcher';
 import '@material/mwc-list';
 import '@material/mwc-snackbar';
 import { Snackbar } from '@material/mwc-snackbar';
@@ -46,6 +47,32 @@ export default defineComponent({
             dateProvider = new FakeDateProvider(new Date(decodeURIComponent(date)));
         }
         provide<DateProvider>("dateProvider", dateProvider);
+        
+
+        const jumpToYouTube = async (runName : string, runnerNames : string[]) => {
+            const ytSearchQuery = `${currentEventName.value} ${runName} "${runnerNames.join('" "')}"`;
+            const urls = [
+                "https://www.youtube.com/c/gamesdonequick/search?query="+encodeURIComponent(ytSearchQuery)
+            ];
+            for (const url of urls) {
+                const {completed} = await AppLauncher.openUrl({url});
+                if (completed)
+                {
+                  return;
+                }
+            }
+
+            throw new Error("Neither the YouTube app nor a web browser is installed");
+        };
+        provide("jumpToYouTube", jumpToYouTube);
+                
+        const showSnackbar = (text : string) => {
+            snackbar.value!.stacked = false;
+            snackbar.value!.leading = false;
+            snackbar.value!.open = true;
+            snackbar.value!.labelText = text;
+        };
+        provide<(text : string) => void>("showSnackbar", showSnackbar);
 
         const reminder = ref<string[]>([]);
         onMounted(() => {
@@ -56,14 +83,6 @@ export default defineComponent({
                 drawer.value!.open = !drawer.value!.open;
             });
             setupSwipeLogic(drawer.value!);
-                
-            const showSnackbar = (text : string) => {
-                snackbar.value!.stacked = false;
-                snackbar.value!.leading = false;
-                snackbar.value!.open = true;
-                snackbar.value!.labelText = text;
-            };
-            provide<(text : string) => void>("showSnackbar", showSnackbar);
         });
         const setupSwipeLogic = (drawer: TopAppBarFixedWithOpen) => {
             let touchIdentifier = -1;
