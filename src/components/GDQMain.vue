@@ -1,6 +1,7 @@
 <script lang="ts">
 import ky from 'ky';
 import {onMounted, ref, Ref, provide, defineComponent} from 'vue';
+import { Browser } from '@capacitor/browser';
 import { AppLauncher } from '@capacitor/app-launcher';
 import '@material/mwc-list';
 import '@material/mwc-snackbar';
@@ -51,18 +52,9 @@ export default defineComponent({
 
         const jumpToYouTube = async (runName : string, runnerNames : string[]) => {
             const ytSearchQuery = `${currentEventName.value} ${runName} "${runnerNames.join('" "')}"`;
-            const urls = [
-                "https://www.youtube.com/c/gamesdonequick/search?query="+encodeURIComponent(ytSearchQuery)
-            ];
-            for (const url of urls) {
-                const {completed} = await AppLauncher.openUrl({url});
-                if (completed)
-                {
-                  return;
-                }
-            }
+            await Browser.open({url: "https://www.youtube.com/c/gamesdonequick/search?query="+encodeURIComponent(ytSearchQuery)});
 
-            throw new Error("Neither the YouTube app nor a web browser is installed");
+            throw new Error("No web browser is installed");
         };
         provide("jumpToYouTube", jumpToYouTube);
                 

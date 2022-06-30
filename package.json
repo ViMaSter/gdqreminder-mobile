@@ -15,6 +15,7 @@
     "@capacitor-community/fcm": "^2.0.2",
     "@capacitor/android": "^3.6.0",
     "@capacitor/app-launcher": "^1.0.9",
+    "@capacitor/browser": "^1.0.7",
     "@capacitor/cli": "^3.6.0",
     "@capacitor/core": "^3.6.0",
     "@capacitor/push-notifications": "^1.0.9",
