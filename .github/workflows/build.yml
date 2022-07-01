@@ -31,7 +31,7 @@ jobs:
       - run: cd android && ./gradlew assembleDebug
         shell: bash
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: apk-v${{ github.run_number }}
           path: ./android/app/build/outputs/apk/debug/app-debug.apk
