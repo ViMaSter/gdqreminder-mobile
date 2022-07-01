@@ -293,9 +293,18 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+    #runs {
+        position: relative;
+        
+        overflow-x: hidden;
+    }
+
     .container
     {
+        width: 100vw;
         height: 100vh;
+
+        overflow-x: hidden;
     }
 
     .dark-mode {

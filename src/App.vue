@@ -93,10 +93,19 @@ registerNotifications()
   <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
 </template>
 <style>
+* {
+  -webkit-touch-callout: none;
+    -webkit-user-select: none;
+     -khtml-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+}
 body
 {
   font-family: Roboto;
   margin: 0;
+  width: 100vw;
 }
 body.dark-mode
 {

@@ -15,39 +15,26 @@ export default defineComponent({
         return ( n - a ) / ( b - a );
     }
 
+    const update = (newRun : [HTMLDivElement, GDQRunDataFields]) => {
+        if (newRun)
+        {
+            const [runElement, runData] = newRun;
+            visibilityClasses.value = "timeIndicator shown";
+            const progress = inverseLerp(
+                new Date(runData.starttime).getTime(),
+                new Date(runData.endtime).getTime(), 
+                now.getCurrent().getTime()
+            );
+
+            offset.value = Math.round(runElement.offsetTop + (runElement.clientHeight * progress));
+            return;
+        }
+        visibilityClasses.value = "timeIndicator";
+    }
+
     setInterval(() => {
-        if (currentRun.value)
-        {
-            const [runElement, runData] = currentRun.value;
-            visibilityClasses.value = "timeIndicator shown";
-            const progress = inverseLerp(
-                new Date(runData.starttime).getTime(),
-                new Date(runData.endtime).getTime(), 
-                now.getCurrent().getTime()
-            );
-
-            offset.value = runElement.offsetTop + (runElement.clientHeight * progress);
-            return;
-        }
-        visibilityClasses.value = "timeIndicator";
-    }, 200);
-
-    watch(currentRun, (newValue) => {
-        if (newValue)
-        {
-            const [runElement, runData] = newValue;
-            visibilityClasses.value = "timeIndicator shown";
-            const progress = inverseLerp(
-                new Date(runData.starttime).getTime(),
-                new Date(runData.endtime).getTime(), 
-                now.getCurrent().getTime()
-            );
-
-            offset.value = runElement.offsetTop + (runElement.clientHeight * progress);
-            return;
-        }
-        visibilityClasses.value = "timeIndicator";
-    });
+        update(currentRun.value);
+    }, 60000);
 
     return {
         visibilityClasses,
