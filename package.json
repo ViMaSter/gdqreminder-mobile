@@ -28,7 +28,7 @@
     "@robingenz/capacitor-android-dark-mode-support": "^1.0.1",
     "@webcomponents/webcomponentsjs": "^2.6.0",
     "ky": "^0.31.1",
-    "pinia": "^2.0.16",
+    "pinia": "^2.0.17",
     "vue": "^3.2.37",
     "vue-router": "^4.1.2"
   },
