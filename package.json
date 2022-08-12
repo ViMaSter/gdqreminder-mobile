@@ -24,7 +24,7 @@
     "@material/mwc-icon-button": "^0.26.1",
     "@material/mwc-list": "^0.26.1",
     "@material/mwc-snackbar": "^0.26.1",
-    "@material/mwc-top-app-bar-fixed": "^0.26.1",
+    "@material/mwc-top-app-bar-fixed": "^0.27.0",
     "@robingenz/capacitor-android-dark-mode-support": "git://github.com:ViMaSter/capacitor-android-dark-mode-support.git#91b688f0e169adcf9bc2328370ee439b8a0ee0c3",
     "@webcomponents/webcomponentsjs": "^2.6.0",
     "ky": "^0.31.1",
