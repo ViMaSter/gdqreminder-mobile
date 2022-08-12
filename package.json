@@ -18,7 +18,7 @@
     "@capacitor/cli": "^4.0.1",
     "@capacitor/core": "^3.7.0",
     "@capacitor/push-notifications": "^4.0.0",
-    "@material/mwc-button": "^0.26.1",
+    "@material/mwc-button": "^0.27.0",
     "@material/mwc-drawer": "^0.27.0",
     "@material/mwc-icon": "^0.27.0",
     "@material/mwc-icon-button": "^0.27.0",
