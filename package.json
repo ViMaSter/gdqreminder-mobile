@@ -27,7 +27,7 @@
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
     "@robingenz/capacitor-android-dark-mode-support": "git://github.com:ViMaSter/capacitor-android-dark-mode-support.git#91b688f0e169adcf9bc2328370ee439b8a0ee0c3",
     "@webcomponents/webcomponentsjs": "^2.6.0",
-    "ky": "^0.31.3",
+    "ky": "^0.31.4",
     "pinia": "^2.0.23",
     "vue": "^3.2.40",
     "vue-router": "^4.1.5"
