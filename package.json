@@ -28,7 +28,7 @@
     "@robingenz/capacitor-android-dark-mode-support": "git://github.com:ViMaSter/capacitor-android-dark-mode-support.git#91b688f0e169adcf9bc2328370ee439b8a0ee0c3",
     "@webcomponents/webcomponentsjs": "^2.7.0",
     "ky": "^0.32.2",
-    "pinia": "^2.0.27",
+    "pinia": "^2.0.28",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"
   },
