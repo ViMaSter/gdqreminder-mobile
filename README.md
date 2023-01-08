@@ -7,8 +7,9 @@ This template should help get you started developing with Vue 3 in Vite.
 1. [VSCode](https://code.visualstudio.com/)
 2. Recommended extensions
 3. [`nvm-windows 1.1.9`](https://github.com/coreybutler/nvm-windows) for npm + node.js version management
-4. `nvm install latest` (node.js >=18.3.0, npm >= 8.12.1)
-5. `nvm use latest` (>= 18.3.0)
+4. `nvm use`
+5. `nvm install`
+5. `npm install`
 6. `npm run dev`
 7. Open `http://localhost:4437`
 
