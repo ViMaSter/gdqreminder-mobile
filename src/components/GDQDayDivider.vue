@@ -40,7 +40,8 @@ export default defineComponent({
 <style lang="scss" scoped>
 div
 {
-    margin-top: .45em;
+    position: sticky;
+    top: 1.25em;
 
     &.is-over
     {

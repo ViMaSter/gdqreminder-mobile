@@ -279,7 +279,7 @@ export default defineComponent({
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
         <span slot="title">Available events</span>
         <GDQSidebar :doneLoading="doneLoading" :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
-        <div slot="appContent" ref="scrollable">
+        <div id="appContent" slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
             <div id="runs">
                 <template v-for="(runs, day, _) in runsByDay" :key="day">
@@ -293,6 +293,11 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+    #appContent, #runs
+    {
+        height: 100%;
+    }
+
     #runs {
         position: relative;
         
