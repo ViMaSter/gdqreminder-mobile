@@ -57,29 +57,15 @@ jobs:
         with:
           name: aab-v${{ github.run_number }}
           path: ./android/app/build/outputs/bundle/release/app-release.aab
-          
-  determineChanges:
-    runs-on: ubuntu-latest
-    outputs:
-      gradle: ${{ steps.versionChange.outputs.gradle }}
-    steps:
-    - uses: actions/checkout@v3
-    - uses: dorny/paths-filter@v2
-      id: versionChange
-      with:
-        filters: |
-          gradle:
-            - 'android/app/build.gradle'
        
   publish:
     runs-on: ubuntu-latest
-    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.determineChanges.outputs.gradle == 'true') || github.event.inputs.forceRelease == 'true')
-    needs: [buildAAB, determineChanges]
+    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceRelease == 'true')
+    needs: [buildAAB]
     steps:
       - run: |
           echo "github.event_name: ${{github.event_name}}"
           echo "github.ref: ${{github.ref}}"
-          echo "needs.determineChanges.outputs.gradle: ${{needs.determineChanges.outputs.gradle}}"
           echo "github.event.inputs.forceRelease: ${{github.event.inputs.forceRelease}}"
 
       - uses: actions/download-artifact@v3
@@ -106,34 +92,4 @@ jobs:
     needs: publish
     steps:
       - uses: actions/checkout@v3
-
-      - id: build-gradle
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: ./android/app/build.gradle
-
-      - uses: actions-ecosystem/action-regex-match@v2
-        id: version-code
-        with:
-          text: ${{ steps.build-gradle.outputs.content }}
-          regex: 'versionCode (.*)'
-
-      - uses: actions-ecosystem/action-regex-match@v2
-        id: version-name
-        with:
-          text: ${{ steps.build-gradle.outputs.content }}
-          regex: 'versionName "(.*)"'
-
-      - name: Echo versionCode
-        run: echo "${{ steps.version-code.outputs.group1 }}"
-
-      - name: Echo versionName
-        run: echo "${{ steps.version-name.outputs.group1 }}"
-
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          custom_tag: "${{ steps.version-name.outputs.group1 }}.${{ steps.version-code.outputs.group1 }}"
-          tag_prefix: ""
+      - uses: neverendingqs/gh-action-tag-on-npm-version@master
