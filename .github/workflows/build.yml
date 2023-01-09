@@ -101,14 +101,6 @@ jobs:
         with:
           name: aab-v${{ github.run_number }}
           path: aab
-      - run: node -p -e '`PACKAGE_VERSION=${require("./package.json").version}`' >> $GITHUB_ENV
-      - uses: pkgdeps/git-tag-action@v2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          github_repo: ${{ github.repository }}
-          version: ${{ env.PACKAGE_VERSION }}
-          git_commit_sha: ${{ github.sha }}
-          git_tag_prefix: "v"
       - run: |
           cd apk
           find . -name "*.apk" -exec mv {} gdqreminder-v${{ env.PACKAGE_VERSION }}.apk \;
@@ -117,8 +109,11 @@ jobs:
           cd aab
           find . -name "*.aab" -exec mv {} gdqreminder-v${{ env.PACKAGE_VERSION }}.aab \;
           cd ..
-      - uses: ncipollo/release-action@v1
-        with:
-          tag: "v${{ env.PACKAGE_VERSION }}"
-          artifacts: "apk/*,aab/*"
-          omitBody: true
+      - name: Build, Test and Publish REST Client
+        run: |
+          npm ci
+          npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,6 @@
 {
   "name": "gdq-reminder-mobile",
-  "version": "0.15.0",
+  "version": "0.0.0-development",
   "author": "Vincent Mahnke (vincent@mahn.ke)",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,8 @@
     "preview": "vite preview --port 4437",
     "test:unit": "vitest --environment jsdom",
     "typecheck": "vue-tsc --noEmit",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "semantic-release": "semantic-release"
   },
   "dependencies": {
     "@capacitor-community/fcm": "^2.0.2",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
+    "@semantic-release/github": "^8.0.7",
     "@types/node": "^18.11.18",
     "@vitejs/plugin-vue": "^2.3.4",
     "@vitejs/plugin-vue-jsx": "^1.3.10",
@@ -47,9 +49,34 @@
     "jsdom": "^20.0.3",
     "prettier": "^2.8.1",
     "sass": "^1.57.1",
+    "semantic-release": "^20.0.2",
     "typescript": "~4.9.4",
     "vite": "^2.9.14",
     "vitest": "^0.26.3",
     "vue-tsc": "^1.0.22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ViMaSter/gdqreminder-mobile.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "release": {
+    "branches": [
+      {
+        "name": "main"
+      }
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      ["@semantic-release/github", {
+        "assets": [
+          {"path": "*.apk", "label": "APK"},
+          {"path": "*.aab", "label": "AAB"}
+        ]
+      }]
+    ]
   }
 }
