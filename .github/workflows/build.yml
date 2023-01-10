@@ -19,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - run: | 
           npm ci
           npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator"
@@ -32,6 +34,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
@@ -55,6 +59,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
@@ -107,6 +113,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/download-artifact@v3
         with:
           name: apk-v${{ github.run_number }}
