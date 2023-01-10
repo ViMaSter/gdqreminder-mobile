@@ -25,7 +25,6 @@ export default defineComponent({
                 new Date(runData.endtime).getTime(), 
                 now.getCurrent().getTime()
             );
-
             offset.value = Math.round(runElement.offsetTop + (runElement.clientHeight * progress));
             return;
         }
@@ -35,6 +34,8 @@ export default defineComponent({
     setInterval(() => {
         update(currentRun.value);
     }, 60000);
+    
+    watch(currentRun, update);
 
     return {
         visibilityClasses,
