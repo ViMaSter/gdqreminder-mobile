@@ -14,8 +14,21 @@ on:
         type: boolean
 
 jobs:
+  prepareNPMVersion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: | 
+          npm ci
+          npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   buildAPK:
     runs-on: ubuntu-latest
+    needs: [prepareNPMVersion]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -38,6 +51,7 @@ jobs:
 
   buildAAB:
     runs-on: ubuntu-latest
+    needs: [prepareNPMVersion]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -87,9 +101,9 @@ jobs:
           status: completed
           releaseFiles: ./aab/app-release.aab
           
-  versioning:
+  githubRelease:
     runs-on: ubuntu-latest
-    needs: [buildAAB, buildAPK]
+    needs: [publish]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -109,7 +123,7 @@ jobs:
           cd aab
           find . -name "*.aab" -exec mv {} gdqreminder-v${{ env.PACKAGE_VERSION }}.aab \;
           cd ..
-      - name: Build, Test and Publish REST Client
+      - name: Create commit and create GitHub release
         run: |
           npm ci
           npx semantic-release
