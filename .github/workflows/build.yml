@@ -14,7 +14,7 @@ on:
         type: boolean
 
 jobs:
-  prepareNPMVersion:
+  buildAPK:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,19 +23,11 @@ jobs:
           node-version-file: '.nvmrc'
       - run: | 
           npm ci
-          npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm, @semantic-release/git"
+          npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  buildAPK:
-    runs-on: ubuntu-latest
-    needs: [prepareNPMVersion]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
@@ -55,12 +47,18 @@ jobs:
 
   buildAAB:
     runs-on: ubuntu-latest
-    needs: [prepareNPMVersion]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
+      - run: | 
+          npm ci
+          npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
