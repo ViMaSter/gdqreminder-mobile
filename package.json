@@ -28,7 +28,6 @@
     "@material/mwc-snackbar": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
     "@robingenz/capacitor-android-dark-mode-support": "git://github.com:ViMaSter/capacitor-android-dark-mode-support.git#91b688f0e169adcf9bc2328370ee439b8a0ee0c3",
-    "@semantic-release/exec": "^6.0.3",
     "@sentry/tracing": "^7.29.0",
     "@sentry/vue": "^7.29.0",
     "@webcomponents/webcomponentsjs": "^2.7.0",
@@ -93,13 +92,7 @@
         "assets": ["package.json"],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }],
-      "@semantic-release/npm",
-      [
-        "@semantic-release/exec",
-          {
-            "publishCmd": "echo ${nextRelease.version} > .newversion"
-          }
-      ]
+      "@semantic-release/npm"
     ]
   }
 }

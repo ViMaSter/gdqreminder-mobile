@@ -24,7 +24,7 @@ jobs:
       - run: | 
           npm ci
           npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm, @semantic-release/exec"
-          version=`cat .newversion`
+          version=v$(jq -r .version package.json)
           echo $version
           git push --delete origin $version
         env:
