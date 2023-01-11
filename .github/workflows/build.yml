@@ -139,11 +139,11 @@ jobs:
           path: aab
       - run: |
           cd apk
-          find . -name "*.apk" -exec mv {} gdqreminder-v${{ env.PACKAGE_VERSION }}.apk \;
+          find . -name "*.apk" -exec mv {} ../gdqreminder-v${{ env.PACKAGE_VERSION }}.apk \;
           cd ..
           
           cd aab
-          find . -name "*.aab" -exec mv {} gdqreminder-v${{ env.PACKAGE_VERSION }}.aab \;
+          find . -name "*.aab" -exec mv {} ../gdqreminder-v${{ env.PACKAGE_VERSION }}.aab \;
           cd ..
 
       - uses: actions/setup-node@v3
