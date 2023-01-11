@@ -24,8 +24,9 @@ jobs:
       - run: | 
           npm ci
           npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm, @semantic-release/exec"
-          echo $VERSION
-          git push --delete origin $VERSION
+          version=`cat .newversion`
+          echo $version
+          git push --delete origin $version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
