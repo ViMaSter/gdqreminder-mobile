@@ -33,7 +33,7 @@ jobs:
       - run: npx cap sync
 
       # upload current working directory to cache
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ./*
@@ -45,7 +45,7 @@ jobs:
     needs: [prepareCache]
     steps:
       # restore cache from prepareCache step
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ./*
@@ -71,7 +71,7 @@ jobs:
     needs: [prepareCache]
     steps:
       # restore cache from prepareCache step
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ./*
