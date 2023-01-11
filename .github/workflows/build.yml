@@ -36,7 +36,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ./
+            ./*
           # use the current run id as key
           key: ${{ github.run_id }}
           
@@ -48,7 +48,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ./
+            ./*
           # use the current run id as key
           key: ${{ github.run_id }}
 
@@ -74,7 +74,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: |
-            ./
+            ./*
           # use the current run id as key
           key: ${{ github.run_id }}
 
