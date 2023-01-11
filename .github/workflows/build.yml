@@ -23,7 +23,7 @@ jobs:
           node-version-file: '.nvmrc'
       - run: | 
           npm ci
-          npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm -d"
+          npx semantic-release -d --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
