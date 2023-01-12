@@ -27,7 +27,10 @@ jobs:
           npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm"
           version=v$(jq -r .version package.json)
           echo $version
+          git tag --delete tagname
+          git push origin :refs/tags/$version
           git push --delete origin $version
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
