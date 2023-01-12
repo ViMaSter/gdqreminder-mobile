@@ -27,7 +27,7 @@ jobs:
           npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm"
           version=v$(jq -r .version package.json)
           echo $version
-          git tag --delete tagname
+          git tag --delete $version
           git push origin :refs/tags/$version
           git push --delete origin $version
 
