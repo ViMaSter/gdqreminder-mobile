@@ -33,7 +33,10 @@ export default defineComponent({
     async setup() {
         const scrollable = ref<HTMLDivElement>();
         provide<(x: number, y: number) => void>("scrollRunContainerBy", (x : number, y : number) => {
-            scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")!.scrollTo(0, 0);
+            const header = scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")!;
+            header.scrollTo(0, 0);
+            header.addEventListener("scroll", function () { header.scrollTo(0, 0); });
+
             scrollable.value!.querySelector("#runs")!.scrollBy(x, y);
         });
         
@@ -283,6 +286,7 @@ export default defineComponent({
         <div id="appContent" slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
             <div id="runs">
+                <div class="transition"></div>
                 <template v-for="(runs, day, _) in runsByDay" :key="day">
                     <GDQDay :runners="runners" :runsByID="runsByID" :runsIDsInOrder="runs" :day="(day as string)"></GDQDay>
                 </template>
@@ -294,6 +298,40 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+    .dark-mode
+    {
+        .transition
+        {
+            --mdc-theme-primary: 281, 100%, 10.2%;
+            --from: hsla(var(--mdc-theme-primary), 1);
+            --to: hsla(var(--mdc-theme-primary), 0);
+        }
+
+        .agdq .transition
+        {
+            --mdc-theme-primary: 180, 100%, 5%;
+            --from: hsla(var(--mdc-theme-primary), 1);
+            --to: hsla(var(--mdc-theme-primary), 0);
+        }
+
+        .sgdq .transition
+        {
+            --mdc-theme-primary: 347, 89%, 10.4%;
+            --from: hsla(var(--mdc-theme-primary), 1);
+            --to: hsla(var(--mdc-theme-primary), 0);
+        }
+    }
+
+    .transition {
+        position: sticky;
+        top: 0;
+        left: 0;
+        height: 1em;
+        width: 100vw;
+        background: linear-gradient(180deg, var(--from) 0%, var(--to) 100%);
+        z-index: 1000;
+    }
+
     #appContent, #runs
     {
         height: 100%;

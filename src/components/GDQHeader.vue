@@ -18,45 +18,9 @@ export default defineComponent({
       <mwc-icon-button slot="actionItems" icon="search" @click="$emit('toggleSearch')"></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="dark_mode" @click="$emit('toggleDarkMode')"></mwc-icon-button>
   </mwc-top-app-bar-fixed>
-  <div class="transition"></div>
 </template>
 
 <style lang="scss" scoped>
-
-.dark-mode
-{
-    .transition
-    {
-        --mdc-theme-primary: 281, 100%, 10.2%;
-        --from: hsla(var(--mdc-theme-primary), 1);
-        --to: hsla(var(--mdc-theme-primary), 0);
-    }
-
-    .agdq .transition
-    {
-        --mdc-theme-primary: 180, 100%, 5%;
-        --from: hsla(var(--mdc-theme-primary), 1);
-        --to: hsla(var(--mdc-theme-primary), 0);
-    }
-
-    .sgdq .transition
-    {
-        --mdc-theme-primary: 347, 89%, 10.4%;
-        --from: hsla(var(--mdc-theme-primary), 1);
-        --to: hsla(var(--mdc-theme-primary), 0);
-    }
-}
-
-.transition {
-    position: absolute;
-    top: 4em;
-    left: 0;
-    height: 1em;
-    width: 100vw;
-    background: linear-gradient(180deg, var(--from) 0%, var(--to) 100%);
-    z-index: 1000;
-}
-
 mwc-top-app-bar-fixed
 {
   --mdc-theme-primary: hsl(272deg 95% 40%);
