@@ -30,11 +30,11 @@ jobs:
           git tag --delete $version
           git push origin :refs/tags/$version
           echo "SENTRY_RELEASE=$version" >> $GITHUB_ENV
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
       - run: npm run build
         env:
@@ -105,8 +105,8 @@ jobs:
        
   publish:
     name: Publish to Google Play
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceRelease == 'true')
     needs: [buildAAB]
     steps:
       - run: |
@@ -135,6 +135,7 @@ jobs:
           
   githubRelease:
     name: Publish to GitHub Releases
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [buildAAB, buildAPK]
     steps:
