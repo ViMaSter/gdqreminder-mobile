@@ -24,11 +24,9 @@ jobs:
           node-version-file: '.nvmrc'
       - run: | 
           npm ci
-          npx semantic-release --plugins "@semantic-release/commit-analyzer, @semantic-release/release-notes-generator, @semantic-release/npm"
+          npx semantic-release
           version=v$(jq -r .version package.json)
           echo $version
-          git tag --delete $version
-          git push origin :refs/tags/$version
           echo "SENTRY_RELEASE=$version" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
