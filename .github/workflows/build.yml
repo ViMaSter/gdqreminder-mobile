@@ -170,7 +170,7 @@ jobs:
       - name: Add AAB and APK to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          tag: v$(jq -r .version package.json)
+          tag: "v$(jq -r .version package.json)"
           artifacts: "gdqreminder-v$(jq -r .version package.json).aab|gdqreminder-v$(jq -r .version package.json).apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
