@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          token: ${{ secrets.ELEVATED_GITHUB_TOKEN }}
+          token: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ELEVATED_GITHUB_TOKEN || github.token }}
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
