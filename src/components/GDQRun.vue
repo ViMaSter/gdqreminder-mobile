@@ -101,7 +101,7 @@ export default defineComponent({
     onMounted(() => {
       if (start < now && now < end) {
         run.value!.scrollIntoView(true);
-        scrollRunContainerBy!(0, -150);
+        scrollRunContainerBy!(0, -50);
       }
       currentRun = inject<Ref<[HTMLDivElement, GDQRunDataFields]>>("currentRun")!;
       if (isActive.value)

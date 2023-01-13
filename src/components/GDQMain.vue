@@ -33,7 +33,8 @@ export default defineComponent({
     async setup() {
         const scrollable = ref<HTMLDivElement>();
         provide<(x: number, y: number) => void>("scrollRunContainerBy", (x : number, y : number) => {
-            scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")!.scrollBy(x, y)
+            scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")!.scrollTo(0, 0);
+            scrollable.value!.querySelector("#runs")!.scrollBy(x, y);
         });
         
         const currentRun : Ref<[HTMLDivElement, GDQRunDataFields] | null> = ref(null);
