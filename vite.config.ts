@@ -31,7 +31,7 @@ if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
 
 export default defineConfig({
   build: {
-    sourcemap: true, // Source map generation must be turned on
+    sourcemap: true,
   },
   plugins,
   resolve: {
