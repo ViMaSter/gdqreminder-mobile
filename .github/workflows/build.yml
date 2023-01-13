@@ -165,10 +165,11 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - name: Create commit and create GitHub release
-        run: |
-          npm ci
-          npx semantic-release
+      - name: Add AAB and APK to GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v$(jq -r .version package.json)
+          artifacts: "gdqreminder-v$(jq -r .version package.json).aab|gdqreminder-v$(jq -r .version package.json).apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}

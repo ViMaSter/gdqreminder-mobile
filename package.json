@@ -96,21 +96,6 @@
         }
       ],
       "@semantic-release/release-notes-generator",
-      [
-        "@semantic-release/github",
-        {
-          "assets": [
-            {
-              "path": "*.apk",
-              "label": "APK"
-            },
-            {
-              "path": "*.aab",
-              "label": "AAB"
-            }
-          ]
-        }
-      ],
       "@semantic-release/npm",
       [
         "@semantic-release/git",
