@@ -26,15 +26,17 @@ jobs:
           node-version-file: '.nvmrc'
       - run: | 
           npm ci
+      - run: | 
           npx semantic-release
-          version=v$(jq -r .version package.json)
-          echo $version
-          echo "SENTRY_RELEASE=$version" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      - run: | 
+          version=v$(jq -r .version package.json)
+          echo $version
+          echo "SENTRY_RELEASE=$version" >> $GITHUB_ENV
 
       - run: npm run build
         env:
