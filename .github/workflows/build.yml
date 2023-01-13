@@ -29,6 +29,7 @@ jobs:
           echo $version
           git tag --delete $version
           git push origin :refs/tags/$version
+          echo "VERSION=$version" >> $GITHUB_OUTPUT
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -36,6 +37,9 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - run: npm run build
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_RELEASE: ${{ steps.prepareCache.outputs.VERSION }}
       - run: npx cap sync
 
       # upload current working directory to cache
