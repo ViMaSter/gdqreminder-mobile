@@ -17,8 +17,6 @@ jobs:
   prepareCache:
     name: Pre-bundling build steps
     runs-on: ubuntu-latest
-    outputs:
-      SENTRY_RELEASE: ${{ steps.version.outputs.SENTRY_RELEASE }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -35,11 +33,10 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-      - id: version
-        run: | 
+      - run: | 
           version=v$(jq -r .version package.json)
           echo $version
-          echo "SENTRY_RELEASE=$version" >> $GITHUB_OUTPUT
+          echo "SENTRY_RELEASE=$version" >> $GITHUB_ENV
 
       - run: npm run build
         env:
@@ -142,7 +139,7 @@ jobs:
     name: Publish to GitHub Releases
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [prepareCache, buildAAB, buildAPK]
+    needs: [buildAAB, buildAPK]
     steps:
       - uses: actions/cache@v3
         with:
@@ -160,14 +157,12 @@ jobs:
           path: aab
       - run: |
           cd apk
-          find . -name "*.apk" -exec mv {} ../gdqreminder-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.apk \;
+          find . -name "*.apk" -exec mv {} ../gdqreminder-v$(jq -r .version ../package.json).apk \;
           cd ..
           
           cd aab
-          find . -name "*.aab" -exec mv {} ../gdqreminder-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab \;
+          find . -name "*.aab" -exec mv {} ../gdqreminder-v$(jq -r .version ../package.json).aab \;
           cd ..
-
-          echo "${{ needs.prepareCache.outputs.SENTRY_RELEASE }}"
 
       - uses: actions/setup-node@v3
         with:
@@ -175,8 +170,8 @@ jobs:
       - name: Add AAB and APK to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
-          artifacts: "*.aab,*.apk"
+          tag: "v$(jq -r .version package.json)"
+          artifacts: "gdqreminder-v$(jq -r .version package.json).aab|gdqreminder-v$(jq -r .version package.json).apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}

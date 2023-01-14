@@ -18,7 +18,7 @@
     "@capacitor/android": "^4.0.0",
     "@capacitor/app-launcher": "^4.0.0",
     "@capacitor/cli": "^4.6.1",
-    "@capacitor/core": "^4.6.1",
+    "@capacitor/core": "^3.9.0",
     "@capacitor/push-notifications": "^4.0.0",
     "@material/mwc-button": "^0.27.0",
     "@material/mwc-drawer": "^0.27.0",
@@ -30,7 +30,7 @@
     "@sentry/tracing": "^7.30.0",
     "@sentry/vue": "^7.30.0",
     "@webcomponents/webcomponentsjs": "^2.7.0",
-    "ky": "^0.33.2",
+    "ky": "^0.33.1",
     "pinia": "^2.0.28",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"
