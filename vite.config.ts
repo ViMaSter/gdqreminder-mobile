@@ -20,7 +20,7 @@ const plugins = [
 if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
     sentryVitePlugin({
       org: "vimaster",
-      project: "gdqtracker-mobile",
+      project: "gdqreminder-mobile",
 
       include: "./dist",
 
