@@ -17,6 +17,8 @@ jobs:
   prepareCache:
     name: Pre-bundling build steps
     runs-on: ubuntu-latest
+    outputs:
+      SENTRY_RELEASE: ${{ steps.version.outputs.SENTRY_RELEASE }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -33,13 +35,12 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-      - run: | 
+      - id: version
+        run: | 
           version=v$(jq -r .version package.json)
           echo $version
-          echo "SENTRY_RELEASE=$version" >> $GITHUB_ENV
-          SENTRY_RELEASE=$version
-          export SENTRY_RELEASE=$version
-          npm run build
+          echo "SENTRY_RELEASE=$version" >> $GITHUB_OUTPUT
+      - run: npm run build
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       - run: npx cap sync
@@ -116,7 +117,6 @@ jobs:
           echo "github.event_name: ${{github.event_name}}"
           echo "github.ref: ${{github.ref}}"
           echo "github.event.inputs.forceRelease: ${{github.event.inputs.forceRelease}}"
-
       - uses: actions/download-artifact@v3
         with:
           name: aab-v${{ github.run_number }}
@@ -140,7 +140,7 @@ jobs:
     name: Publish to GitHub Releases
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [buildAAB, buildAPK]
+    needs: [prepareCache, buildAAB, buildAPK]
     steps:
       - uses: actions/cache@v3
         with:
@@ -158,21 +158,21 @@ jobs:
           path: aab
       - run: |
           cd apk
-          find . -name "*.apk" -exec mv {} ../gdqreminder-v$(jq -r .version ../package.json).apk \;
+          find . -name "*.apk" -exec mv {} ../gdqreminder-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.apk \;
           cd ..
           
           cd aab
-          find . -name "*.aab" -exec mv {} ../gdqreminder-v$(jq -r .version ../package.json).aab \;
+          find . -name "*.aab" -exec mv {} ../gdqreminder-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab \;
           cd ..
-
+          echo "${{ needs.prepareCache.outputs.SENTRY_RELEASE }}"
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
       - name: Add AAB and APK to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          tag: "v$(jq -r .version package.json)"
-          artifacts: "gdqreminder-v$(jq -r .version package.json).aab|gdqreminder-v$(jq -r .version package.json).apk"
+          tag: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
+          artifacts: "*.aab,*.apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
