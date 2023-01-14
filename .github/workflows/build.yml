@@ -36,7 +36,7 @@ jobs:
       - run: | 
           version=v$(jq -r .version package.json)
           echo $version
-          echo "SENTRY_RELEASE=$version" >> $GITHUB_ENV
+          echo "SENTRY_RELEASE=$version" >> $GITHUB_OUTPUT
 
       - run: npm run build
         env:
@@ -157,14 +157,14 @@ jobs:
           path: aab
       - run: |
           cd apk
-          find . -name "*.apk" -exec mv {} ../gdqreminder-v$(jq -r .version ../package.json).apk \;
+          find . -name "*.apk" -exec mv {} ../gdqreminder-v${{ steps.prepareCache.outputs.SENTRY_RELEASE }}.apk \;
           cd ..
           
           cd aab
-          find . -name "*.aab" -exec mv {} ../gdqreminder-v$(jq -r .version ../package.json).aab \;
+          find . -name "*.aab" -exec mv {} ../gdqreminder-v${{ steps.prepareCache.outputs.SENTRY_RELEASE }}.aab \;
           cd ..
 
-          echo "${{ env.SENTRY_RELEASE }}"
+          echo "${{ steps.prepareCache.outputs.SENTRY_RELEASE }}"
 
       - uses: actions/setup-node@v3
         with:
@@ -173,7 +173,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ env.SENTRY_RELEASE }}
-          artifacts: "gdqreminder-v$(jq -r .version package.json).aab|gdqreminder-v$(jq -r .version package.json).apk"
+          artifacts: "gdqreminder-v${{ steps.prepareCache.outputs.SENTRY_RELEASE }}.aab|gdqreminder-v${{ steps.prepareCache.outputs.SENTRY_RELEASE }}.apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
