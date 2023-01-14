@@ -15,7 +15,6 @@ export default defineComponent({
   <mwc-top-app-bar-fixed>
       <mwc-icon-button slot="navigationIcon" icon="menu"></mwc-icon-button>
       <div slot="title">{{currentEventName}}</div>
-      <mwc-icon-button slot="actionItems" icon="search" @click="$emit('toggleSearch')"></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="dark_mode" @click="$emit('toggleDarkMode')"></mwc-icon-button>
   </mwc-top-app-bar-fixed>
 </template>

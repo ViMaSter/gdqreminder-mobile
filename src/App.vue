@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import Loading from './components/Loading.vue';
 import GDQMain from './components/GDQMain.vue'
 import { PushNotifications, Channel as g } from '@capacitor/push-notifications';
-import { EventHandler, NestedEventCallbacks} from './utilities/eventHandler';
+import { EventHandler } from './utilities/eventHandler';
 import { AppLauncher } from '@capacitor/app-launcher';
 import { Capacitor } from '@capacitor/core';
 import { Theme, useThemeStore } from '@/stores/theme';
-import { provide } from 'vue';
+import { onMounted, provide, ref, watch } from 'vue';
 
 if (useThemeStore().currentTheme === Theme.Dark)
 {
@@ -83,17 +84,33 @@ registerNotifications()
     console.error(e);
     console.groupEnd();
   });
+
+// remove loading when sus.doneLoading is true
+const mainContent = ref<typeof GDQMain>();
+const loadingContent = ref<typeof Loading>();
+
+onMounted(() => {
+  watch(mainContent, () => {
+    loadingContent.value!.hide();
+  });
+});
 </script>
 
 <template>
+  <Loading class="loading" ref="loadingContent" />
   <Suspense>
-    <GDQMain />
+    <GDQMain ref="mainContent" />
   </Suspense>
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
 </template>
 <style>
-* {
+.loading
+{
+  z-index: 10000;
+}
+*
+{
   -webkit-touch-callout: none;
     -webkit-user-select: none;
      -khtml-user-select: none;
