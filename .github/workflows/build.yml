@@ -164,7 +164,7 @@ jobs:
           find . -name "*.aab" -exec mv {} ../gdqreminder-v$(jq -r .version ../package.json).aab \;
           cd ..
 
-          echo "$(jq -r .version ../package.json)"
+          echo "${{ env.SENTRY_RELEASE }}"
 
       - uses: actions/setup-node@v3
         with:
@@ -172,7 +172,7 @@ jobs:
       - name: Add AAB and APK to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          tag: "v$(jq -r .version package.json)"
+          tag: ${{ env.SENTRY_RELEASE }}
           artifacts: "gdqreminder-v$(jq -r .version package.json).aab|gdqreminder-v$(jq -r .version package.json).apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
