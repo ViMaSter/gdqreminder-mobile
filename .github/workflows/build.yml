@@ -175,7 +175,7 @@ jobs:
       - name: Add AAB and APK to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ env.SENTRY_RELEASE }}
+          tag: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           artifacts: "gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab|gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
