@@ -148,6 +148,7 @@ export default defineComponent({
       if (this.isActive)
       {
           this.jumpToTwitch();
+          return;
       }
       
       if (this.isInThePast)
