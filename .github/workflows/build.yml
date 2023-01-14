@@ -160,11 +160,11 @@ jobs:
           path: aab
       - run: |
           cd apk
-          find . -name "*.apk" -exec mv {} ../gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.apk \;
+          find . -name "*.apk" -exec mv {} ../gdqreminder-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.apk \;
           cd ..
           
           cd aab
-          find . -name "*.aab" -exec mv {} ../gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab \;
+          find . -name "*.aab" -exec mv {} ../gdqreminder-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab \;
           cd ..
 
           echo "${{ needs.prepareCache.outputs.SENTRY_RELEASE }}"
@@ -176,7 +176,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
-          artifacts: "gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab|gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.apk"
+          artifacts: "*.aab,*.apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
