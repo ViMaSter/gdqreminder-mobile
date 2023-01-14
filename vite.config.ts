@@ -18,15 +18,13 @@ const plugins = [
   vueJsx()
 ];
 if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
-    sentryVitePlugin({
+    plugins.push(sentryVitePlugin({
       org: "vimaster",
       project: "gdqreminder-mobile",
-
       include: "./dist",
-
       authToken: process.env.SENTRY_AUTH_TOKEN,
       release: "gdqreminder-mobile@" + process.env.SENTRY_RELEASE,
-    });
+    }));
 }
 
 export default defineConfig({
