@@ -40,7 +40,9 @@ jobs:
           version=v$(jq -r .version package.json)
           echo $version
           echo "SENTRY_RELEASE=$version" >> $GITHUB_OUTPUT
-      - run: npm run build
+          export SENTRY_RELEASE=$version
+          SENTRY_RELEASE=$version
+          npm run build
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       - run: npx cap sync

@@ -17,7 +17,8 @@ if (Capacitor.getPlatform() !== 'web') {
     integrations: [
       new BrowserTracing(),
     ],
-    tracesSampleRate: 1.0
+    tracesSampleRate: 1.0,
+    release: "gdqreminder-mobile@" + process.env.SENTRY_RELEASE,
   });
 }
 
