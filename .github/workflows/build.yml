@@ -119,7 +119,7 @@ jobs:
     name: Publish to Google Play
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [buildAAB]
+    needs: [prepareCache, buildAAB]
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
