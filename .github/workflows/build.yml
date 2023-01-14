@@ -165,7 +165,6 @@ jobs:
           cd ..
 
           echo "$(jq -r .version ../package.json)"
-          echo "${{jq -r .version ../package.json}}"
 
       - uses: actions/setup-node@v3
         with:
