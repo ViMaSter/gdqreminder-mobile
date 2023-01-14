@@ -17,6 +17,8 @@ jobs:
   prepareCache:
     name: Pre-bundling build steps
     runs-on: ubuntu-latest
+    outputs:
+      SENTRY_RELEASE: ${{ steps.version.outputs.SENTRY_RELEASE }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -33,7 +35,8 @@ jobs:
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-      - run: | 
+      - id: version
+        run: | 
           version=v$(jq -r .version package.json)
           echo $version
           echo "SENTRY_RELEASE=$version" >> $GITHUB_OUTPUT
@@ -139,7 +142,7 @@ jobs:
     name: Publish to GitHub Releases
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [buildAAB, buildAPK]
+    needs: [prepareCache, buildAAB, buildAPK]
     steps:
       - uses: actions/cache@v3
         with:
@@ -157,14 +160,14 @@ jobs:
           path: aab
       - run: |
           cd apk
-          find . -name "*.apk" -exec mv {} ../gdqreminder-v${{ steps.prepareCache.outputs.SENTRY_RELEASE }}.apk \;
+          find . -name "*.apk" -exec mv {} ../gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.apk \;
           cd ..
           
           cd aab
-          find . -name "*.aab" -exec mv {} ../gdqreminder-v${{ steps.prepareCache.outputs.SENTRY_RELEASE }}.aab \;
+          find . -name "*.aab" -exec mv {} ../gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab \;
           cd ..
 
-          echo "${{ steps.prepareCache.outputs.SENTRY_RELEASE }}"
+          echo "${{ needs.prepareCache.outputs.SENTRY_RELEASE }}"
 
       - uses: actions/setup-node@v3
         with:
@@ -173,7 +176,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ env.SENTRY_RELEASE }}
-          artifacts: "gdqreminder-v${{ steps.prepareCache.outputs.SENTRY_RELEASE }}.aab|gdqreminder-v${{ steps.prepareCache.outputs.SENTRY_RELEASE }}.apk"
+          artifacts: "gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab|gdqreminder-v${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.apk"
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
