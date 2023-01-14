@@ -287,8 +287,9 @@ export default defineComponent({
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
             <div id="runs">
                 <div class="transition"></div>
-                <template v-for="(runs, day, _) in runsByDay" :key="day">
-                    <GDQDay :runners="runners" :runsByID="runsByID" :runsIDsInOrder="runs" :day="(day as string)"></GDQDay>
+                <template v-for="(runs, day, index) in runsByDay" :key="day">
+                    <GDQDay class="gdqday" :runners="runners" :runsByID="runsByID" :runsIDsInOrder="runs" :day="(day as string)"></GDQDay>
+                    <div class="padding" v-if="index == Object.keys(runsByDay).length - 1"></div>
                 </template>
                 <GDQTimeIndicator></GDQTimeIndicator>
             </div>
@@ -298,6 +299,10 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+    .padding
+    {
+        height: 8em;
+    }
     .dark-mode
     {
         .transition
