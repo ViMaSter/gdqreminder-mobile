@@ -16,8 +16,7 @@ Sentry.init({
   integrations: [
     new BrowserTracing(),
   ],
-  tracesSampleRate: 1.0,
-  release: "gdqreminder-mobile@" + version,
+  tracesSampleRate: 1.0
 });
 
 app.use(pinia);

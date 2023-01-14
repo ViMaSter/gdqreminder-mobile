@@ -25,7 +25,7 @@ if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
       include: "./dist",
 
       authToken: process.env.SENTRY_AUTH_TOKEN,
-      release: process.env.SENTRY_RELEASE,
+      release: "gdqreminder-mobile@" + process.env.SENTRY_RELEASE,
     });
 }
 
