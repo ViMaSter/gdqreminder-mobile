@@ -217,7 +217,6 @@ export default defineComponent({
         };
 
         const doneLoading = ref(false);
-        console.log(eventByShorthands);
         if (Object.keys(eventByShorthands).length > 0)
         {
             doneLoading.value = true;

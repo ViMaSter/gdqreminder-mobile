@@ -20,8 +20,8 @@ export const useEventStore = defineStore({
     return JSON.parse(state);
   },
   getters: {
-    state: (state) => {
-      return state.$state;
+    state: (state) : Content => {
+      return state;
     }
   },
   actions: {
