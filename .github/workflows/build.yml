@@ -164,6 +164,9 @@ jobs:
           find . -name "*.aab" -exec mv {} ../gdqreminder-v$(jq -r .version ../package.json).aab \;
           cd ..
 
+          echo "$(jq -r .version ../package.json)"
+          echo "${{jq -r .version ../package.json}}"
+
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
