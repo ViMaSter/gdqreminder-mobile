@@ -8,6 +8,7 @@ import { Snackbar } from '@material/mwc-snackbar';
 import '@material/mwc-drawer';
 import '@material/mwc-top-app-bar-fixed';
 import { Theme, useThemeStore } from '@/stores/theme';
+import { useEventStore } from '@/stores/event';
 import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
 import {GDQEventData, GDQEventDataFields} from '../interfaces/GDQEvent'
@@ -201,15 +202,26 @@ export default defineComponent({
 
         const eventByShorthands : Ref<{[key: string] : GDQEventDataFields}> = ref({});
 
+        const eventStore = useEventStore();
+        eventByShorthands.value = eventStore.state;
         const loadEvents = async (eventsAfter : Date) => {
             const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte="+eventsAfter.toISOString())).json<GDQEventData[]>();
-            eventByShorthands.value = {...eventByShorthands.value, ...Object.fromEntries(eventData
+
+            const newData = {...eventByShorthands.value, ...Object.fromEntries(eventData
             .filter((a) => a.fields.short.toLowerCase().includes("gdq"))
             .sort((a, b) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
             .map((singleEvent) : [string, GDQEventDataFields] => [singleEvent.fields.short.toUpperCase(), singleEvent.fields]))};
+
+            eventStore.override(newData);
+            eventByShorthands.value = newData;
         };
 
         const doneLoading = ref(false);
+        console.log(eventByShorthands);
+        if (Object.keys(eventByShorthands).length > 0)
+        {
+            doneLoading.value = true;
+        }
 
         {
             const roughly6MonthsAgo = dateProvider.getCurrent();
