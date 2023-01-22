@@ -285,6 +285,7 @@ export default defineComponent({
         <GDQSidebar :doneLoading="doneLoading" :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
         <div id="appContent" slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
+            <!-- TODO: Move #runs into GDQHeader <slot> and utilize '----mdc-top-app-bar-fixed-box-shadow' (this required window.scroll to be fired ans check why it isn't fired) ~ FIXED_SCROLLED_CLASS: "mdc-top-app-bar--fixed-scrolled-->
             <div id="runs">
                 <div class="transition"></div>
                 <template v-for="(runs, day, index) in runsByDay" :key="day">
