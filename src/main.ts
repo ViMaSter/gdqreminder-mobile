@@ -14,8 +14,11 @@ if (Capacitor.getPlatform() !== 'web') {
   Sentry.init({
     app,
     dsn: "https://7cc331a1d01f4e78a7aab7e341705060@o489289.ingest.sentry.io/6470411",
+    replaysSessionSampleRate: 1.0,
+    replaysOnErrorSampleRate: 1.0,
     integrations: [
       new BrowserTracing(),
+      new Sentry.Replay()
     ],
     tracesSampleRate: 1.0
   });
