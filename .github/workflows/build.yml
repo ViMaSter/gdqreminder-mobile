@@ -147,6 +147,15 @@ jobs:
           track: internal
           status: completed
           releaseFiles: ./aab/app-release.aab
+      - uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: vimaster
+          SENTRY_PROJECT: gdqreminder-mobile
+        with:
+          environment: internal
+          sourcemaps: ./dist/assets
+          version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
        
   publishToProduction:
     name: '[PRODUCTION] Publish to Google Play'
@@ -180,6 +189,15 @@ jobs:
           track: production
           status: completed
           releaseFiles: ./aab/app-release.aab
+      - uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: vimaster
+          SENTRY_PROJECT: gdqreminder-mobile
+        with:
+          environment: production
+          sourcemaps: ./dist/assets
+          version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           
   githubRelease:
     name: Publish to GitHub Releases
@@ -224,13 +242,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create Sentry release
-        uses: getsentry/action-release@v1
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: vimaster
-          SENTRY_PROJECT: gdqreminder-mobile
-        with:
-          environment: production
-          sourcemaps: ./dist/assets
-          version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
