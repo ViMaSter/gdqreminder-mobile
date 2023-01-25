@@ -115,10 +115,12 @@ jobs:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ./android/app/build/outputs/apk/debug/app-debug.apk
        
-  publish:
-    name: Publish to Google Play
+  publishToInternal:
+    name: '[INTERNAL] Publish to Google Play'
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: 
+      name: internal
     needs: [prepareCache, buildAAB]
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
@@ -143,6 +145,39 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
           packageName: ke.mahn.gdqreminder
           track: internal
+          status: completed
+          releaseFiles: ./aab/app-release.aab
+       
+  publishToProduction:
+    name: '[PRODUCTION] Publish to Google Play'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: 
+      name: production
+    needs: [prepareCache, buildAAB, publishToInternal]
+    env:
+      SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
+    steps:
+      - run: |
+          echo "github.event_name: ${{github.event_name}}"
+          echo "github.ref: ${{github.ref}}"
+          echo "github.event.inputs.forceRelease: ${{github.event.inputs.forceRelease}}"
+      - uses: actions/download-artifact@v3
+        with:
+          name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
+          path: aab
+      - uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: ./aab
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+      - uses: r0adkll/upload-google-play@v1.0.19
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
+          packageName: ke.mahn.gdqreminder
+          track: production
           status: completed
           releaseFiles: ./aab/app-release.aab
           
