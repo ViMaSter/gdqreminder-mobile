@@ -49,12 +49,10 @@ jobs:
           npm run build
       - run: npx cap sync
 
-      # upload current working directory to cache
       - uses: actions/cache@v3
         with:
           path: |
             ./*
-          # use the current run id as key
           key: ${{ github.run_id }}
           
   buildAAB:
@@ -64,12 +62,10 @@ jobs:
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
-      # restore cache from prepareCache step
       - uses: actions/cache@v3
         with:
           path: |
             ./*
-          # use the current run id as key
           key: ${{ github.run_id }}
 
       - uses: actions/setup-java@v3
@@ -93,12 +89,10 @@ jobs:
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
-      # restore cache from prepareCache step
       - uses: actions/cache@v3
         with:
           path: |
             ./*
-          # use the current run id as key
           key: ${{ github.run_id }}
 
       - uses: actions/setup-java@v3
@@ -121,10 +115,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: internal
-    needs: [prepareCache, buildAAB]
+    needs: [prepareCache, buildAAB, buildAPK]
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ./*
+          key: ${{ github.run_id }}
       - run: |
           echo "github.event_name: ${{github.event_name}}"
           echo "github.ref: ${{github.ref}}"
@@ -133,6 +132,10 @@ jobs:
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: aab
+      - uses: actions/download-artifact@v3
+        with:
+          name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
+          path: apk
       - uses: r0adkll/sign-android-release@v1
         with:
           releaseDirectory: ./aab
@@ -163,10 +166,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: production
-    needs: [prepareCache, buildAAB, publishToInternal]
+    needs: [prepareCache, buildAAB, buildAPK, publishToInternal]
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ./*
+          key: ${{ github.run_id }}
       - run: |
           echo "github.event_name: ${{github.event_name}}"
           echo "github.ref: ${{github.ref}}"
@@ -175,6 +183,10 @@ jobs:
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: aab
+      - uses: actions/download-artifact@v3
+        with:
+          name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
+          path: apk
       - uses: r0adkll/sign-android-release@v1
         with:
           releaseDirectory: ./aab
@@ -211,7 +223,6 @@ jobs:
         with:
           path: |
             ./*
-          # use the current run id as key
           key: ${{ github.run_id }}
       - uses: actions/download-artifact@v3
         with:
