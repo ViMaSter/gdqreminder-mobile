@@ -109,64 +109,11 @@ jobs:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ./android/app/build/outputs/apk/debug/app-debug.apk
        
-  publishToInternal:
-    name: '[INTERNAL] Publish to Google Play'
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: 
-      name: internal
-    needs: [prepareCache, buildAAB, buildAPK]
-    env:
-      SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
-    steps:
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ./*
-          key: ${{ github.run_id }}
-      - run: |
-          echo "github.event_name: ${{github.event_name}}"
-          echo "github.ref: ${{github.ref}}"
-          echo "github.event.inputs.forceRelease: ${{github.event.inputs.forceRelease}}"
-      - uses: actions/download-artifact@v3
-        with:
-          name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
-          path: aab
-      - uses: actions/download-artifact@v3
-        with:
-          name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
-          path: apk
-      - uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: ./aab
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-      - uses: r0adkll/upload-google-play@v1.0.19
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
-          packageName: ke.mahn.gdqreminder
-          track: internal
-          status: completed
-          releaseFiles: ./aab/app-release.aab
-      - uses: getsentry/action-release@v1
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: vimaster
-          SENTRY_PROJECT: gdqreminder-mobile
-        with:
-          environment: internal
-          sourcemaps: ./dist/assets
-          version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
-       
   publishToProduction:
     name: '[PRODUCTION] Publish to Google Play'
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: 
-      name: production
-    needs: [prepareCache, buildAAB, buildAPK, publishToInternal]
+    needs: [prepareCache, buildAAB, buildAPK]
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
