@@ -8,16 +8,13 @@ export class EventHandler
         do 
         {
             currentElement = eventPath.shift()!;
-            console.log("current: " + currentElement);
             if (typeof nestedEventCallbacks[currentElement] == "undefined")
             {
-            console.log("undef: " + currentElement);
             break;
             }
             
             if (typeof nestedEventCallbacks[currentElement] == "function")
             {
-            console.log("Handling custom event", fullPath, "/\."+eventPath.join("\.")+"$/", fullPath.replace(new RegExp("/\."+eventPath.join("\.")+"$/", ""), ""), eventPath.join("."));
             (nestedEventCallbacks[currentElement] as Function)(eventPath);
             return;
             }

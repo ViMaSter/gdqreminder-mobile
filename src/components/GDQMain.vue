@@ -98,7 +98,6 @@ export default defineComponent({
                     velocity.splice(0, 1);
                 }
                 velocity.push(touch);
-                console.log(calculateVelocity());
             };
             const calculateVelocity = () => {
                 let averageX = 0;
