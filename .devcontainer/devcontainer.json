@@ -12,16 +12,23 @@
 		}
 	},
 
+	"remoteEnv": {
+		"PATH": "${containerEnv:PATH}:~/bin"
+	},
+
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
 		"vscode": {
 			// Add the IDs of extensions you want installed when the container is created.
 			"extensions": [
-				"dbaeumer.vscode-eslint"
+				"dbaeumer.vscode-eslint",
+				"Vue.volar"
 			]
 		}
 	},
+
+	"postCreateCommand": "bash .devcontainer/postcreate.sh",
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
