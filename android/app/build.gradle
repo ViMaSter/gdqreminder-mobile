@@ -6,7 +6,7 @@ def getVersionFromPackageJson() {
     def inputFile = new File("$rootDir/../package.json")
     def packageJson = new JsonSlurper().parseText(inputFile.text)
     def versionCodeArray = packageJson["version"].split("\\.")
-    def versionCode = versionCodeArray[0].toInteger() * 10000 + versionCodeArray[1].toInteger() * 100 + versionCodeArray[2].toInteger()
+    def versionCode = versionCodeArray[0].toInteger() * 100000000 + versionCodeArray[1].toInteger() * 10000 + versionCodeArray[2].toInteger()
     def versionName = packageJson["version"];
 
     return [versionCode: versionCode, versionName: versionName]
