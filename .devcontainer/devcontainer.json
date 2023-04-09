@@ -28,7 +28,7 @@
 		}
 	},
 
-	"postCreateCommand": "bash .devcontainer/postcreate.sh",
+	"postCreateCommand": "bash .devcontainer/postcreate.sh && npm i && npx playwright install",
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

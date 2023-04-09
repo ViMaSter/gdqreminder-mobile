@@ -58,6 +58,16 @@ npm run build
 npm run test:unit
 ```
 
+### Run End-to-End Tests with [Playwright](https://playwright.dev/)
+
+```sh
+# run once:
+npx playwright install
+
+# run to execute tests
+npm run test:e2e
+```
+
 ### Lint with [ESLint](https://eslint.org/)
 
 ```sh
