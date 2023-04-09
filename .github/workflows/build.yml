@@ -18,7 +18,7 @@ env:
 
 jobs:
   prepareCache:
-    name: Pre-bundling build steps
+    name: Pre-build + test
     runs-on: ubuntu-latest
     outputs:
       SENTRY_RELEASE: ${{ steps.version.outputs.SENTRY_RELEASE }}
@@ -31,6 +31,16 @@ jobs:
           node-version-file: '.nvmrc'
       - run: | 
           npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
       - run: | 
           npx semantic-release
         env:
