@@ -38,7 +38,7 @@
     "vue-router": "^4.1.6"
   },
   "devDependencies": {
-    "@playwright/experimental-ct-vue": "^1.32.3",
+    "@playwright/experimental-ct-vue": "^1.33.0",
     "@rushstack/eslint-patch": "^1.2.0",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^8.0.7",
