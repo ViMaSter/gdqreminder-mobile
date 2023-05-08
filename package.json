@@ -33,7 +33,7 @@
     "@sentry/vue": "^7.51.0",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "ky": "^0.33.3",
-    "pinia": "^2.0.35",
+    "pinia": "^2.0.36",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6"
   },
