@@ -16,12 +16,12 @@
     "test:e2e": "playwright test -c playwright-ct.config.ts"
   },
   "dependencies": {
-    "@capacitor-community/fcm": "^3.0.2",
-    "@capacitor/android": "^4.8.0",
-    "@capacitor/app-launcher": "^4.0.0",
+    "@capacitor-community/fcm": "^5.0.1",
+    "@capacitor/android": "^5.0.2",
+    "@capacitor/app-launcher": "^5.0.2",
     "@capacitor/cli": "^5.0.2",
-    "@capacitor/core": "^4.8.0",
-    "@capacitor/push-notifications": "^4.0.0",
+    "@capacitor/core": "^5.0.2",
+    "@capacitor/push-notifications": "^5.0.2",
     "@material/mwc-button": "^0.27.0",
     "@material/mwc-drawer": "^0.27.0",
     "@material/mwc-icon": "^0.27.0",
