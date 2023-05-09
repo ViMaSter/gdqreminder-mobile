@@ -19,7 +19,7 @@
     "@capacitor-community/fcm": "^3.0.2",
     "@capacitor/android": "^4.8.0",
     "@capacitor/app-launcher": "^4.0.0",
-    "@capacitor/cli": "^5.0.1",
+    "@capacitor/cli": "^5.0.2",
     "@capacitor/core": "^4.8.0",
     "@capacitor/push-notifications": "^4.0.0",
     "@material/mwc-button": "^0.27.0",
