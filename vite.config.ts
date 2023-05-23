@@ -21,9 +21,13 @@ if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
     plugins.push(sentryVitePlugin({
       org: "vimaster",
       project: "gdqreminder-mobile",
-      include: "./dist",
       authToken: process.env.SENTRY_AUTH_TOKEN,
-      release: "gdqreminder-mobile@" + process.env.SENTRY_RELEASE,
+      sourcemaps: {
+        assets: "./dist/**"
+      },
+      release: {
+        name: "gdqreminder-mobile@" + process.env.SENTRY_RELEASE
+      },
     }));
 }
 
