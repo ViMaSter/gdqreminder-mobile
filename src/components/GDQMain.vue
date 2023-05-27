@@ -226,6 +226,7 @@ export default defineComponent({
             const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte="+eventsAfter.toISOString())).json<GDQEventData[]>();
             const newEvents = Object.fromEntries(eventData
             .filter((a) => a.fields.short.toLowerCase().includes("gdq"))
+            .filter((a) => !a.fields.short.toLowerCase().includes("cgdq"))
             .sort((a, b) => new Date(b.fields.datetime).getTime() - new Date(a.fields.datetime).getTime())
             .map((singleEvent) : [string, GDQEventDataFields] => [singleEvent.fields.short.toUpperCase(), singleEvent.fields]));
             
@@ -257,7 +258,7 @@ export default defineComponent({
             roughly12MonthsAgo.setTime(roughly12MonthsAgo.getTime()-1000 * 60 * 60 * 24 * 30 * 12);
             await loadEventsAndRuns(roughly12MonthsAgo);
             setTimeout(async () => {
-                await loadEventsAndRuns(new Date("2000-01-01"));
+                await loadEventsAndRuns(new Date("2011-02-01"));
                 doneLoading.value = true;
             }, 2000);
         }
