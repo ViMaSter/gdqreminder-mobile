@@ -16,7 +16,7 @@ export default defineComponent({
     }
 
     const update = (newRun : [HTMLDivElement, GDQRunDataFields]) => {
-        if (newRun)
+        if (newRun && newRun[0])
         {
             const [runElement, runData] = newRun;
             visibilityClasses.value = "timeIndicator shown";
