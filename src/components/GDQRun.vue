@@ -112,13 +112,17 @@ export default defineComponent({
     const isInThePast = ref(end < now);
     const generateIsOverClassName = computed(() => `run ${generateRunTypeClassName()} ${isInThePast.value ?  "is-over" : ""}`);
 
-    setInterval(() => {
+    let interval = setInterval(() => {
       const now = timeProvider.getCurrent();
       isInThePast.value = end < now;
       isActive.value = start < now && now < end;
 
       if (isActive.value)
       {
+        if (!run.value)
+        {
+          clearInterval(interval);
+        }
         currentRun!.value = [run.value!, props.fields];
       }
     }, 200);
