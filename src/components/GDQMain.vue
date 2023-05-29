@@ -24,6 +24,7 @@ import { DateProvider } from '@/interfaces/DateProvider';
 import { RealDateProvider } from '@/services/RealDateProvider';
 import { FakeDateProvider } from '@/services/FakeDateProvider';
 import { LocationHashParameters } from '@/services/LocationHashParameters';
+import { EventsData } from '@/utilities/eventsData';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -226,7 +227,7 @@ export default defineComponent({
 
         const eventByShorthands : Ref<{[key: string] : GDQEventDataFields}> = ref({});
         const loadEventsAndRuns = async (eventsAfter : Date) => {
-            const eventData = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte="+eventsAfter.toISOString())).json<GDQEventData[]>();
+            const eventData = await EventsData.getEventsData(eventsAfter);
             const newEvents = Object.fromEntries(eventData
             .filter((a) => a.fields.short.toLowerCase().includes("gdq"))
             .filter((a) => !a.fields.short.toLowerCase().includes("cgdq"))
@@ -258,7 +259,7 @@ export default defineComponent({
 
         {
             const roughly12MonthsAgo = dateProvider.getCurrent();
-            roughly12MonthsAgo.setTime(roughly12MonthsAgo.getTime()-1000 * 60 * 60 * 24 * 30 * 12);
+            roughly12MonthsAgo.setFullYear(roughly12MonthsAgo.getFullYear() - 1, 0, 1);
             await loadEventsAndRuns(roughly12MonthsAgo);
             setTimeout(async () => {
                 await loadEventsAndRuns(new Date("2011-02-01"));
