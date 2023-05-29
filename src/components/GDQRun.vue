@@ -71,6 +71,9 @@ export default defineComponent({
       if (props.fields.display_name == "Pre-Show") {
         return "in-person";
       }
+      if (props.fields.display_name.includes("Daily Recap")) {
+        return "in-person";
+      }
       if (props.runnerNames.join(", ") == "Tech Crew") {
         return "in-person";
       }
