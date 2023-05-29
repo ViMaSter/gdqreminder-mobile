@@ -195,6 +195,9 @@ export default defineComponent({
                 }
             }
 
+            
+            scrollable.value?.querySelector("#runs")!.scrollTo(0, 0);
+
             currentEventName.value = newEvent;
             if (drawer.value)
             {
