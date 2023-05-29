@@ -30,7 +30,12 @@ export default defineComponent({
       const now = inject<DateProvider>("dateProvider")!.getCurrent();
       const endOfDay = new Date(parseInt(props.day) + 1 * 1000 * 60 * 60 * 24);
       const generateIsOverClassName = () => {
-        const isInThePast = endOfDay < now;
+        const lastRunEndTime = props.runsIDsInOrder
+          .map((runPK) => props.runsByID[runPK])
+          .filter((run) => new Date(run.starttime) < endOfDay)
+          .map((run) => new Date(run.endtime))
+          .sort((a, b) => b.getTime() - a.getTime())[0];
+        const isInThePast = lastRunEndTime < now;
         if (isInThePast)
         {
           return "is-over";
