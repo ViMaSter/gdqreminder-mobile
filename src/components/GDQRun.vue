@@ -45,11 +45,13 @@ export default defineComponent({
     const start = new Date(props.fields.starttime);
     const end = new Date(props.fields.endtime);
     const duration = new Date(end.getTime() - start.getTime());
-    const hours =
-      start.getHours() > 12 ? start.getHours() - 12 : start.getHours();
-    const ampm = start.getHours() > 12 ? "p.m." : "a.m.";
-    const startString =
-      hours + ":" + start.getMinutes().toString().padStart(2, "0") + " " + ampm;
+    const startString = start.toLocaleTimeString(
+      navigator.language,
+      {
+        hour: "numeric",
+        minute: "numeric"
+      }
+    );
     const durationHMMSS = `${duration.getUTCHours()}:${duration
       .getUTCMinutes()
       .toString()
