@@ -144,7 +144,7 @@ jobs:
         with:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: apk
-      - uses: r0adkll/sign-android-release@v1
+      - uses: ViMaSter/sign-android-release@latest
         with:
           releaseDirectory: ./aab
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
