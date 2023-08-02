@@ -1,20 +1,22 @@
-# GDQ Reminder Mobile
-
-This template should help get you started developing with Vue 3 in Vite.
+# GDQ Reminder Mobile App
 
 ## Local Development
 
-1. [VSCode](https://code.visualstudio.com/)
-2. Recommended extensions
-3. [`nvm-windows 1.1.9`](https://github.com/coreybutler/nvm-windows) for npm + node.js version management
-4. `nvm install && nvm use && npm install && npm run dev`
-7. Open `http://localhost:4437`
+1. Install [Visual Studio Code](https://code.visualstudio.com/)
+2. Install recommended Visual Studio Code extensions
+3. 
+    - For Windows: Install [`nvm-windows` 1.1.9 or later](https://github.com/coreybutler/nvm-windows) 
+    - For other operating systems: Install [`nvm` 0.39.2 or later](https://github.com/nvm-sh/nvm#installing-and-updating)
+4. Clone this repository
+5. Inside your local clone of this repository run `nvm install && nvm use && npm install && npm run dev`
+5. Open `http://localhost:4437`
 
-## Device Development
+## On-Device Development
 
-1. Instll [Android Studio](https://developer.android.com/studio) (using default settings)
+1. Install [Android Studio](https://developer.android.com/studio) (using default settings)
 2. Pair your device with Android Studio
-3. Run `npx run launch`
+3. Complete all steps for [Local Development](#local-development)
+4. Run `npx run launch`
 
 ## Type Support for `.vue` Imports in TS
 
