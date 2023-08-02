@@ -7,6 +7,10 @@ updates:
     labels:
       - "autoupdate"
     open-pull-requests-limit: 100
+    groups:
+      sentry:
+        patterns:
+          - "@sentry/*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
