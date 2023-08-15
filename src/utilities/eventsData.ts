@@ -1,5 +1,6 @@
 import ky from 'ky';
 import { GDQEventData } from '../interfaces/GDQEvent'
+import { CapacitorHttp } from '@capacitor/core';
 
 export class EventsData {
   static async getEventsData(datetime_gte: Date): Promise<GDQEventData[]> {
@@ -11,7 +12,9 @@ export class EventsData {
         return eventsData.data;
       }
     }
-    const data = await (await ky.get("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + datetime_gte.toISOString())).json<GDQEventData[]>()
+    const response = await CapacitorHttp.get({url: "https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + datetime_gte.toISOString()});
+    
+    const data = response.data as GDQEventData[];
     const eventsData = {
       expiration: Date.now() + 1000 * 60 * 60 * 24 * 30 * 2,
       data: data

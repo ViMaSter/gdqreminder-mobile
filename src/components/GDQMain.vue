@@ -25,6 +25,7 @@ import { RealDateProvider } from '@/services/RealDateProvider';
 import { FakeDateProvider } from '@/services/FakeDateProvider';
 import { LocationHashParameters } from '@/services/LocationHashParameters';
 import { EventsData } from '@/utilities/eventsData';
+import { CapacitorHttp } from '@capacitor/core';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -173,18 +174,22 @@ export default defineComponent({
         // returns true if there are runs for this event already
         // returns false if there are no runs for this event yet
         const loadRuns = async (eventShort: string) => {
-            const orderedRuns = (await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`)).json<GDQRunData[]>())
+            const orderedRuns = ((await CapacitorHttp.get({url: `https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`})).data as GDQRunData[])
                                 .sort((a, b) => new Date(a.fields.starttime).getTime() - new Date(b.fields.starttime).getTime())
                                 .map((run) : [string, GDQRunDataFields] => [run.pk.toString() , run.fields]);
+            if (orderedRuns.length <= 0)
+            {
+                return false;
+            }
             const allRunners = orderedRuns.map((run) => run[1].runners).flat();
             const uniqueRunner = [...new Set(allRunners)];
-            const runnerDataForRunnersOfThisRun = Object.fromEntries((await (await ky.get(`https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`)).json<GDQRunnerData[]>()).map((runner) => [runner.pk, runner.fields]));
+            const runnerDataForRunnersOfThisRun = Object.fromEntries(((await CapacitorHttp.get({url: `https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`})).data as GDQRunnerData[]).map((runner) => [runner.pk, runner.fields]));
             runners.value = { ...runners.value, ...runnerDataForRunnersOfThisRun };
             runsByID.value = { ...runsByID.value, ...Object.fromEntries<GDQRunDataFields>(orderedRuns)};
             orderedDays.value = [...new Set<string>(orderedRuns.map(([, run] : [string, GDQRunDataFields]) => new Date(run.starttime).toLocaleDateString()))];
             runIDsInOrder.value = [...new Set<string>([...runIDsInOrder.value, ...orderedRuns.map(([pk, _]) => pk)])];
             runsByEventShort.value[eventShort] = orderedRuns;
-            return orderedRuns.length > 0;
+            return true;
         };
         const updateCurrentEvent = async (newEvent: string) => {
             // if no runs load them
@@ -253,6 +258,7 @@ export default defineComponent({
                 eventsWithoutRuns.push(event);
             }
             eventByShorthands.value = filterEventsWithoutRuns({...eventByShorthands.value, ...newEvents});
+            await loadRuns(Object.keys(eventByShorthands.value)[0]);
         };
 
         const doneLoading = ref(false);

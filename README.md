@@ -1,7 +1,5 @@
 # GDQ Reminder Mobile App
-
 ## Local Development
-
 1. Install [Visual Studio Code](https://code.visualstudio.com/)
 2. Install recommended Visual Studio Code extensions
 3. 
@@ -9,14 +7,18 @@
     - For other operating systems: Install [`nvm` 0.39.2 or later](https://github.com/nvm-sh/nvm#installing-and-updating)
 4. Clone this repository
 5. Inside your local clone of this repository run `nvm install && nvm use && npm install && npm run dev`
-5. Open `http://localhost:4437`
+6. Open a browser with CORS disabled
+    > for Chrome: `--disable-web-security --user-data-dir="/tmp/google"`
+8. Visit `http://localhost:4437`
+
+> [!IMPORTANT]  
+> The mobile app uses [native HTTP requests](https://capacitorjs.com/docs/apis/http) which allows accessing CORS-protected content without any restrictions. The only way to mimic this behavior in a browser is to disable CORS.
 
 ## On-Device Development
-
 1. Install [Android Studio](https://developer.android.com/studio) (using default settings)
 2. Pair your device with Android Studio
 3. Complete all steps for [Local Development](#local-development)
-4. Run `npx run launch`
+4. Run `npm run launch`
 
 ## Type Support for `.vue` Imports in TS
 
@@ -30,35 +32,29 @@ If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has a
 2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
 
 ## Customize configuration
-
 See [Vite Configuration Reference](https://vitejs.dev/config/).
 
 ## Project Setup
-
 ```sh
 npm install
 ```
 
 ### Compile and Hot-Reload for Development
-
 ```sh
 npm run dev
 ```
 
 ### Type-Check, Compile and Minify for Production
-
 ```sh
 npm run build
 ```
 
 ### Run Unit Tests with [Vitest](https://vitest.dev/)
-
 ```sh
 npm run test:unit
 ```
 
 ### Run End-to-End Tests with [Playwright](https://playwright.dev/)
-
 ```sh
 # run once:
 npx playwright install
@@ -68,7 +64,6 @@ npm run test:e2e
 ```
 
 ### Lint with [ESLint](https://eslint.org/)
-
 ```sh
 npm run lint
 ```
