@@ -19,7 +19,7 @@ on:
         type: boolean
 
 env:
-  SENTRY_AUTH_TOKEN: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.SENTRY_AUTH_TOKEN || '' }}
+  SENTRY_AUTH_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceRelease) && secrets.SENTRY_AUTH_TOKEN || '' }}
 
 jobs:
   prepareCache:
@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          token: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ELEVATED_GITHUB_TOKEN || github.token }}
+          token: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceRelease) && secrets.ELEVATED_GITHUB_TOKEN || github.token }}
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
