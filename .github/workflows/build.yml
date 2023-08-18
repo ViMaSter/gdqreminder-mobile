@@ -12,6 +12,11 @@ on:
         required: true
         default: false
         type: boolean
+      skipIntegrationTests:
+        description: Skip integration tests?
+        required: true
+        default: false
+        type: boolean
 
 env:
   SENTRY_AUTH_TOKEN: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.SENTRY_AUTH_TOKEN || '' }}
@@ -34,6 +39,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Playwright tests
+        if: ${{ !github.event.inputs.skipIntegrationTests }}
         run: npm run test:e2e
       - uses: actions/upload-artifact@v3
         if: always()
