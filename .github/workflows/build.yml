@@ -37,6 +37,7 @@ jobs:
       - run: | 
           npm ci
       - name: Install Playwright Browsers
+        if: ${{ !github.event.inputs.skipIntegrationTests }}
         run: npx playwright install --with-deps
       - name: Run Playwright tests
         if: ${{ !github.event.inputs.skipIntegrationTests }}
