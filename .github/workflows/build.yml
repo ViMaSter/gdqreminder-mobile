@@ -12,10 +12,10 @@ on:
         required: true
         default: false
         type: boolean
-      skipIntegrationTests:
+      runIntegrationTests:
         description: Skip integration tests?
         required: true
-        default: true
+        default: false
         type: boolean
 
 env:
@@ -37,10 +37,10 @@ jobs:
       - run: | 
           npm ci
       - name: Install Playwright Browsers
-        if: ${{ !github.event.inputs.skipIntegrationTests }}
+        if: ${{ github.event.inputs.runIntegrationTests }}
         run: npx playwright install --with-deps
       - name: Run Playwright tests
-        if: ${{ !github.event.inputs.skipIntegrationTests }}
+        if: ${{ github.event.inputs.runIntegrationTests }}
         run: npm run test:e2e
       - uses: actions/upload-artifact@v3
         if: always()
