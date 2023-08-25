@@ -15,7 +15,7 @@ on:
       skipIntegrationTests:
         description: Skip integration tests?
         required: true
-        default: false
+        default: true
         type: boolean
 
 env:
