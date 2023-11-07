@@ -302,6 +302,30 @@ export default defineComponent({
             runsByDay.value = {};
         }
 
+        const updateCurrentEventToNewest = async () => {
+            const roughly12MonthsAgo = dateProvider.getCurrent();
+            roughly12MonthsAgo.setFullYear(roughly12MonthsAgo.getFullYear() - 1, 0, 1);
+            if (descendingEventList.length <= 0)
+            {
+                await new Promise((resolve) => {
+                    const interval = setInterval(() => {
+                        if (doneLoading.value)
+                        {
+                            clearInterval(interval);
+                            resolve(null);
+                        }
+                    }, 100);
+                });
+            }
+
+            const newestEvent = determineLatestEventWithRuns(descendingEventList);
+            if (newestEvent.short == currentEventName.value)
+            {
+                return;
+            }
+            await updateCurrentEvent(newestEvent.short);
+        };
+
         const snackbar = ref<Snackbar>();
 
         const toggleDarkMode = () => {
@@ -318,6 +342,7 @@ export default defineComponent({
             orderedDays,
             currentEventName,
             updateCurrentEvent,
+            updateCurrentEventToNewest,
             runsByID,
             runIDsInOrder,
             runsByDay,

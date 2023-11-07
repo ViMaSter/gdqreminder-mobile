@@ -2,6 +2,9 @@ import { FCM } from '@capacitor-community/fcm';
 
 export default class PushNotificationHelper
 {
+    public static subscribeToScheduleUpdates = async () => {
+        await FCM.subscribeTo({ topic: "event.schedule" });
+    };
     public static subscribeToStartOfRun = async (runID : string) => {
         if (parseInt(runID).toString() != runID)
         {

@@ -7,6 +7,7 @@ import { AppLauncher } from '@capacitor/app-launcher';
 import { Capacitor } from '@capacitor/core';
 import { Theme, useThemeStore } from '@/stores/theme';
 import { onMounted, provide, ref, watch } from 'vue';
+import PushNotificationHelper from './utilities/pushNotificationHelper';
 
 if (useThemeStore().currentTheme === Theme.Dark)
 {
@@ -31,6 +32,8 @@ const jumpToTwitch = async () => {
 
 provide("jumpToTwitch", jumpToTwitch);
 
+const mainContent = ref<typeof GDQMain>();
+
 const addListeners = async () => {
   await PushNotifications.addListener('registration', token => {
     console.info('Registration token: ', token.value);
@@ -41,7 +44,7 @@ const addListeners = async () => {
   });
 
   await PushNotifications.addListener('pushNotificationReceived', notification => {
-    console.log('Push notification received: ', notification);
+    console.log('Push notification received: ', JSON.stringify(notification));
   });
 
   await PushNotifications.addListener('pushNotificationActionPerformed', notification => {
@@ -51,7 +54,13 @@ const addListeners = async () => {
         console.warn("Handling notification without event data");
         return;
     }
-    EventHandler.handleCustomEvent(notification.notification.data.event, { run: jumpToTwitch });
+    
+    EventHandler.handleCustomEvent(notification.notification.data.event, { 
+      run: jumpToTwitch,
+      event: () => {
+        mainContent.value!.updateCurrentEventToNewest();
+      }
+    });
   });
 }
 
@@ -67,6 +76,8 @@ const registerNotifications = async () => {
   }
 
   await PushNotifications.register();
+
+  await PushNotificationHelper.subscribeToScheduleUpdates();
 }
 
 console.log(Capacitor.isPluginAvailable("PushNotification"));
@@ -85,8 +96,6 @@ registerNotifications()
     console.groupEnd();
   });
 
-// remove loading when sus.doneLoading is true
-const mainContent = ref<typeof GDQMain>();
 const loadingContent = ref<typeof Loading>();
 
 onMounted(() => {
