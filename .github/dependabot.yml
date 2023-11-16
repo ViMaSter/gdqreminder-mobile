@@ -11,6 +11,10 @@ updates:
       sentry:
         patterns:
           - "@sentry/*"
+      plugin-vue:
+        patterns:
+          - "@vitejs/plugin-vue"
+          - "@vitejs/plugin-vue*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
