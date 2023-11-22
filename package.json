@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@playwright/experimental-ct-vue": "^1.40.0",
-    "@rushstack/eslint-patch": "^1.5.1",
+    "@rushstack/eslint-patch": "^1.6.0",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^9.2.3",
     "@sentry/vite-plugin": "^2.10.1",
