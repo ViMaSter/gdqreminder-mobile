@@ -143,11 +143,11 @@ jobs:
           echo "github.event_name: ${{github.event_name}}"
           echo "github.ref: ${{github.ref}}"
           echo "github.event.inputs.forceRelease: ${{github.event.inputs.forceRelease}}"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: aab
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: apk
@@ -188,11 +188,11 @@ jobs:
           path: |
             ./*
           key: ${{ github.run_id }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: apk
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: aab
