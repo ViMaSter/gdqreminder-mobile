@@ -42,7 +42,7 @@ jobs:
       - name: Run Playwright tests
         if: ${{ github.event.inputs.runIntegrationTests }}
         run: npm run test:e2e
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
@@ -94,7 +94,7 @@ jobs:
       - run: cd android && ./gradlew :app:bundleRelease
         shell: bash
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ./android/app/build/outputs/bundle/release/app-release.aab
@@ -121,7 +121,7 @@ jobs:
       - run: cd android && ./gradlew assembleDebug
         shell: bash
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ./android/app/build/outputs/apk/debug/app-debug.apk
