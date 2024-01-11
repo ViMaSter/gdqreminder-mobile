@@ -2,6 +2,7 @@
   "name": "gdq-reminder-mobile",
   "version": "0.25.74",
   "author": "Vincent Mahnke (vincent@mahn.ke)",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "vite",
