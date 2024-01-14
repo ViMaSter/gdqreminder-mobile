@@ -18,7 +18,11 @@ if (Capacitor.getPlatform() !== 'web') {
     replaysOnErrorSampleRate: 1.0,
     integrations: [
       new BrowserTracing(),
-      new Sentry.Replay()
+      new Sentry.Replay({
+        maskAllText: false,
+        maskAllInputs: false,
+        networkDetailAllowUrls: [/.*/]
+      })
     ],
     tracesSampleRate: 1.0
   });
