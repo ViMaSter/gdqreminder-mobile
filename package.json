@@ -44,7 +44,7 @@
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^9.2.6",
     "@sentry/vite-plugin": "^2.10.2",
-    "@types/node": "^20.11.4",
+    "@types/node": "^20.11.5",
     "@vitejs/plugin-vue": "^5.0.3",
     "@vitejs/plugin-vue-jsx": "^3.1.0",
     "@vue/eslint-config-prettier": "^9.0.0",
