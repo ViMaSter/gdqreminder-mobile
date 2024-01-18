@@ -52,8 +52,9 @@ export default defineComponent({
         {
             dateProvider = new FakeDateProvider(new Date(decodeURIComponent(date)));
         }
+        const current = dateProvider.getCurrent();
+        console.error(`Current time: ${current.toLocaleString()}`);
         provide<DateProvider>("dateProvider", dateProvider);
-        
 
         const jumpToYouTube = async (runName : string, runnerNames : string[]) => {
             const ytSearchQuery = `${currentEventName.value} ${runName} "${runnerNames.join('" "')}"`;
@@ -295,10 +296,12 @@ export default defineComponent({
         lastEventEnd.setTime(lastEventEnd.getTime() + 1000 * 60 * 60 * 24 * 60);
         if (lastEventStart < now && now < lastEventEnd)
         {
+            console.error(`Event found between ${lastEventStart.toLocaleString()} and ${lastEventEnd.toLocaleString()} (now is ${now.toLocaleString()})`);
             await updateCurrentEvent(lastEvent.short);
         }
         else
         {
+            console.error(`No event between ${lastEventStart.toLocaleString()} and ${lastEventEnd.toLocaleString()} found (now is ${now.toLocaleString()})`);
             runsByDay.value = {};
         }
 
