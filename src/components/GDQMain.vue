@@ -404,6 +404,11 @@ export default defineComponent({
             }
         };
     },
+    async mounted() {
+        const snackbar = this.$refs.snackbar as Snackbar;
+        const element = (snackbar.shadowRoot!.querySelector(".mdc-snackbar")!) as HTMLElement;
+        element.style.marginBottom = "calc(env(safe-area-inset-bottom) + 3em)";
+    },
     components: { GDQRun, GDQDay, GDQDayDivider, GDQHeader, GDQSidebar, GDQTimeIndicator }
 });
 </script>
@@ -428,7 +433,7 @@ export default defineComponent({
     <mwc-snackbar ref="snackbar" timeoutMs="10000">
     </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
-        <span ref="eventHeader" slot="title">Available events</span>
+        <span ref="eventHeader" slot="title"><span class="spacer"></span>Available events</span>
         <GDQSidebar :doneLoading="doneLoading" :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
         <div id="appContent" slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
@@ -464,7 +469,7 @@ export default defineComponent({
     }
     .padding
     {
-        height: 8em;
+        height: 35vh;
     }
     .dark-mode
     {
@@ -498,6 +503,21 @@ export default defineComponent({
         width: 100vw;
         background: linear-gradient(180deg, var(--from) 0%, var(--to) 100%);
         z-index: 1000;
+    }
+
+    mwc-top-app-bar-fixed
+    {
+	    border-top-width: constant(safe-area-inset-top);
+	    border-top-width: env(safe-area-inset-top);
+        border-top-style: solid;
+        border-top-color: var(--mdc-theme-primary);
+    }
+
+    .spacer
+    {
+      display: inline-block;
+      height: calc(constant(safe-area-inset-top) + 36px);
+      height: calc(env(safe-area-inset-top) + 36px);
     }
 
     #appContent, #runs

@@ -58,13 +58,17 @@ export default defineComponent({
           <GDQRun class="r" v-if="index == (Object.keys(runsIDsInOrder).length - 1)" :last="true"  :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" />
           <GDQRun class="r" v-if="index != (Object.keys(runsIDsInOrder).length - 1)" :last="false" :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" />
       </template>
-      <span></span>
   </div>
 </template>
 
 <style lang="scss">
 .day
 {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    grid-row-gap: 13px;
+    grid-auto-rows: 50px;
+
     margin-top: 14px;
     margin-bottom: 12px;
     padding-right: 10px;
@@ -82,28 +86,16 @@ export default defineComponent({
 </style>
 
 <style lang="scss" scoped>
-span {
-  display: block;
-  clear: both;
-}
-.dd
+.day
 {
-  float: left;
-  width: 64px;
-  height: 50px;
+  margin-bottom: 28px;
 }
-
 .r
-{
-  float: right;
-  width: calc(100% - 64px);
-  height: 50px;
+{ 
+  height: 100%;
+  grid-column-start: 2;
 }
 
-.dark-mode span
-{
-    color: hsl(0deg 0% 89%);
-}
 .dark-mode li[divider]
 {
   border-bottom-color: rgba(255, 255, 255, 0.45) !important;

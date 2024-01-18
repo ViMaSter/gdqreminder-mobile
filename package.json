@@ -6,8 +6,8 @@
   "private": true,
   "scripts": {
     "dev": "vite --host",
-    "launch": "npm run build && npx cap sync && npx cap run android",
-    "open": "npm run build && npx cap sync && npx cap open android",
+    "android": "npm run build && npx cap sync && npx cap open android",
+    "ios": "npm run build && npx cap sync && npx cap open ios",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --port 4437",
     "test:unit": "vitest --environment jsdom",
@@ -23,6 +23,7 @@
     "@capacitor/app-launcher": "^5.0.6",
     "@capacitor/cli": "^5.6.0",
     "@capacitor/core": "^5.6.0",
+    "@capacitor/ios": "^5.6.0",
     "@capacitor/push-notifications": "^5.1.0",
     "@material/mwc-button": "^0.27.0",
     "@material/mwc-dialog": "^0.27.0",
