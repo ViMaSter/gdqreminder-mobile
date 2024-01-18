@@ -67,3 +67,5 @@ npm run test:e2e
 ```sh
 npm run lint
 ```
+
+This project is tested with Browserstack.
