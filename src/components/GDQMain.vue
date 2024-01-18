@@ -275,6 +275,7 @@ export default defineComponent({
         }
 
         const descendingEventList = Object.values(eventByShorthands.value).sort((a, b)=>new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
+        console.error(JSON.stringify(descendingEventList.map((event) => ({short: event.short, datetime: event.datetime}))));
 
         const determineLatestEventWithRuns = (eventList : GDQEventDataFields[]) => {
             // return if true if shorthand is not part of eventsWithoutRuns
