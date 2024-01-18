@@ -53,7 +53,6 @@ export default defineComponent({
             dateProvider = new FakeDateProvider(new Date(decodeURIComponent(date)));
         }
         const current = dateProvider.getCurrent();
-        console.error(`Current time: ${current.toLocaleString()}`);
         provide<DateProvider>("dateProvider", dateProvider);
 
         const jumpToYouTube = async (runName : string, runnerNames : string[]) => {
@@ -275,7 +274,6 @@ export default defineComponent({
         }
 
         const descendingEventList = Object.values(eventByShorthands.value).sort((a, b)=>new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
-        console.error(JSON.stringify(descendingEventList.map((event) => ({short: event.short, datetime: event.datetime}))));
 
         const determineLatestEventWithRuns = (eventList : GDQEventDataFields[]) => {
             // return if true if shorthand is not part of eventsWithoutRuns
@@ -297,12 +295,10 @@ export default defineComponent({
         lastEventEnd.setTime(lastEventEnd.getTime() + 1000 * 60 * 60 * 24 * 60);
         if (lastEventStart < now && now < lastEventEnd)
         {
-            console.error(`Event found between ${lastEventStart.toLocaleString()} and ${lastEventEnd.toLocaleString()} (now is ${now.toLocaleString()})`);
             await updateCurrentEvent(lastEvent.short);
         }
         else
         {
-            console.error(`No event between ${lastEventStart.toLocaleString()} and ${lastEventEnd.toLocaleString()} found (now is ${now.toLocaleString()})`);
             runsByDay.value = {};
         }
 
