@@ -35,6 +35,7 @@
     "@sentry/tracing": "^7.93.0",
     "@sentry/vue": "^7.93.0",
     "@webcomponents/webcomponentsjs": "^2.8.0",
+    "conventional-changelog-conventionalcommits": "^7.0.2",
     "ky": "^1.2.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.10",
@@ -80,43 +81,15 @@
       [
         "@semantic-release/commit-analyzer",
         {
-          "releaseRules": [
-            {
-              "type": "docs",
-              "release": "patch"
-            },
-            {
-              "type": "refactor",
-              "release": "patch"
-            },
-            {
-              "type": "chore",
-              "release": "patch"
-            },
-            {
-              "type": "style",
-              "release": "patch"
-            },
-            {
-              "type": "fix",
-              "release": "patch"
-            },
-            {
-              "type": "feat",
-              "release": "minor"
-            },
-            {
-              "type": "feat!",
-              "release": "major"
-            },
-            {
-              "type": "fix!",
-              "release": "major"
-            }
-          ]
+          "preset": "conventionalcommits"
         }
       ],
-      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
       "@semantic-release/npm",
       [
         "@semantic-release/git",
