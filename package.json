@@ -96,6 +96,22 @@
             {
               "type": "style",
               "release": "patch"
+            },
+            {
+              "type": "fix",
+              "release": "patch"
+            },
+            {
+              "type": "feat",
+              "release": "minor"
+            },
+            {
+              "type": "feat!",
+              "release": "major"
+            },
+            {
+              "type": "fix!",
+              "release": "major"
             }
           ]
         }
