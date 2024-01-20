@@ -7,8 +7,7 @@ public class VersionPlugin: CAPPlugin {
     private let implementation = Version()
 
     @objc public func getCurrent(_ call: CAPPluginCall) {
-      let orientationType = implementation.getCurrent();
-      call.resolve(["versionCode": 123, "versionName": orientationType])
+      call.resolve(implementation.getCurrent())
     }
 
     /* Remaining code omitted for brevity */
