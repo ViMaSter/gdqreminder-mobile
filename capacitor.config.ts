@@ -6,6 +6,10 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   plugins: {
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ["anonymous"],
+    },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
     },

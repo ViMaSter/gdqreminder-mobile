@@ -6,6 +6,7 @@ import PushNotificationHelper from "../utilities/pushNotificationHelper";
 import "@material/mwc-icon";
 import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
+import { useFriendRunReminderStore } from "@/stores/friendRuns";
 
 export default defineComponent({
   props: {
@@ -28,6 +29,7 @@ export default defineComponent({
   },
   setup(props) {
     let reminder = useRunReminderStore();
+    
     const showSnackbar = inject<(text: string) => void>("showSnackbar")!;
     const onFocus = () => {
       showSnackbar(
@@ -62,9 +64,25 @@ export default defineComponent({
     const runners = ref(`${props.runnerNames.join(", ")}`);
 
     let reminderClasses = ref("");
+    let savedByFriend = ref(false);
+
+    const setFriendClass = (friendRuns : string[]) => {
+      savedByFriend.value = friendRuns.includes(props.pk.toString());
+    };
+    const friendRunStore = useFriendRunReminderStore();
+    setFriendClass(friendRunStore.allReminders);
     watchEffect(() => {
-      reminderClasses.value =
-        "reminder " + (hasActiveReminder.value ? "is-set" : "");
+      let classes = ["reminder"];
+      if (hasActiveReminder.value) {
+        classes.push("is-set");
+      }
+      if (savedByFriend.value) {
+        classes.push("with-friend");
+      }
+      reminderClasses.value = classes.join(" ");
+    });
+    friendRunStore.$subscribe((_, store) => {
+      setFriendClass(store.runs);
     });
 
     const generateRunTypeClassName = () => {
@@ -204,7 +222,14 @@ export default defineComponent({
         >
       </span>
     </div>
-    <div :class="reminderClasses"><mwc-icon>alarm</mwc-icon></div>
+    <div :class="reminderClasses">
+      <div class="alarm">
+        <mwc-icon>alarm</mwc-icon>
+      </div>
+      <div class="friend">
+        <mwc-icon>group</mwc-icon>
+      </div>
+    </div>
   </div>
 </template>
 <style scoped lang="scss">
@@ -294,28 +319,66 @@ export default defineComponent({
   }
 
   .reminder {
+    & > * {
+      height: 50px;
+      width: 0px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      transition: 0.15s ease-out all;
+    }
     .is-over & {
       text-decoration: none;
     }
+
     &.is-set {
       transition: 0.15s ease-out all;
       margin-right: 0px;
+      .alarm {
+      transition: 0.15s ease-out all;
+        width: 50px;
+      }
+    }
+    &.with-friend {
+      transition: 0.15s ease-out all;
+      margin-right: 0px;
+      .friend {
+      transition: 0.15s ease-out all;
+        width: 50px;
+      }
+    }
+    &.is-set.with-friend {
+      transition: 0.15s ease-out all;
+      margin-right: 0px;
+      .friend {
+        width: 50px;
+      }
+      .alarm {
+        width: 50px;
+      }
     }
 
     display: flex;
-    transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1) all;
-    margin-right: -50px;
+    transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1) margin-right;
+    margin-right: -100%;
 
     justify-content: center;
     align-items: center;
 
     height: 100%;
     flex: 0 0 auto;
-    aspect-ratio: 1/1;
 
-    background: var(--background-alarm);
+    .alarm {      
+      background: var(--background-alarm);
+    }
+    .friend {
+      background: var(--background-friend);
+    }
 
-    &.is-set mwc-icon {
+    &.is-set .alarm mwc-icon,
+    &.with-friend .friend mwc-icon {
       margin-left: 0px;
       transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
       transform: rotateZ(0deg);

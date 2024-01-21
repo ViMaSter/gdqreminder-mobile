@@ -8,6 +8,11 @@ import { Capacitor } from '@capacitor/core';
 import { Theme, useThemeStore } from '@/stores/theme';
 import { onMounted, provide, ref, watch } from 'vue';
 import PushNotificationHelper from './utilities/pushNotificationHelper';
+import { FriendUserIDState, useUserIDStore } from './stores/friendUserID';
+import { store } from './utilities/firebaseConfig';
+import { onSnapshot, doc, Unsubscribe } from 'firebase/firestore'
+import { useFriendRunReminderStore } from './stores/friendRuns';
+import { SubscriptionCallback } from 'pinia';
 
 if (useThemeStore().currentTheme === Theme.Dark)
 {
@@ -79,6 +84,39 @@ const registerNotifications = async () => {
 
   await PushNotificationHelper.subscribeToScheduleUpdates();
 }
+
+let unsubscribe: Unsubscribe | null = null;
+let subscribe = (friendUserID : string) => {
+  if (friendUserID == null || friendUserID.length === 0)
+  {
+    return;
+  }
+  const docRef = doc(store, "remindersByUserID", friendUserID);
+  const friendRunStore = useFriendRunReminderStore();
+  if (unsubscribe != null)
+  {
+    unsubscribe();
+  }
+  unsubscribe = onSnapshot(docRef, (doc) => {
+    if (doc.exists())
+    {
+      const data = doc.data();
+      if (data)
+      {
+        friendRunStore.set(data.runs);
+      }
+    }
+  });
+};
+
+const userIDStore = useUserIDStore();
+if (userIDStore.friendUserID != null && userIDStore.friendUserID.length !== 0)
+{
+  subscribe(userIDStore.friendUserID);
+}
+userIDStore.$subscribe((mutation, state) => {
+  subscribe(state.friendUserID!);
+});
 
 console.log(Capacitor.isPluginAvailable("PushNotification"));
 registerNotifications()
