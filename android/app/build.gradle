@@ -55,6 +55,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:30.1.0')
     implementation('com.google.firebase:firebase-iid')
     implementation 'com.google.firebase:firebase-messaging'
+    implementation("com.google.firebase:firebase-auth")
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation project(':capacitor-android')

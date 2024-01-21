@@ -1,12 +1,15 @@
 <script lang="ts">
-import ky from 'ky';
 import {onMounted, ref, Ref, provide, defineComponent} from 'vue';
 import { AppLauncher } from '@capacitor/app-launcher';
 import '@material/mwc-list';
 import '@material/mwc-snackbar';
 import { Snackbar } from '@material/mwc-snackbar';
 import '@material/mwc-drawer';
+import { Dialog } from '@material/mwc-dialog';
+import '@material/mwc-dialog';
+import '@material/mwc-button';
 import '@material/mwc-top-app-bar-fixed';
+import '@material/mwc-textfield';
 import { Theme, useThemeStore } from '@/stores/theme';
 import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
@@ -26,6 +29,8 @@ import { FakeDateProvider } from '@/services/FakeDateProvider';
 import { LocationHashParameters } from '@/services/LocationHashParameters';
 import { EventsData } from '@/utilities/eventsData';
 import { CapacitorHttp } from '@capacitor/core';
+import { useUserIDStore } from '@/stores/friendUserID';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -89,6 +94,22 @@ export default defineComponent({
                 drawer.value!.open = !drawer.value!.open;
             });
             setupSwipeLogic(drawer.value!);
+
+            const onLongTouch = () => { 
+                dialog.value!.open = true;
+            };
+            let timer : NodeJS.Timeout | null = null;
+            const touchDuration = 500;
+            eventHeader.value?.addEventListener("touchstart", () => { timer = setTimeout(onLongTouch, touchDuration);   });
+            eventHeader.value?.addEventListener("mousedown", () => {  timer = setTimeout(onLongTouch, touchDuration);   });
+            eventHeader.value?.addEventListener("touchend", () => {   if (timer) clearTimeout(timer);  });
+            eventHeader.value?.addEventListener("mouseup", () => {    if (timer) clearTimeout(timer);  });
+            dialog.value?.addEventListener("closing", async (event) => {
+                if ((event as CustomEvent).detail.action == "apply")
+                {
+                    userIDStorage.setFriendUserID(friendUserID.value!);
+                }
+            });
         });
         const setupSwipeLogic = (drawer: TopAppBarFixedWithOpen) => {
             let touchIdentifier = -1;
@@ -334,7 +355,26 @@ export default defineComponent({
             themeStore.override(document.body.classList.contains('dark-mode') ? Theme.Dark : Theme.Light);
         };
 
+        const eventHeader = ref<HTMLSpanElement>();
+        const userIDStorage = useUserIDStore();
+        const friendUserID = ref(userIDStorage.friendUserID);
+        const dialog = ref<Dialog>();
+
+        const copyID = async () => {
+            const currentUser = (await FirebaseAuthentication.getCurrentUser()).user;
+            if (!currentUser) {
+                await FirebaseAuthentication.signInAnonymously();
+            }
+
+            navigator.clipboard.writeText((await FirebaseAuthentication.getCurrentUser()).user.uid);
+            showSnackbar("Copied your user ID to clipboard");
+        };
+
         return {
+            friendUserID,
+            copyID,
+            dialog,
+            eventHeader,
             doneLoading,
             eventByShorthands,
             drawer,
@@ -370,10 +410,25 @@ export default defineComponent({
 
 <template>
   <div :class="generateContainerClassNames()">
+    <mwc-dialog ref="dialog">
+        <div><mwc-button @click="copyID">Copy your user ID</mwc-button></div>
+        <mwc-textfield label="Friend's user ID" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" v-model="friendUserID">
+        </mwc-textfield>
+        <mwc-button
+            slot="primaryAction"
+            dialogAction="apply">
+            Apply
+        </mwc-button>
+        <mwc-button
+            slot="secondaryAction"
+            dialogAction="cancel">
+            Cancel
+        </mwc-button>
+        </mwc-dialog>
     <mwc-snackbar ref="snackbar" timeoutMs="10000">
     </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
-        <span slot="title">Available events</span>
+        <span ref="eventHeader" slot="title">Available events</span>
         <GDQSidebar :doneLoading="doneLoading" :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
         <div id="appContent" slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
@@ -392,6 +447,21 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+
+    mwc-dialog
+    {
+        font-size: 0.5em;
+        .value
+        {
+            font-size: 0.4em;
+            font-weight: bold;
+        }
+        mwc-textfield
+        {
+            width: 100%;
+        }
+        --mdc-dialog-min-width: 375px;
+    }
     .padding
     {
         height: 8em;

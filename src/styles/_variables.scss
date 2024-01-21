@@ -12,6 +12,7 @@
     --background-purple: hsla(0, 0%, 100%, 1);
 
     --background-alarm: hsla(52, 95%, 50%, 1);
+    --background-friend: hsla(0, 0%, 0%, 0.75);
     
     .dark-mode &
     {
@@ -28,5 +29,6 @@
         --background-purple: hsla(281, 100%, 51%, 0.2);
 
         --background-alarm: hsla(52, 76%, 51%, 0.5);
+        --background-friend: hsla(0, 0%, 84%, 0.5);
     }
 }

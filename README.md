@@ -31,8 +31,9 @@ If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has a
     2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
 2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
 
-## Customize configuration
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+## Faking a running marathon
+Appending `#date=` followed by a string compatible for the `new Date()` constructor can be used to fake a current point in time. Per real 1 second, 20 minutes will pass in the app.
+> Example: `#date=2024-01-18%2000:00:00` would result in the middle of AGDQ2024.
 
 ## Project Setup
 ```sh

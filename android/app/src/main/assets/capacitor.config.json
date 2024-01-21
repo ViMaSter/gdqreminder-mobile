@@ -5,6 +5,10 @@
 	"bundledWebRuntime": false,
 	"plugins": {
 		"PushNotifications": {
+			"FirebaseAuthentication": {
+			  "skipNativeAuth": false,
+			  "providers": ["anonymous"]
+			},
 			"presentationOptions": [
 				"badge",
 				"sound",
