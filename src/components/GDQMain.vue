@@ -366,7 +366,7 @@ export default defineComponent({
                 await FirebaseAuthentication.signInAnonymously();
             }
 
-            navigator.clipboard.writeText((await FirebaseAuthentication.getCurrentUser()).user.uid);
+            navigator.clipboard.writeText((await FirebaseAuthentication.getCurrentUser()).user!.uid);
             showSnackbar("Copied your user ID to clipboard");
         };
 
