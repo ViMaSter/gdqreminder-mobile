@@ -6,8 +6,8 @@
   "private": true,
   "scripts": {
     "dev": "vite --host",
-    "android": "npm run build && npx cap sync && npx cap open android",
-    "ios": "npm run build && npx cap sync && npx cap open ios",
+    "android": "npm run build && npx cap sync android && npx cap open android",
+    "ios": "npm run build && npx cap sync ios && npx cap open ios",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --port 4437",
     "test:unit": "vitest --environment jsdom",

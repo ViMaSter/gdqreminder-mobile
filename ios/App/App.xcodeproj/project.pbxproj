@@ -247,7 +247,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "VERSION_NUM=$(/opt/homebrew/bin/jq -r .version ../../package.json)\nVERSION_PARTS=(${VERSION_NUM//./ })\nCURRENT_PROJECT_VERSION=$((${VERSION_PARTS[0]} * 100000000 + ${VERSION_PARTS[1]} * 10000 + ${VERSION_PARTS[2]}))\n\necho \"${PROJECT_DIR}\"\necho \"${INFOPLIST_FILE}\"\n\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $VERSION_NUM\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\"\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $CURRENT_PROJECT_VERSION\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\"\n";
+			shellScript = "VERSION_NUM=$(jq -r .version ../../package.json)\nVERSION_PARTS=(${VERSION_NUM//./ })\nCURRENT_PROJECT_VERSION=$((${VERSION_PARTS[0]} * 100000000 + ${VERSION_PARTS[1]} * 10000 + ${VERSION_PARTS[2]}))\n\necho \"${PROJECT_DIR}\"\necho \"${INFOPLIST_FILE}\"\n\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $VERSION_NUM\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\"\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $CURRENT_PROJECT_VERSION\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
