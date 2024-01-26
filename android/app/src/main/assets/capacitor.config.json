@@ -4,11 +4,13 @@
 	"webDir": "dist",
 	"bundledWebRuntime": false,
 	"plugins": {
+		"FirebaseAuthentication": {
+			"skipNativeAuth": false,
+			"providers": [
+				"anonymous"
+			]
+		},
 		"PushNotifications": {
-			"FirebaseAuthentication": {
-			  "skipNativeAuth": false,
-			  "providers": ["anonymous"]
-			},
 			"presentationOptions": [
 				"badge",
 				"sound",

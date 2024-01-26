@@ -367,7 +367,8 @@ export default defineComponent({
     justify-content: center;
     align-items: center;
 
-    height: 100%;
+    width: 50px;
+    height: 50px;
     flex: 0 0 auto;
 
     .alarm {      
