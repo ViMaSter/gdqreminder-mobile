@@ -72,11 +72,19 @@ mwc-list
 {
     margin: initial !important;
 }
+mwc-list-item:hover
+{
+  background-color: hsl(0deg 0% 87%);
+}
 .dark-mode
 {
   mwc-list-item
   {
     color: hsl(0deg 0% 87%);
+  }
+  mwc-list-item:hover
+  {
+    background-color: rgba(255, 255, 255, 0.12);
   }
 }
 </style>
