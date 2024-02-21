@@ -43,7 +43,7 @@
     "ky": "^1.2.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.10",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
     "@playwright/experimental-ct-vue": "^1.41.2",
