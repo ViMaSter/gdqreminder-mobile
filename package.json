@@ -62,7 +62,7 @@
     "jsdom": "^24.0.0",
     "prettier": "^3.2.5",
     "sass": "^1.72.0",
-    "semantic-release": "^23.0.2",
+    "semantic-release": "^23.0.3",
     "typescript": "~5.4.2",
     "vite": "^5.1.6",
     "vitest": "^1.3.1",
