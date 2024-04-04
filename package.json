@@ -63,7 +63,7 @@
     "prettier": "^3.2.5",
     "sass": "^1.72.0",
     "semantic-release": "^23.0.7",
-    "typescript": "~5.4.3",
+    "typescript": "~5.4.4",
     "vite": "^5.2.8",
     "vitest": "^1.4.0",
     "vue-tsc": "^2.0.7"
