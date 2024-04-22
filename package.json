@@ -40,7 +40,7 @@
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "conventional-changelog-conventionalcommits": "^7.0.2",
     "firebase": "^10.11.0",
-    "ky": "^1.2.3",
+    "ky": "^1.2.4",
     "pinia": "^2.1.7",
     "vue": "^3.4.23",
     "vue-router": "^4.3.2"
