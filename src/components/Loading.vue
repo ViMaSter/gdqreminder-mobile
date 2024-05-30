@@ -24,7 +24,7 @@ export default defineComponent({
 </script>
 <template>
     <div ref="root" :class="generateClass()">
-        <img src="@/assets/gdq-logo.png" class="logo" />
+        <img src="@/assets/gdq-logo.png" class="logo" >
     </div>
 </template>
 <style lang="scss">

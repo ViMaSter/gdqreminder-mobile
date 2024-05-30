@@ -53,10 +53,10 @@ export default defineComponent({
 
 <template>
   <div :class="'day ' + generateIsOverClassName()" :id="'run-for-'+day">
-      <GDQDayDivider class="dd" :day="day" />
+      <GDQDayDivider class="dd" :day="day" ></GDQDayDivider>
       <template v-for="(runPK, index) in runsIDsInOrder" :key="runPK">   
-          <GDQRun class="r" v-if="index == (Object.keys(runsIDsInOrder).length - 1)" :last="true"  :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" />
-          <GDQRun class="r" v-if="index != (Object.keys(runsIDsInOrder).length - 1)" :last="false" :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" />
+          <GDQRun class="r" v-if="index == (Object.keys(runsIDsInOrder).length - 1)" :last="true"  :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" ></GDQRun>
+          <GDQRun class="r" v-if="index != (Object.keys(runsIDsInOrder).length - 1)" :last="false" :pk="runPK" :fields="runsByID[runPK]" :runner-names="runsByID[runPK].runners.map((runner)=>runners[runner].public)" ></GDQRun>
       </template>
       <span></span>
   </div>

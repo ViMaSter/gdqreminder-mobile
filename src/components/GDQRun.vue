@@ -201,8 +201,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div
-    @click="toggleReminder()"
+  <div     @click="toggleReminder()"
     @focus="onFocus()"
     tabindex="0"
     :class="className"
@@ -212,14 +211,11 @@ export default defineComponent({
       <span class="runName">{{ runName }}</span>
       <span class="meta">
         <span class="meta-entry schedule"
-          ><mwc-icon>schedule</mwc-icon>{{ startString }}</span
-        >
+          ><mwc-icon>schedule</mwc-icon>{{ startString }}</span>
         <span class="meta-entry timer"
-          ><mwc-icon>timer</mwc-icon>{{ durationHMMSS }}</span
-        >
+          ><mwc-icon>timer</mwc-icon>{{ durationHMMSS }}</span>
         <span class="meta-entry person"
-          ><mwc-icon>person</mwc-icon> {{ runners }}</span
-        >
+          ><mwc-icon>person</mwc-icon> {{ runners }}</span>
       </span>
     </div>
     <div :class="reminderClasses">

@@ -1,8 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import * as Sentry from "@sentry/vue";
-import { BrowserTracing } from "@sentry/vue";
-import { CaptureConsole } from '@sentry/integrations';
 
 import App from './App.vue'
 import { Capacitor } from '@capacitor/core';
@@ -18,13 +16,13 @@ if (Capacitor.getPlatform() !== 'web') {
     replaysSessionSampleRate: 1.0,
     replaysOnErrorSampleRate: 1.0,
     integrations: [
-      new BrowserTracing(),
-      new Sentry.Replay({
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({
         maskAllText: false,
         maskAllInputs: false,
         networkDetailAllowUrls: [/.*/]
       }),
-      new CaptureConsole({
+      Sentry.captureConsoleIntegration({
         levels: ['error']
       })
     ],

@@ -433,13 +433,11 @@ export default defineComponent({
         <div><mwc-button @click="copyID">Copy your user ID</mwc-button></div>
         <mwc-textfield label="Friend's user ID" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" v-model="friendUserID">
         </mwc-textfield>
-        <mwc-button
-            slot="primaryAction"
+        <mwc-button             slot="primaryAction"
             dialogAction="apply">
             Apply
         </mwc-button>
-        <mwc-button
-            slot="secondaryAction"
+        <mwc-button             slot="secondaryAction"
             dialogAction="cancel">
             Cancel
         </mwc-button>
@@ -451,7 +449,7 @@ export default defineComponent({
         <GDQSidebar :doneLoading="doneLoading" :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
         <div id="appContent" slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
-            <!-- TODO: Move #runs into GDQHeader <slot> and utilize '----mdc-top-app-bar-fixed-box-shadow' (this required window.scroll to be fired ans check why it isn't fired) ~ FIXED_SCROLLED_CLASS: "mdc-top-app-bar--fixed-scrolled-->
+            
             <div id="runs">
                 <div class="transition"></div>
                 <template v-for="(runs, day, index) in runsByDay" :key="day">

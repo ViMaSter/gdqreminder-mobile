@@ -144,9 +144,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <Loading class="loading" ref="loadingContent" />
+  <Loading class="loading" ref="loadingContent" ></Loading>
   <Suspense>
-    <GDQMain ref="mainContent" />
+    <GDQMain ref="mainContent" ></GDQMain>
   </Suspense>
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
