@@ -390,7 +390,6 @@ export default defineComponent({
                 }
                 if (activeFilter == "alert" && !hasAlert)
                 {
-                    debugger;
                     return;
                 }
 
