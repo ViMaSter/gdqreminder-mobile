@@ -13,7 +13,7 @@ import '@material/mwc-textfield';
 import { Theme, useThemeStore } from '@/stores/theme';
 import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
 import '@material/mwc-icon-button';
-import {GDQEventData, GDQEventDataFields} from '../interfaces/GDQEvent'
+import {GDQEventDataFields} from '../interfaces/GDQEvent'
 import {GDQRunData, GDQRunDataFields} from '../interfaces/GDQRun'
 import {GDQRunnerData, GDQRunnerDataFields} from '../interfaces/GDQRunner'
 import GDQRun from './GDQRun.vue';
@@ -30,7 +30,25 @@ import { LocationHashParameters } from '@/services/LocationHashParameters';
 import { EventsData } from '@/utilities/eventsData';
 import { CapacitorHttp } from '@capacitor/core';
 import { useUserIDStore } from '@/stores/friendUserID';
-import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { getApp } from 'firebase/app';
+import { Capacitor } from '@capacitor/core';
+
+import {
+  getAuth,
+  indexedDBLocalPersistence,
+  initializeAuth,
+  signInAnonymously,
+} from 'firebase/auth';
+
+const getFirebaseAuth = async () => {
+  if (Capacitor.isNativePlatform()) {
+    return initializeAuth(getApp(), {
+      persistence: indexedDBLocalPersistence,
+    });
+  }
+  
+  return getAuth();
+};
 
 interface TopAppBarFixedWithOpen extends TopAppBarFixed {
     open: boolean;
@@ -360,14 +378,15 @@ export default defineComponent({
         const friendUserID = ref(userIDStorage.friendUserID);
         const dialog = ref<Dialog>();
 
-        const copyID = async () => {
-            const currentUser = (await FirebaseAuthentication.getCurrentUser()).user;
-            if (!currentUser) {
-                await FirebaseAuthentication.signInAnonymously();
-            }
+        let userID = "";
+        getFirebaseAuth().then(async (auth) => {
+            userID = (await signInAnonymously(auth)).user!.uid;
+            localStorage.setItem("firebaseUserID", userID);
+        });
 
-            navigator.clipboard.writeText((await FirebaseAuthentication.getCurrentUser()).user!.uid);
-            showSnackbar("Copied your user ID to clipboard");
+        const copyID = async () => {
+            navigator.clipboard.writeText(userID);
+            showSnackbar("Copied your user ID to clipboard:");
         };
 
         return {

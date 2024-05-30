@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
 import { store } from '../utilities/firebaseConfig';
 import { setDoc, doc } from 'firebase/firestore'
-import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-
 type RunReminderState = {
   runs : string[]
 };
@@ -12,11 +10,14 @@ const defaultValue : RunReminderState = {
 };
 
 const reflectInFirestore = async (runs : string[]) => {
-  const currentUser = (await FirebaseAuthentication.getCurrentUser()).user;
-  if (!currentUser) {
+
+  const currentUserID = localStorage.getItem('firebaseUserID');
+  if (!currentUserID) {
+    console.warn(`Local save successful, but failed to update run reminder ${runs} to firestore; no current user. The user sign should have completed by now.`);
     return;
   }
-  await setDoc(doc(store, "remindersByUserID", currentUser.uid), {
+  
+  await setDoc(doc(store, "remindersByUserID", currentUserID), {
     runs
   });
 };
