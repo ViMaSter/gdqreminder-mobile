@@ -1,5 +1,6 @@
 # GDQ Reminder Mobile App
 ## Local Development
+
 1. Install [Visual Studio Code](https://code.visualstudio.com/)
 2. Install recommended Visual Studio Code extensions
 3. 
@@ -15,7 +16,8 @@
 > The mobile app uses [native HTTP requests](https://capacitorjs.com/docs/apis/http) which allows accessing CORS-protected content without any restrictions. The only way to mimic this behavior in a browser is to disable CORS.
 
 ## On-Device Development
-1. Install [Android Studio](https://developer.android.com/studio) (using default settings)
+
+1. Install [Android Studio](https://developer.android.com/studio) using default settings
 2. Pair your device with Android Studio
 3. Complete all steps for [Local Development](#local-development)
 4. Run `npm run launch`
@@ -32,22 +34,20 @@ If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has a
 2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
 
 ## Faking a running marathon
+
 Appending `#date=` followed by a string compatible for the `new Date()` constructor can be used to fake a current point in time. Per real 1 second, 20 minutes will pass in the app.
 > Example: `#date=2024-01-18%2000:00:00` would result in the middle of AGDQ2024.
 
 ## Project Setup
+
 ```sh
 npm install
 ```
 
 ### Compile and Hot-Reload for Development
+
 ```sh
 npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-```sh
-npm run build
 ```
 
 ### Run Unit Tests with [Vitest](https://vitest.dev/)
