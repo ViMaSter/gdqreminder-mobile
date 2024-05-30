@@ -49,7 +49,7 @@ jobs:
           path: playwright-report/
           retention-days: 30
       - run: | 
-          npx semantic-release --no-ci --dry-run --branches *
+          npx semantic-release --no-ci --dry-run --branches $(git branch --show-current)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
