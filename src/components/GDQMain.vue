@@ -379,7 +379,7 @@ export default defineComponent({
         const friendRunStore = useFriendRunReminderStore();
         const refreshRuns = () => {
             const orderedRuns = runsByEventShort.value[currentEventName.value];
-            let runs = {};
+            let runs : {[day : string] : string[]} = {};
             orderedRuns.forEach(([runID, _]) => {
                 const hasAlert = reminder.allReminders.includes(runID);
                 const inFriendRuns = friendRunStore.allReminders.includes(runID);
