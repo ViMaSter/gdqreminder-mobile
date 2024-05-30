@@ -37,10 +37,10 @@ jobs:
       - run: | 
           npm ci
       - name: Install Playwright Browsers
-        if: ${{ github.event.inputs.runIntegrationTests }}
+        if: inputs.runIntegrationTests == true
         run: npx playwright install --with-deps
       - name: Run Playwright tests
-        if: ${{ github.event.inputs.runIntegrationTests }}
+        if: inputs.runIntegrationTests == true
         run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: always()
