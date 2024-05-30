@@ -32,6 +32,8 @@ import { CapacitorHttp } from '@capacitor/core';
 import { useUserIDStore } from '@/stores/friendUserID';
 import { getApp } from 'firebase/app';
 import { Capacitor } from '@capacitor/core';
+import { useFriendRunReminderStore } from "@/stores/friendRuns";
+import { useRunReminderStore } from "@/stores/runReminders";
 
 import {
   getAuth,
@@ -103,10 +105,7 @@ export default defineComponent({
         };
         provide<(text : string) => void>("showSnackbar", showSnackbar);
 
-        const reminder = ref<string[]>([]);
         onMounted(() => {
-            provide("reminder", reminder);
-            
             const container = drawer.value!.parentNode;
             container!.addEventListener("MDCTopAppBar:nav", () => {
                 drawer.value!.open = !drawer.value!.open;
@@ -231,7 +230,6 @@ export default defineComponent({
             return true;
         };
         const updateCurrentEvent = async (newEvent: string) => {
-            // if no runs load them
             if (!runsByEventShort.value[newEvent])
             {
                 if (!await loadRuns(newEvent))
@@ -240,7 +238,6 @@ export default defineComponent({
                 }
             }
 
-            
             scrollable.value?.querySelector("#runs")!.scrollTo(0, 0);
 
             currentEventName.value = newEvent;
@@ -261,6 +258,8 @@ export default defineComponent({
                 }
                 runsByDay.value[dayOfRun].push(runID);
             });
+
+            console.log(Object.entries(runsByDay.value).map(([day, runs]) => `${new Date(parseInt(day)).toLocaleDateString()}: ${runs.length}`).join("\n"));
         };
         const now = dateProvider.getCurrent();
 
@@ -373,9 +372,60 @@ export default defineComponent({
             themeStore.override(document.body.classList.contains('dark-mode') ? Theme.Dark : Theme.Light);
         };
 
-        const eventHeader = ref<HTMLSpanElement>();
+        const filterTypes = ["", "friend+alert", "alert"];
+        let activeFilter = "";
+
+        const reminder = useRunReminderStore(); 
+        const friendRunStore = useFriendRunReminderStore();
+        const refreshRuns = () => {
+            const orderedRuns = runsByEventShort.value[currentEventName.value];
+            let runs = {};
+            orderedRuns.forEach(([runID, _]) => {
+                const hasAlert = reminder.allReminders.includes(runID);
+                const inFriendRuns = friendRunStore.allReminders.includes(runID);
+                
+                if (activeFilter == "friend+alert" && (!inFriendRuns && !hasAlert))
+                {
+                    return;
+                }
+                if (activeFilter == "alert" && !hasAlert)
+                {
+                    debugger;
+                    return;
+                }
+
+                const timeOfRun = new Date(runsByID.value[runID].starttime);
+                timeOfRun.setHours(0, 0, 0, 0);
+                const dayOfRun = timeOfRun.getTime();
+                if (!Object.keys(runs).includes(dayOfRun.toString()))
+                {
+                    runs[dayOfRun] = [];
+                }
+                runs[dayOfRun].push(runID);
+            });
+            runsByDay.value = runs;
+            console.log(Object.entries(runsByDay.value).map(([day, runs]) => `${new Date(parseInt(day)).toLocaleDateString()}: ${runs.length}`).join("\n"));
+        }
+
         const userIDStorage = useUserIDStore();
         const friendUserID = ref(userIDStorage.friendUserID);
+
+        const toggleFilter = () => {
+            activeFilter = filterTypes[(filterTypes.indexOf(activeFilter) + 1) % filterTypes.length];
+            if (activeFilter == "friend+alert" && !friendUserID.value)
+            {
+                activeFilter = filterTypes[(filterTypes.indexOf(activeFilter) + 1) % filterTypes.length];
+            }
+            refreshRuns();
+            return;
+        };
+
+        // refresh runs when friend runs change
+        friendRunStore.$subscribe((_, store) => {
+            refreshRuns();
+        });
+
+        const eventHeader = ref<HTMLSpanElement>();
         const dialog = ref<Dialog>();
 
         let userID = "";
@@ -408,6 +458,7 @@ export default defineComponent({
             runners,
             reminder,
             scrollable,
+            toggleFilter,
             toggleDarkMode,
             generateContainerClassNames: () => {
                 let classNames = ["container"];
@@ -448,11 +499,11 @@ export default defineComponent({
         <span ref="eventHeader" slot="title">Available events</span>
         <GDQSidebar :doneLoading="doneLoading" :eventsByShorthand="eventByShorthands" @onUpdateCurrentEvent="updateCurrentEvent"></GDQSidebar>
         <div id="appContent" slot="appContent" ref="scrollable">
-            <GDQHeader @toggleDarkMode="toggleDarkMode" :currentEventName="currentEventName"></GDQHeader>
+            <GDQHeader @toggleDarkMode="toggleDarkMode" @toggleFilter="toggleFilter" :currentEventName="currentEventName"></GDQHeader>
             
             <div id="runs">
                 <div class="transition"></div>
-                <template v-for="(runs, day, index) in runsByDay" :key="day">
+                <template v-for="(runs, day, index) in runsByDay" :key="runs.map((run) => run).join('')">
                     <GDQDay class="gdqday" :runners="runners" :runsByID="runsByID" :runsIDsInOrder="runs" :day="(day as string)"></GDQDay>
                     <div class="padding" v-if="index == Object.keys(runsByDay).length - 1"></div>
                 </template>
