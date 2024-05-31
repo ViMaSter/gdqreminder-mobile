@@ -2,7 +2,7 @@
 
 ## Local Development
 
-<img align="right" width="450" src="https://github.com/ViMaSter/gdqreminder-mobile/assets/1689033/c4ef46ba-2d1f-44ff-9c4e-2f1a01ca9d03">
+<img align="right" width="300" src="https://github.com/ViMaSter/gdqreminder-mobile/assets/1689033/c4ef46ba-2d1f-44ff-9c4e-2f1a01ca9d03">
 
 1. Install [Visual Studio Code](https://code.visualstudio.com/)
 2. Install recommended Visual Studio Code extensions
