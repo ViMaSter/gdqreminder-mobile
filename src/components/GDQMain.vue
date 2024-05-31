@@ -1,18 +1,11 @@
 <script lang="ts">
 import {onMounted, ref, Ref, provide, defineComponent} from 'vue';
 import { AppLauncher } from '@capacitor/app-launcher';
-import '@material/mwc-list';
-import '@material/mwc-snackbar';
 import { Snackbar } from '@material/mwc-snackbar';
 import '@material/mwc-drawer';
-import { Dialog } from '@material/mwc-dialog';
-import '@material/mwc-dialog';
-import '@material/mwc-button';
-import '@material/mwc-top-app-bar-fixed';
-import '@material/mwc-textfield';
+import { MdDialog } from '@material/web/dialog/dialog';
 import { Theme, useThemeStore } from '@/stores/theme';
 import {TopAppBarFixed} from '@material/mwc-top-app-bar-fixed';
-import '@material/mwc-icon-button';
 import {GDQEventDataFields} from '../interfaces/GDQEvent'
 import {GDQRunData, GDQRunDataFields} from '../interfaces/GDQRun'
 import {GDQRunnerData, GDQRunnerDataFields} from '../interfaces/GDQRunner'
@@ -121,8 +114,8 @@ export default defineComponent({
             eventHeader.value?.addEventListener("mousedown", () => {  timer = setTimeout(onLongTouch, touchDuration);   });
             eventHeader.value?.addEventListener("touchend", () => {   if (timer) clearTimeout(timer);  });
             eventHeader.value?.addEventListener("mouseup", () => {    if (timer) clearTimeout(timer);  });
-            dialog.value?.addEventListener("closing", async (event) => {
-                if ((event as CustomEvent).detail.action == "apply")
+            dialog.value?.addEventListener("close", async () => {
+                if (dialog.value!.returnValue == "apply")
                 {
                     userIDStorage.setFriendUserID(friendUserID.value!);
                 }
@@ -410,7 +403,6 @@ export default defineComponent({
         const friendUserID = ref(userIDStorage.friendUserID);
 
         const toggleFilter = (a : any, b : any) => {
-            debugger;
             activeFilter = filterTypes[(filterTypes.indexOf(activeFilter) + 1) % filterTypes.length];
             if (activeFilter == "friend+alert" && !friendUserID.value)
             {
@@ -426,7 +418,7 @@ export default defineComponent({
         });
 
         const eventHeader = ref<HTMLSpanElement>();
-        const dialog = ref<Dialog>();
+        const dialog = ref<MdDialog>();
 
         let userID = "";
         getFirebaseAuth().then(async (auth) => {
@@ -480,19 +472,16 @@ export default defineComponent({
 
 <template>
   <div :class="generateContainerClassNames()">
-    <mwc-dialog ref="dialog">
-        <div><mwc-button @click="copyID">Copy your user ID</mwc-button></div>
-        <mwc-textfield label="Friend's user ID" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" v-model="friendUserID">
-        </mwc-textfield>
-        <mwc-button             slot="primaryAction"
-            dialogAction="apply">
-            Apply
-        </mwc-button>
-        <mwc-button             slot="secondaryAction"
-            dialogAction="cancel">
-            Cancel
-        </mwc-button>
-        </mwc-dialog>
+    <md-dialog ref="dialog">
+        <div slot="headline"><md-button @click="copyID">Copy your user ID</md-button></div>
+        <form slot="content" id="form" method="dialog">
+            <md-filled-text-field label="Friend's user ID" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" v-model="friendUserID"></md-filled-text-field>
+        </form>
+        <div slot="actions">
+            <md-text-button form="form" value="cancel">Cancel</md-text-button>
+            <md-text-button form="form" value="apply">Apply</md-text-button>
+        </div>
+    </md-dialog>
     <mwc-snackbar ref="snackbar" timeoutMs="10000">
     </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
@@ -501,7 +490,7 @@ export default defineComponent({
         <div id="appContent" slot="appContent" ref="scrollable">
             <GDQHeader @toggleDarkMode="toggleDarkMode" @toggleFilter="toggleFilter" :currentEventName="currentEventName"></GDQHeader>
             
-            <div id="runs">
+            <div class="mdc-top-app-bar--fixed-adjust" id="runs">
                 <div class="transition"></div>
                 <template v-for="(runs, day, index) in runsByDay" :key="runs.map((run) => run).join('')">
                     <GDQDay class="gdqday" :runners="runners" :runsByID="runsByID" :runsIDsInOrder="runs" :day="(day as string)"></GDQDay>
@@ -516,19 +505,13 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 
-    mwc-dialog
+    md-dialog
     {
-        font-size: 0.5em;
-        .value
-        {
-            font-size: 0.4em;
-            font-weight: bold;
-        }
-        mwc-textfield
+        md-filled-text-field
         {
             width: 100%;
         }
-        --mdc-dialog-min-width: 375px;
+        width: 375px;
     }
     .padding
     {
@@ -538,21 +521,24 @@ export default defineComponent({
     {
         .transition
         {
-            --mdc-theme-primary: 281, 100%, 10.2%;
+           --mdc-theme-primary: 281, 100%, 10.2%;
+  --md-sys-color-primary: 281, 100%, 10.2%;
             --from: hsla(var(--mdc-theme-primary), 1);
             --to: hsla(var(--mdc-theme-primary), 0);
         }
 
         .agdq .transition
         {
-            --mdc-theme-primary: 180, 100%, 5%;
+           --mdc-theme-primary: 180, 100%, 5%;
+  --md-sys-color-primary: 180, 100%, 5%;
             --from: hsla(var(--mdc-theme-primary), 1);
             --to: hsla(var(--mdc-theme-primary), 0);
         }
 
         .sgdq .transition
         {
-            --mdc-theme-primary: 347, 89%, 10.4%;
+           --mdc-theme-primary: 347, 89%, 10.4%;
+  --md-sys-color-primary: 347, 89%, 10.4%;
             --from: hsla(var(--mdc-theme-primary), 1);
             --to: hsla(var(--mdc-theme-primary), 0);
         }

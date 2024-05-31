@@ -108,12 +108,12 @@ span {
 {
   border-bottom-color: rgba(255, 255, 255, 0.45) !important;
 }
-mwc-list-item
+md-list-item
 {
   justify-content: right;
   font-size: 1.5em;
 }
-mwc-list-item span
+md-list-item span
 {
   color: #00aeef !important;
 }

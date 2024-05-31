@@ -149,7 +149,7 @@ onMounted(() => {
     <GDQMain ref="mainContent" ></GDQMain>
   </Suspense>
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1" rel="stylesheet">
 </template>
 <style>
 .loading
@@ -175,5 +175,6 @@ body.dark-mode
 {
   background: black;
   color: white;
+  --_icon-color: white;
 }
 </style>
