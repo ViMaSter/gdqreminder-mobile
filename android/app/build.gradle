@@ -13,6 +13,8 @@ def getVersionFromPackageJson() {
 }
 
 android {
+
+    namespace 'ke.mahn.gdqreminder'
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "ke.mahn.gdqreminder"
