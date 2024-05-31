@@ -6,6 +6,14 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   plugins: {
+    BackgroundRunner: {
+      label: 'com.example.background.task',
+      src: 'background.js',
+      event: 'myCustomEvent',
+      repeat: true,
+      interval: 1,
+      autoStart: false
+    },
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ["anonymous"],

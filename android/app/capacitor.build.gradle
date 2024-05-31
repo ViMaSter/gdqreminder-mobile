@@ -12,6 +12,7 @@ dependencies {
     implementation project(':capacitor-community-fcm')
     implementation project(':capacitor-firebase-authentication')
     implementation project(':capacitor-app-launcher')
+    implementation project(':capacitor-background-runner')
     implementation project(':capacitor-push-notifications')
 
 }

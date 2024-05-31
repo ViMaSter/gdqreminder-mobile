@@ -13,6 +13,8 @@ import { store } from './utilities/firebaseConfig';
 import { onSnapshot, doc, Unsubscribe } from 'firebase/firestore'
 import { useFriendRunReminderStore } from './stores/friendRuns';
 import { SubscriptionCallback } from 'pinia';
+import Calendar from '@/plugins/calendarPlugin';
+import { BackgroundRunner } from '@capacitor/background-runner';
 
 if (useThemeStore().currentTheme === Theme.Dark)
 {
@@ -133,6 +135,17 @@ registerNotifications()
     console.error(e);
     console.groupEnd();
   });
+
+// get all events, then call await BackgroundRunner.dispatchEvent({    label: 'com.example.background.task',    event: 'myCustomEvent',    details: events  });
+// console.log results
+Calendar.getAllEvents().then(async (events) => {
+  const data = await BackgroundRunner.dispatchEvent({
+    label: 'com.example.background.task',
+    event: 'myCustomEvent',
+    details: {}
+  });
+  console.log("Inside2", {data});
+});
 
 const loadingContent = ref<typeof Loading>();
 

@@ -9,8 +9,8 @@
 			"src": "background.js",
 			"event": "myCustomEvent",
 			"repeat": true,
-			"interval": 1,
-			"autoStart": false
+			"interval": 2,
+			"autoStart": true
 		},
 		"FirebaseAuthentication": {
 			"skipNativeAuth": false,
@@ -25,5 +25,17 @@
 				"alert"
 			]
 		}
-	}
+	},
+	"packageClassList": [
+		"FCMPlugin",
+		"FCMPlugin",
+		"FirebaseAuthenticationPlugin",
+		"FirebaseAuthenticationPlugin",
+		"AppLauncherPlugin",
+		"AppLauncherPlugin",
+		"BackgroundRunnerPlugin",
+		"BackgroundRunnerPlugin",
+		"PushNotificationsPlugin",
+		"PushNotificationsPlugin"
+	]
 }
