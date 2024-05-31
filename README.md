@@ -1,5 +1,8 @@
 # GDQ Reminder Mobile App
+
 ## Local Development
+
+<img align="right" width="450" src="https://github.com/ViMaSter/gdqreminder-mobile/assets/1689033/c4ef46ba-2d1f-44ff-9c4e-2f1a01ca9d03">
 
 1. Install [Visual Studio Code](https://code.visualstudio.com/)
 2. Install recommended Visual Studio Code extensions
@@ -7,10 +10,11 @@
     - For Windows: Install [`nvm-windows` 1.1.9 or later](https://github.com/coreybutler/nvm-windows) 
     - For other operating systems: Install [`nvm` 0.39.2 or later](https://github.com/nvm-sh/nvm#installing-and-updating)
 4. Clone this repository
-5. Inside your local clone of this repository run `nvm install && nvm use && npm install && npm run dev`
-6. Open a browser with CORS disabled
-    > for Chrome: `--disable-web-security --user-data-dir="/tmp/google"`
-8. Visit `http://localhost:4437`
+5. Run inside your clone of this repository:  
+   `nvm install && nvm use && npm install && npm run dev`
+6. Open a browser with CORS disabled. Example for Chrome:
+    > `--disable-web-security --user-data-dir="/tmp/google"`
+7. Visit `http://localhost:4437`
 
 > [!IMPORTANT]  
 > The mobile app uses [native HTTP requests](https://capacitorjs.com/docs/apis/http) which allows accessing CORS-protected content without any restrictions. The only way to mimic this behavior in a browser is to disable CORS.
@@ -21,6 +25,8 @@
 2. Pair your device with Android Studio
 3. Complete all steps for [Local Development](#local-development)
 4. Run `npm run launch`
+
+<br clear="both"/>
 
 ## Type Support for `.vue` Imports in TS
 
