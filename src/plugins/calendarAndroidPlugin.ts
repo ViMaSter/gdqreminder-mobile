@@ -1,12 +1,7 @@
-export interface EventDetails {
-    title: string;
-    location: string;
-    notes: string;
-    startDate: Date;
-    endDate: Date;
-}
+import { EventDetails, EventListResult, EventUpdateResult } from "./calendarPlugin";
 
 export interface CalendarPlugin {
-    getAllEvents(): Promise<{ events: EventDetails[] }>;
-    createEvent(options: EventDetails): Promise<boolean>;
+    getAllEvents(): Promise<EventListResult>;
+    upsertEvent(options: EventDetails): Promise<EventUpdateResult>;
+    removeEvent(options: { sync_id: string }): Promise<EventUpdateResult>;
 }
