@@ -51,24 +51,28 @@ export default defineComponent({
 
         &.agdq
         {
-            --mdc-theme-primary: white;
+           --mdc-theme-primary: white;
+  --md-sys-color-primary: white;
         }
 
         &.sgdq
         {
-            --mdc-theme-primary: white;
+           --mdc-theme-primary: white;
+  --md-sys-color-primary: white;
         }
 
         .dark-mode &
         {
             &.agdq
             {
-                --mdc-theme-primary: hsl(180deg 100% calc(15% * 0.35));
+               --mdc-theme-primary: hsl(180deg 100% calc(15% * 0.35));
+  --md-sys-color-primary: hsl(180deg 100% calc(15% * 0.35));
             }
 
             &.sgdq
             {
-                --mdc-theme-primary: hsl(343deg 49% calc(19% * 0.35));
+               --mdc-theme-primary: hsl(343deg 49% calc(19% * 0.35));
+  --md-sys-color-primary: hsl(343deg 49% calc(19% * 0.35));
             }
         }
     }

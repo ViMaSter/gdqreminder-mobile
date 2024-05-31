@@ -11,7 +11,7 @@ const plugins = [
   vue({
     template: {
       compilerOptions: {
-        isCustomElement: tag => tag.startsWith('mwc-')
+        isCustomElement: tag => tag.startsWith('mwc-') || tag.startsWith('md-')
       }
     }
   }),

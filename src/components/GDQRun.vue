@@ -3,10 +3,10 @@ import { defineComponent, ref, inject, onMounted, watchEffect, computed, Ref } f
 import "../utilities/pushNotificationHelper";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
 import PushNotificationHelper from "../utilities/pushNotificationHelper";
-import "@material/mwc-icon";
 import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
+import '@material/web/all.js';
 
 export default defineComponent({
   props: {
@@ -219,19 +219,19 @@ export default defineComponent({
       <span class="runName">{{ runName }}</span>
       <span class="meta">
         <span class="meta-entry schedule"
-          ><mwc-icon>schedule</mwc-icon>{{ startString }}</span>
+          ><md-icon>schedule</md-icon>{{ startString }}</span>
         <span class="meta-entry timer"
-          ><mwc-icon>timer</mwc-icon>{{ durationHMMSS }}</span>
+          ><md-icon filled>timer</md-icon>{{ durationHMMSS }}</span>
         <span class="meta-entry person"
-          ><mwc-icon>person</mwc-icon> {{ runners }}</span>
+          ><md-icon filled>person</md-icon> {{ runners }}</span>
       </span>
     </div>
     <div :class="reminderClasses">
       <div class="alarm">
-        <mwc-icon>alarm</mwc-icon>
+        <md-icon>alarm</md-icon>
       </div>
       <div class="friend">
-        <mwc-icon>group</mwc-icon>
+        <md-icon filled>group</md-icon>
       </div>
     </div>
   </div>
@@ -248,6 +248,10 @@ export default defineComponent({
   border-radius: 11px;
   margin-bottom: 14px;
   overflow: hidden;
+    
+  md-icon[filled] {
+    font-variation-settings: 'FILL' 1;
+  }
 
   &.is-over {
     .content {
@@ -314,11 +318,11 @@ export default defineComponent({
       }
     }
 
-    mwc-icon {
+    md-icon {
+      --md-icon-size: 14px;
       vertical-align: middle;
       margin-top: -2px;
       margin-right: 4px;
-      --mdc-icon-size: $text-size;
     }
   }
 
@@ -381,22 +385,22 @@ export default defineComponent({
       background: var(--background-friend);
     }
 
-    &.is-set .alarm mwc-icon,
-    &.with-friend .friend mwc-icon {
+    &.is-set .alarm md-icon,
+    &.with-friend .friend md-icon {
       margin-left: 0px;
       transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
       transform: rotateZ(0deg);
       transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
     }
 
-    mwc-icon {
+    md-icon {
       margin-left: 50px;
       transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
       transform: rotateZ(90deg);
       transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
 
       transform-origin: bottom center;
-      --mdc-icon-size: 32px;
+      --md-icon-size: 32px;
     }
   }
 }
@@ -404,43 +408,52 @@ export default defineComponent({
 // coloring
 .content {
   background: var(--vote-purple);
-  --mdc-theme-primary: color.adjust(var(--vote-purple, $lightness: +100%));
+ --mdc-theme-primary: color.adjust(var(--vote-purple, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-purple, $lightness: +100%));
 }
 .in-person .content {
   background: var(--vote-blue);
-  --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+ --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-blue, $lightness: +100%));
 }
 .bonus-game .content {
   background: var(--vote-cyan);
-  --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+ --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
 }
 .agdq {
   .content {
     background: var(--vote-cyan);
-    --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+   --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
   }
   .in-person .content {
     background: var(--vote-blue);
-    --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+   --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-blue, $lightness: +100%));
   }
   .bonus-game .content {
     background: var(--vote-red);
-    --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
+   --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-red, $lightness: +100%));
   }
 }
 
 .sgdq {
   .content {
     background: var(--vote-red);
-    --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
+   --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-red, $lightness: +100%));
   }
   .in-person .content {
     background: var(--vote-blue);
-    --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+   --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-blue, $lightness: +100%));
   }
   .bonus-game .content {
     background: var(--vote-cyan);
-    --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+   --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
+  --md-sys-color-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
   }
 }
 

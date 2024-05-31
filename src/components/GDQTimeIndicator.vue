@@ -1,7 +1,6 @@
 <script lang="ts">
 import { DateProvider } from "@/interfaces/DateProvider";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
-import "@material/mwc-list";
 import { defineComponent, inject, ref, Ref, watch } from "vue";
 export default defineComponent({
   async setup() {

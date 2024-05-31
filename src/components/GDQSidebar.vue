@@ -1,6 +1,6 @@
 <script lang="ts">
-import '@material/mwc-list';
 import {defineComponent, toRef} from 'vue';
+import '@material/web/all.js';
 export default defineComponent({
     props: {
         eventsByShorthand: {
@@ -23,12 +23,12 @@ export default defineComponent({
 </script>
 
 <template>
-  <mwc-list>
-    <mwc-list-item v-for="[displayName] in (Object.entries(eventByShorthands))" :key="displayName" @click="$emit('onUpdateCurrentEvent', displayName)">{{displayName}}</mwc-list-item>
-    <mwc-list-item v-if="!doneLoading" class="rotating">
-      <mwc-icon>autorenew</mwc-icon>
-    </mwc-list-item>
-  </mwc-list>
+  <md-list>
+    <md-list-item v-for="[displayName] in (Object.entries(eventByShorthands))" :key="displayName" @click="$emit('onUpdateCurrentEvent', displayName)">{{displayName}}</md-list-item>
+    <md-list-item v-if="!doneLoading" class="rotating">
+      <md-icon>autorenew</md-icon>
+    </md-list-item>
+  </md-list>
 </template>
 
 <style lang="scss" scoped>
@@ -60,7 +60,7 @@ export default defineComponent({
     transform: rotate(360deg);
   }
 }
-.rotating mwc-icon {
+.rotating md-icon {
   -webkit-animation: rotating 2s linear infinite;
   -moz-animation: rotating 2s linear infinite;
   -ms-animation: rotating 2s linear infinite;
@@ -68,21 +68,24 @@ export default defineComponent({
   animation: rotating 2s linear infinite;
 }
 
-mwc-list
+md-list
 {
+    --md-list-container-color: white;
+    --md-list-item-label-text-color: black;
     margin: initial !important;
 }
-mwc-list-item:hover
+md-list-item:hover
 {
   background-color: hsl(0deg 0% 87%);
 }
 .dark-mode
 {
-  mwc-list-item
+  md-list
   {
-    color: hsl(0deg 0% 87%);
+    --md-list-container-color: black;
+    --md-list-item-label-text-color: hsl(0deg 0% 87%);
   }
-  mwc-list-item:hover
+  md-list-item:hover
   {
     background-color: rgba(255, 255, 255, 0.12);
   }
