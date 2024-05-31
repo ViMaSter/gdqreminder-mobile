@@ -18,6 +18,7 @@ import {GDQRunData, GDQRunDataFields} from '../interfaces/GDQRun'
 import {GDQRunnerData, GDQRunnerDataFields} from '../interfaces/GDQRunner'
 import GDQRun from './GDQRun.vue';
 import Version from '@/plugins/versionPlugin';
+import Calendar from '@/plugins/calendarPlugin';
 import GDQDay from './GDQDay.vue';
 import GDQDayDivider from './GDQDayDivider.vue';
 import GDQHeader from './GDQHeader.vue';
@@ -58,6 +59,31 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 
 export default defineComponent({
     async setup() {
+        Calendar.createEvent({
+            title: "GDQ 2024-05-31",
+            notes: "Games Done Quick 2024-05-31",
+            location: "Online 2024-05-31",
+            startDate: new Date("2024-05-31"),
+            endDate: new Date("2024-06-01")
+        });
+
+        Calendar.createEvent({
+            title: "GDQ 2024-06-01",
+            notes: "Games Done Quick 2024-06-01",
+            location: "Online 2024-06-01",
+            startDate: new Date("2024-06-01"),
+            endDate: new Date("2024-06-02")
+        });
+
+        const eventList = await Calendar.getAllEvents();
+        debugger;
+        console.log("Calendar events");
+        console.log(eventList);
+        for (const event of eventList.events)
+        {
+            console.log(event);
+        }
+
         const scrollable = ref<HTMLDivElement>();
         provide<(x: number, y: number) => void>("scrollRunContainerBy", (x : number, y : number) => {
             const header = scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")!;
