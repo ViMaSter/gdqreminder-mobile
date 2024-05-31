@@ -1,14 +1,18 @@
 import { registerPlugin } from '@capacitor/core';
 
-export interface EventList {
+export interface Result {
+    error: string;
+}
+
+export interface EventListResult extends Result {
     events: EventDetails[];
 }
 
-export interface EventCreationResult {
-    success: boolean;
+export interface EventUpdateResult extends Result {
 }
 
 export interface EventDetails {
+    sync_id: string;
     title: string;
     location: string;
     notes: string;
@@ -17,8 +21,9 @@ export interface EventDetails {
 }
 
 export interface CalendarPlugin {
-    getAllEvents(): Promise<EventList>;
-    createEvent(options: EventDetails): Promise<EventCreationResult>;
+    getAllEvents(): Promise<EventListResult>;
+    upsertEvent(options: EventDetails): Promise<EventUpdateResult>;
+    removeEvent(options: { sync_id: string }): Promise<EventUpdateResult>;
 }
 
 const Calendar = registerPlugin<CalendarPlugin>('Calendar', {

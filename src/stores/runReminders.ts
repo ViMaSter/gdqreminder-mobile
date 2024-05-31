@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { store } from '../utilities/firebaseConfig';
 import { setDoc, doc } from 'firebase/firestore'
+import Calendar from '@/plugins/calendarPlugin';
 type RunReminderState = {
   runs : string[]
 };
@@ -36,16 +37,29 @@ export const useRunReminderStore = defineStore({
     allReminders: (state) => state.runs
   },
   actions: {
-    add(pk : string) {
+    add(pk : string, title : string, start : Date, end : Date, description : string) {
       this.$state.runs.push(pk);
       localStorage.setItem('piniaState-'+key, JSON.stringify(this.$state));
 
+      Calendar.upsertEvent({
+          sync_id: pk,
+          title: title,
+          notes: description,
+          location: "https://twitch.tv/gamesdonequick",
+          startDate: start,
+          endDate: end
+      });
+      Calendar.getAllEvents().then(console.log);
       reflectInFirestore(this.$state.runs);
     },
     remove(pk : string) {
       this.$state.runs = this.$state.runs.filter(run => run !== pk);
       localStorage.setItem('piniaState-'+key, JSON.stringify(this.$state));
 
+      Calendar.removeEvent({
+        sync_id: pk
+      })
+      Calendar.getAllEvents().then(console.log);
       reflectInFirestore(this.$state.runs);
     }
   }

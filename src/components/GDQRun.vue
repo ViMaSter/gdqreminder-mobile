@@ -158,6 +158,8 @@ export default defineComponent({
       onFocus,
       className: generateIsOverClassName,
       reminderClasses,
+      start,
+      end,
       startString,
       durationHMMSS,
       runners,
@@ -191,7 +193,13 @@ export default defineComponent({
         return false;
       }
 
-      reminderStore.add(this.pk.toString());
+      reminderStore.add(
+        this.pk.toString(),
+        this.runName,
+        this.start,
+        this.end,
+        `Runner: ${this.runnerNames.join(", ")}\nCategory: ${this.fields.category}`
+      );
       PushNotificationHelper.subscribeToStartOfRun(this.pk.toString());
       this.hasActiveReminder = true;
       return true;
