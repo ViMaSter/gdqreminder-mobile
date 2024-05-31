@@ -50,7 +50,10 @@ jobs:
           path: playwright-report/
           retention-days: 30
       - run: | 
-          npx semantic-release --no-ci --dry-run --branches githubrunner
+          git checkout main
+          git reset --hard $GITHUB_SHA
+          npx semantic-release --no-ci --dry-run
+          git checkout $GITHUB_SHA
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
