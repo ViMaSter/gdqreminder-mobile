@@ -35,7 +35,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - run: | 
-          git switch -c githubrunner
           npm ci
       - name: Install Playwright Browsers
         if: inputs.runIntegrationTests == true
@@ -50,11 +49,14 @@ jobs:
           path: playwright-report/
           retention-days: 30
       - run: | 
+          OLD_GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME
+          unset GITHUB_EVENT_NAME
           git fetch origin main:main
           git checkout main
           git reset --hard $GITHUB_SHA
           npx semantic-release --no-ci --dry-run
           git checkout $GITHUB_SHA
+          export GITHUB_EVENT_NAME=$OLD_GITHUB_EVENT_NAME
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
