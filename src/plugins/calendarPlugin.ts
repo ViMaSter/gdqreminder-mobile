@@ -21,8 +21,8 @@ export interface EventDetails {
 }
 
 export interface CalendarPlugin {
-    upsertEvent(options: EventDetails): Promise<EventUpdateResult>;
-    cleanupEvents(options: { sync_ids: string[] }): Promise<EventUpdateResult>;
+    upsertEvent(options: EventDetails): Promise<EventUpdateResult>; // TODO: update global state, instead of individual updates
+    cleanupEvents(options: { sync_ids: string[] }): Promise<EventUpdateResult>; // TODO: convert options to typed class
 }
 
 const Calendar = registerPlugin<CalendarPlugin>('Calendar', {

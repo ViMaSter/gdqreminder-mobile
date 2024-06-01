@@ -46,6 +46,7 @@ public class CalendarPlugin extends Plugin {
 
     public static int code = 0xca13;
 
+    // TODO: Remove calling runnable, rely on background task only
     @Override
     public void load() {
         PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(RefreshTimesForCurrentEvent.class, 15, TimeUnit.MINUTES).build();
@@ -55,7 +56,7 @@ public class CalendarPlugin extends Plugin {
             @Override
             public void run() {
                 try {
-                    URL uri = new URL("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + Instant.now().toString());
+                    URL uri = new URL("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + Instant.now().toString()); // TODO: this will break after start of event
                     HttpURLConnection connection = (HttpURLConnection) uri.openConnection();
                     connection.setRequestMethod("GET");
                     connection.connect();
@@ -113,8 +114,8 @@ public class CalendarPlugin extends Plugin {
                                 Instant.parse(fields.getString("starttime")).toEpochMilli(),
                                 Instant.parse(fields.getString("endtime")).toEpochMilli(),
                                 fields.getString("display_name"),
-                                fields.getString("description"),
-                                fields.getString("setup_time")
+                                fields.getString("description"), // TODO: Copy description from typescript formatting
+                                fields.getString("setup_time") // TODO: replace with twitch.tv/gamesdonequick
                         );
                     }
                 } catch (Exception e) {
@@ -218,6 +219,8 @@ public class CalendarPlugin extends Plugin {
         call.resolve(new JSObject().put("error", response));
     }
 
+    // TODO: move static methods to new class CalenderManager
+    // TODO: test static methods using: https://stackoverflow.com/a/21344530/1088653 + https://stackoverflow.com/a/52883646/1088653
     private static String internalCleanupEvents(Context context, ArrayList<String> sync_idsToKeep) throws JSONException {
         long calendarID = InsertCalendarIfMissing(context);
         if (calendarID == -1) {
