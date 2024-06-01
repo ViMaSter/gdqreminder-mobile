@@ -21,9 +21,8 @@ export interface EventDetails {
 }
 
 export interface CalendarPlugin {
-    getAllEvents(): Promise<EventListResult>;
     upsertEvent(options: EventDetails): Promise<EventUpdateResult>;
-    removeEvent(options: { sync_id: string }): Promise<EventUpdateResult>;
+    cleanupEvents(options: { sync_ids: string[] }): Promise<EventUpdateResult>;
 }
 
 const Calendar = registerPlugin<CalendarPlugin>('Calendar', {
