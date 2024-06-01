@@ -118,6 +118,7 @@ public class CalendarManager {
         }
     }
 
+    // TODO: test static methods using: https://stackoverflow.com/a/21344530/1088653 + https://stackoverflow.com/a/52883646/1088653
     static String internalCleanupEvents(Context context, ArrayList<String> sync_idsToKeep) throws JSONException {
         long calendarID = InsertCalendarIfMissing(context);
         if (calendarID == -1) {
@@ -335,7 +336,7 @@ public class CalendarManager {
                         Instant.parse(fields.getString("starttime")).toEpochMilli(),
                         Instant.parse(fields.getString("endtime")).toEpochMilli(),
                         displayName,
-                        fields.getString("description"),
+                        fields.getString("description"), // TODO: Copy description from typescript formatting
                         "https://twitch.tv/gamesdonequick"
                 );
             }
