@@ -37,30 +37,41 @@ export const useRunReminderStore = defineStore({
     allReminders: (state) => state.runs
   },
   actions: {
-    add(pk : string, title : string, start : Date, end : Date, description : string) {
+    async add(pk : string, title : string, start : Date, end : Date, description : string) : Promise<boolean> {
+      const calendarError = await Calendar.upsertEvent({
+        sync_id: pk,
+        title: title,
+        notes: description,
+        location: "https://twitch.tv/gamesdonequick",
+        startDate: start,
+        endDate: end
+      });
+      if (calendarError.error)
+      {
+        console.error("Failed to add run reminder to calendar:" + calendarError.error);
+        return false;
+      }
       this.$state.runs.push(pk);
       localStorage.setItem('piniaState-'+key, JSON.stringify(this.$state));
 
-      Calendar.upsertEvent({
-          sync_id: pk,
-          title: title,
-          notes: description,
-          location: "https://twitch.tv/gamesdonequick",
-          startDate: start,
-          endDate: end
-      });
-      Calendar.getAllEvents().then(console.log);
       reflectInFirestore(this.$state.runs);
+
+      return true;
     },
-    remove(pk : string) {
+    async remove(pk : string) : Promise<boolean> {
       this.$state.runs = this.$state.runs.filter(run => run !== pk);
+      const calendarError = await Calendar.cleanupEvents({sync_ids: this.$state.runs});
+      if (calendarError.error)
+      {
+        console.error("Failed to remove run reminder from calendar:" + calendarError.error);
+        return false;
+      }
+
       localStorage.setItem('piniaState-'+key, JSON.stringify(this.$state));
 
-      Calendar.removeEvent({
-        sync_id: pk
-      })
-      Calendar.getAllEvents().then(console.log);
       reflectInFirestore(this.$state.runs);
+
+      return true;
     }
   }
 })

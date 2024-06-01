@@ -187,19 +187,24 @@ export default defineComponent({
       }
       const reminderStore = useRunReminderStore();
       if (reminderStore.allReminders.includes(this.pk.toString())) {
-        reminderStore.remove(this.pk.toString());
+        if (!await reminderStore.remove(this.pk.toString())) {
+          return;
+        }
         PushNotificationHelper.unsubscribeFromStartOfRun(this.pk.toString());
         this.hasActiveReminder = false;
         return false;
       }
 
-      reminderStore.add(
+      if (!await reminderStore.add(
         this.pk.toString(),
         this.runName,
         this.start,
         this.end,
         `Runner: ${this.runnerNames.join(", ")}\nCategory: ${this.fields.category}`
-      );
+      ))
+      {
+        return;
+      }
       PushNotificationHelper.subscribeToStartOfRun(this.pk.toString());
       this.hasActiveReminder = true;
       return true;

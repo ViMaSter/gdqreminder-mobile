@@ -1,18 +1,22 @@
 package ke.mahn.gdqreminder;
+
 import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.CalendarContract;
-import android.provider.ContactsContract;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
-import ke.mahn.gdqreminder.BuildConfig;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ListenableWorker;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -21,39 +25,126 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.Instant;
-import java.util.Calendar;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @CapacitorPlugin(name = "Calendar")
 public class CalendarPlugin extends Plugin {
 
     public static int code = 0xca13;
 
-    private boolean checkPermission(int callbackId, String... permissionsId) {
+    @Override
+    public void load() {
+        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(RefreshTimesForCurrentEvent.class, 15, TimeUnit.MINUTES).build();
+        WorkManager.getInstance(getContext()).enqueueUniquePeriodicWork("RefreshTimesForCurrentEvent", ExistingPeriodicWorkPolicy.UPDATE, request);
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL uri = new URL("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + Instant.now().toString());
+                    HttpURLConnection connection = (HttpURLConnection) uri.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.connect();
+                    int responseCode = connection.getResponseCode();
+                    if (responseCode != HttpURLConnection.HTTP_OK) {
+                        throw new Exception("event HTTP response code: " + responseCode);
+                    }
+
+                    InputStream inputStream = connection.getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+                    inputStream.close();
+                    JSArray events = new JSArray(response.toString());
+                    String currentShort = events.getJSONObject(0).getJSONObject("fields").getString("short");
+                    uri = new URL("https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + currentShort);
+                    connection = (HttpURLConnection) uri.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.connect();
+                    responseCode = connection.getResponseCode();
+                    if (responseCode != HttpURLConnection.HTTP_OK) {
+                        throw new Exception("run HTTP response code: " + responseCode);
+                    }
+                    inputStream = connection.getInputStream();
+                    reader = new BufferedReader(new InputStreamReader(inputStream));
+                    response = new StringBuilder();
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+                    inputStream.close();
+                    JSONArray runs = new JSONArray(response.toString());
+                    JSONArray trackedPKs = CalendarPlugin.internalGetAllEvents(getContext()).getJSONArray("events");
+                    List<String> trackedPKsList = new java.util.ArrayList<>();
+                    for (int i = 0; i < trackedPKs.length(); i++) {
+                        trackedPKsList.add(trackedPKs.getJSONObject(i).getString("pk"));
+                    }
+
+                    for (int i = 0; i < runs.length(); i++) {
+                        JSONObject fields = runs.getJSONObject(i).getJSONObject("fields");
+                        String pk = runs.getJSONObject(i).getString("pk");
+
+                        if (!trackedPKsList.contains(pk)) {
+                            continue;
+                        }
+
+                        CalendarPlugin.internalUpsertEvent(
+                                getContext(),
+                                CalendarPlugin.InsertCalendarIfMissing(getContext()),
+                                runs.getJSONObject(i).getString("pk"),
+                                Instant.parse(fields.getString("starttime")).toEpochMilli(),
+                                Instant.parse(fields.getString("endtime")).toEpochMilli(),
+                                fields.getString("display_name"),
+                                fields.getString("description"),
+                                fields.getString("setup_time")
+                        );
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        new Thread(runnable).start();
+    }
+
+    private static boolean checkPermission(AppCompatActivity activity, Context context, int callbackId, String... permissionsId) {
         boolean permissions = true;
         for (String p : permissionsId) {
-            permissions = permissions && ContextCompat.checkSelfPermission(getContext(), p) == PERMISSION_GRANTED;
+            permissions = permissions && ContextCompat.checkSelfPermission(context, p) == PERMISSION_GRANTED;
         }
 
         if (!permissions)
         {
-            ActivityCompat.requestPermissions(getActivity(), permissionsId, callbackId);
+            ActivityCompat.requestPermissions(activity, permissionsId, callbackId);
             return false;
         }
         return true;
     }
 
-    String accountName = "GDQReminder";
-    String accountType = BuildConfig.APPLICATION_ID + ".account";
+    static String accountName = "GDQReminder";
+    static String accountType = BuildConfig.APPLICATION_ID + ".account";
 
-    public long InsertCalendarIfMissing() {
-        if (!checkPermission(code, Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
-        {
-            return -1;
-        }
-
-        ContentResolver resolver = getContext().getContentResolver();
+    public static long InsertCalendarIfMissing(Context context) {
+        ContentResolver resolver = context.getContentResolver();
         Uri calUri = CalendarContract.Calendars.CONTENT_URI;
 
         String[] projection = new String[] { CalendarContract.Calendars._ID };
@@ -101,38 +192,72 @@ public class CalendarPlugin extends Plugin {
     }
 
     @PluginMethod
-    public void removeEvent(PluginCall call) {
-        long calendarID = InsertCalendarIfMissing();
-        if (calendarID == -1) {
+    public void cleanupEvents(PluginCall call) throws JSONException {
+        if (!checkPermission(getActivity(), getContext(), code, Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
+        {
             JSObject ret = new JSObject();
             ret.put("error", "calendar missing");
             call.resolve(ret);
             return;
         }
 
-        String sync_id = call.getString("sync_id");
-        Cursor cursor = getContext().getContentResolver().query(CalendarContract.Events.CONTENT_URI, new String[] { CalendarContract.Events._ID }, CalendarContract.Events._SYNC_ID + " = ?", new String[] { sync_id }, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            long eventID = cursor.getLong(0);
-            Uri deleteUri = CalendarContract.Events.CONTENT_URI.buildUpon()
-                    .appendPath(Long.toString(eventID))
-                    .build();
-            int deleted = getContext().getContentResolver().delete(deleteUri, null, null);
-            System.out.println("Event deleted: " + deleted);
+        long calendarID = InsertCalendarIfMissing(getContext());
+        if (calendarID == -1) {
             JSObject ret = new JSObject();
-            ret.put("error", "");
+            ret.put("error", "calendar missing");
             call.resolve(ret);
             return;
         }
+        
+        ArrayList<String> sync_idsToKeep = new ArrayList<>();
+        JSArray sync_ids = call.getArray("sync_ids");
+        for (int i = 0; i < sync_ids.length(); i++) {
+            sync_idsToKeep.add(sync_ids.getString(i));
+        }
+        String response = internalCleanupEvents(getContext(), sync_idsToKeep);
+        call.resolve(new JSObject().put("error", response));
+    }
 
-        JSObject ret = new JSObject();
-        ret.put("error", "event not found");
-        call.resolve(ret);
+    private static String internalCleanupEvents(Context context, ArrayList<String> sync_idsToKeep) throws JSONException {
+        long calendarID = InsertCalendarIfMissing(context);
+        if (calendarID == -1) {
+            return "calendar missing";
+        }
+
+        JSObject allEvents = internalGetAllEvents(context);
+        Map<String, String> sync_idToId = new HashMap<>();
+        for (int i = 0; i < allEvents.getJSONArray("events").length(); i++) {
+            JSONObject event = allEvents.getJSONArray("events").getJSONObject(i);
+            sync_idToId.put(event.getString("pk"), event.getString("id"));
+        }
+
+        for (String sync_id : sync_idToId.keySet()) {
+            if(sync_idsToKeep.contains(sync_id)) {
+                continue;
+            }
+            Uri deleteUri = CalendarContract.Events.CONTENT_URI.buildUpon()
+                .appendPath(sync_idToId.get(sync_id))
+                .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, accountType)
+                .build();
+            int deleted = context.getContentResolver().delete(deleteUri, null, null);
+            System.out.println("Event deleted: " + deleted);
+        }
+        return "";
     }
 
     @PluginMethod()
     public void upsertEvent(PluginCall call) {
-        long calendarID = InsertCalendarIfMissing();
+        if (!checkPermission(getActivity(), getContext(), code, Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
+        {
+            JSObject ret = new JSObject();
+            ret.put("error", "missing permissions");
+            call.resolve(ret);
+            return;
+        }
+
+        long calendarID = InsertCalendarIfMissing(getContext());
         if (calendarID == -1) {
             JSObject ret = new JSObject();
             ret.put("error", "calendar missing");
@@ -140,27 +265,41 @@ public class CalendarPlugin extends Plugin {
             return;
         }
 
-        String sync_id = call.getString("sync_id");
-        Cursor cursor = getContext().getContentResolver().query(CalendarContract.Events.CONTENT_URI, new String[] { CalendarContract.Events._ID }, CalendarContract.Events._SYNC_ID + " = ?", new String[] { sync_id }, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            UpdateEvent(call, calendarID, cursor.getLong(0));
-            return;
-        }
-
-        CreateEvent(call, calendarID);
+        
+        call.resolve(new JSObject().put("error", internalUpsertEvent(
+            getContext(), 
+            calendarID, 
+            call.getString("sync_id"),
+            Instant.parse(call.getString("startDate")).toEpochMilli(),
+            Instant.parse(call.getString("endDate")).toEpochMilli(),
+            call.getString("title"), 
+            call.getString("notes"), 
+            call.getString("location")
+        )));
+        return;
     }
 
-    private void UpdateEvent(PluginCall call, long calendarID, long eventID) {
+
+    public static String internalUpsertEvent(Context context, long calendarID, String sync_id, long startTime, long endTime, String title, String description, String location) {
+        Cursor cursor = context.getContentResolver().query(CalendarContract.Events.CONTENT_URI, new String[] { CalendarContract.Events._ID }, CalendarContract.Events._SYNC_ID + " = ?", new String[] { sync_id }, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            return UpdateEvent(context, calendarID, cursor.getLong(0), startTime, endTime, title, description, location);
+        }
+
+        return CreateEvent(context, calendarID, sync_id, startTime, endTime, title, description, location);
+    }
+
+    private static String UpdateEvent(Context context, long calendarID, long eventID, long startTime, long endTime, String title, String description, String location) {
         ContentValues cv = new ContentValues();
-        cv.put(CalendarContract.Events.DTSTART, Instant.parse( call.getString("startDate") ).toEpochMilli());
-        cv.put(CalendarContract.Events.DTEND, Instant.parse( call.getString("endDate") ).toEpochMilli());
-        cv.put(CalendarContract.Events.TITLE, call.getString("title"));
-        cv.put(CalendarContract.Events.DESCRIPTION, call.getString("notes"));
-        cv.put(CalendarContract.Events.EVENT_LOCATION, call.getString("location"));
+        cv.put(CalendarContract.Events.DTSTART, startTime);
+        cv.put(CalendarContract.Events.DTEND, endTime);
+        cv.put(CalendarContract.Events.TITLE, title);
+        cv.put(CalendarContract.Events.DESCRIPTION, description);
+        cv.put(CalendarContract.Events.EVENT_LOCATION, location);
         cv.put(CalendarContract.Events.CALENDAR_ID, calendarID);
         cv.put(CalendarContract.Events.EVENT_TIMEZONE, "UTC");
 
-        ContentResolver resolver = getContext().getContentResolver();
+        ContentResolver resolver = context.getContentResolver();
         Uri eventUri = CalendarContract.Events.CONTENT_URI;
         eventUri = eventUri.buildUpon()
                 .appendPath(Long.toString(eventID))
@@ -172,29 +311,26 @@ public class CalendarPlugin extends Plugin {
         try {
             int updated = resolver.update(eventUri, cv, null, null);
             System.out.println("Event updated: " + updated);
-            JSObject ret = new JSObject();
-            ret.put("success", true);
-            call.resolve(ret);
+            System.out.println("Event updated: " + cv);
+            return "";
         } catch (Exception e) {
             System.out.println("Error updating event: " + e.getMessage());
-            JSObject ret = new JSObject();
-            ret.put("success", false);
-            call.resolve(ret);
+            return e.getMessage();
         }
     }
 
-    private void CreateEvent(PluginCall call, long calendarID) {
+    private static String CreateEvent(Context context, long calendarID, String sync_id, long startTime, long endTime, String title, String description, String location) {
         ContentValues cv = new ContentValues();
-        cv.put(CalendarContract.Events.DTSTART, Instant.parse( call.getString("startDate") ).toEpochMilli());
-        cv.put(CalendarContract.Events.DTEND, Instant.parse( call.getString("endDate") ).toEpochMilli());
-        cv.put(CalendarContract.Events.TITLE, call.getString("title"));
-        cv.put(CalendarContract.Events.DESCRIPTION, call.getString("notes"));
-        cv.put(CalendarContract.Events.EVENT_LOCATION, call.getString("location"));
+        cv.put(CalendarContract.Events.DTSTART, startTime);
+        cv.put(CalendarContract.Events.DTEND, endTime);
+        cv.put(CalendarContract.Events.TITLE, title);
+        cv.put(CalendarContract.Events.DESCRIPTION, description);
+        cv.put(CalendarContract.Events.EVENT_LOCATION, location);
         cv.put(CalendarContract.Events.CALENDAR_ID, calendarID);
-        cv.put(CalendarContract.Events._SYNC_ID, call.getString("sync_id"));
+        cv.put(CalendarContract.Events._SYNC_ID, sync_id);
         cv.put(CalendarContract.Events.EVENT_TIMEZONE, "UTC");
 
-        ContentResolver resolver = getContext().getContentResolver();
+        ContentResolver resolver = context.getContentResolver();
         Uri eventUri = CalendarContract.Events.CONTENT_URI;
         eventUri = eventUri.buildUpon()
                 .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
@@ -205,19 +341,18 @@ public class CalendarPlugin extends Plugin {
         try {
             Uri created = resolver.insert(eventUri, cv);
             System.out.println("Event created: " + created);
-            JSObject ret = new JSObject();
-            ret.put("success", true);
-            call.resolve(ret);
+            System.out.println("Event created: " + cv);
+            return "";
         } catch (Exception e) {
             System.out.println("Error creating event: " + e.getMessage());
-            JSObject ret = new JSObject();
-            ret.put("success", false);
-            call.resolve(ret);
+            return e.getMessage();
         }
     }
 
     // event projection array
     private static final String[] EVENT_PROJECTION = new String[] {
+        CalendarContract.Events._ID,
+        CalendarContract.Events._SYNC_ID,
         CalendarContract.Events.TITLE,
         CalendarContract.Events.EVENT_LOCATION,
         CalendarContract.Events.DESCRIPTION,
@@ -225,30 +360,39 @@ public class CalendarPlugin extends Plugin {
         CalendarContract.Events.DTEND
     };
 
-    private static final int PROJECTION_TITLE_INDEX = 0;
-    private static final int PROJECTION_LOCATION_INDEX = 1;
-    private static final int PROJECTION_DESCRIPTION_INDEX = 2;
+    private static final int PROJECTION_ID_INDEX = 0;
+    private static final int PROJECTION_SYNC_ID_INDEX = 1;
+    private static final int PROJECTION_TITLE_INDEX = 2;
+    private static final int PROJECTION_LOCATION_INDEX = 3;
+    private static final int PROJECTION_DESCRIPTION_INDEX = 4;
     @SuppressWarnings("SpellCheckingInspection")
-    private static final int PROJECTION_DTSTART_INDEX = 3;
+    private static final int PROJECTION_DTSTART_INDEX = 5;
     @SuppressWarnings("SpellCheckingInspection")
-    private static final int PROJECTION_DTEND_INDEX = 4;
+    private static final int PROJECTION_DTEND_INDEX = 6;
 
-    @PluginMethod()
-    public void getAllEvents(PluginCall call) {
-        long calendarID = InsertCalendarIfMissing();
+    public static JSObject internalGetAllEvents(Context context)
+    {
+        long calendarID = InsertCalendarIfMissing(context);
         if (calendarID == -1) {
             JSObject ret = new JSObject();
             ret.put("events", new JSArray());
             ret.put("error", "Permission denied");
-            call.resolve(ret);
-            return;
+            return ret;
         }
         System.out.println("calendarID: " + calendarID);
 
-        Cursor cursor = getContext().getContentResolver().query(CalendarContract.Events.CONTENT_URI, EVENT_PROJECTION, CalendarContract.Events.CALENDAR_ID + " = ?", new String[] { String.valueOf(calendarID) }, null);
+        Cursor cursor = context.getContentResolver().query(CalendarContract.Events.CONTENT_URI, EVENT_PROJECTION, CalendarContract.Events.CALENDAR_ID + " = ?", new String[] { String.valueOf(calendarID) }, null);
         JSArray array = new JSArray();
+        if (cursor == null) {
+            JSObject ret = new JSObject();
+            ret.put("events", array);
+            ret.put("error", "no cursor");
+            return ret;
+        }
         while (cursor.moveToNext()) {
             JSObject event = new JSObject();
+            event.put("id", cursor.getString(PROJECTION_ID_INDEX));
+            event.put("pk", cursor.getString(PROJECTION_SYNC_ID_INDEX));
             event.put("title", cursor.getString(PROJECTION_TITLE_INDEX));
             event.put("location", cursor.getString(PROJECTION_LOCATION_INDEX));
             event.put("notes", cursor.getString(PROJECTION_DESCRIPTION_INDEX));
@@ -261,7 +405,17 @@ public class CalendarPlugin extends Plugin {
 
         JSObject ret = new JSObject();
         ret.put("events", array);
+        ret.put("error", "");
+        return ret;
+    }
 
-        call.resolve(ret);
+    @PluginMethod()
+    public void getAllEvents(PluginCall call) {
+        if (!checkPermission(getActivity(), getContext(), code, Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
+        {
+            return;
+        }
+
+        call.resolve(internalGetAllEvents(getContext()));
     }
 }

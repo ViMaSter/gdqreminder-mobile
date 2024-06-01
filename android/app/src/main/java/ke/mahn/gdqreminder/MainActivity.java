@@ -50,7 +50,7 @@ public class MainActivity extends BridgeActivity {
         System.out.println("writeCalendarGranted: " + writeCalendarGranted);
 
         if (readCalendarGranted && writeCalendarGranted) {
-            calendarPlugin.InsertCalendarIfMissing();
+            calendarPlugin.InsertCalendarIfMissing(getApplicationContext());
         }
     }
 }

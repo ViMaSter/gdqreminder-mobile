@@ -4,10 +4,6 @@ import type { CalendarPlugin, EventDetails, EventListResult, EventUpdateResult }
 
 export class CalendarWeb extends WebPlugin implements CalendarPlugin {
     currentEvents : EventDetails[] = [];
-    async getAllEvents(): Promise<EventListResult> {
-        console.warn("No calendar implementation available on web, using local list");
-        return { events: this.currentEvents, error: "" };
-    }
     async upsertEvent(options: EventDetails): Promise<EventUpdateResult> {
         console.warn("No calendar implementation available on web, using local list");
         const existingEvent = this.currentEvents.find(e => e.sync_id === options.sync_id);
@@ -22,9 +18,9 @@ export class CalendarWeb extends WebPlugin implements CalendarPlugin {
         }
         return {error: ""};
     }
-    async removeEvent(options: { sync_id: string }): Promise<EventUpdateResult> {
+    async cleanupEvents(options: { sync_ids: string[] }): Promise<EventUpdateResult> {
         console.warn("No calendar implementation available on web, using local list");
-        this.currentEvents = this.currentEvents.filter(e => e.sync_id !== options.sync_id);
+        this.currentEvents = this.currentEvents.filter(e => !options.sync_ids.includes(e.sync_id));
         return {error: ""};
     }
 }
