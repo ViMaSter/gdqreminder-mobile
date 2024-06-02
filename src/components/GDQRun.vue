@@ -411,6 +411,13 @@ export default defineComponent({
       transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
     }
 
+    .friend md-icon
+    { 
+      margin-bottom: -3px;
+      --md-icon-size: 44px;
+      margin-right: 3px;
+    }
+
     md-icon {
       margin-left: 50px;
       transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
@@ -418,7 +425,7 @@ export default defineComponent({
       transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
 
       transform-origin: bottom center;
-      --md-icon-size: 32px;
+      --md-icon-size: 39px;
     }
   }
 }
