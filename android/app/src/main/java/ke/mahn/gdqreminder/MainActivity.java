@@ -20,7 +20,7 @@ public class MainActivity extends BridgeActivity {
 
         CalendarPlugin calendarPlugin = (CalendarPlugin) getBridge().getPlugin("Calendar").getInstance();
 
-        if (requestCode != CalendarPlugin.code) {
+        if (requestCode != CalendarManager.code) {
             return;
         }
         boolean readCalendarGranted = false;
@@ -35,7 +35,7 @@ public class MainActivity extends BridgeActivity {
             }
 
             if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{permission}, CalendarPlugin.code);
+                requestPermissions(new String[]{permission}, CalendarManager.code);
                 return;
             }
 
@@ -50,7 +50,7 @@ public class MainActivity extends BridgeActivity {
         System.out.println("writeCalendarGranted: " + writeCalendarGranted);
 
         if (readCalendarGranted && writeCalendarGranted) {
-            calendarPlugin.InsertCalendarIfMissing(getApplicationContext());
+            CalendarManager.InsertCalendarIfMissing(getApplicationContext());
         }
     }
 }
