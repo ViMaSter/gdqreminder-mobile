@@ -15,9 +15,9 @@ def getVersionFromPackageJson() {
 android {
 
     namespace 'ke.mahn.gdqreminder'
-    compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "ke.mahn.gdqreminder"
+        compileSdk rootProject.ext.compileSdkVersion
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode getVersionFromPackageJson().versionCode
@@ -45,11 +45,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-}
-
-repositories {
-    flatDir{
-        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    buildFeatures {
+        buildConfig = true
+    }
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java', 'capacitor-cordova-android-plugins/src/main/java']
+        }
     }
 }
 
