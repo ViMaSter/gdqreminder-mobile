@@ -1,5 +1,4 @@
 package ke.mahn.gdqreminder;
-import ke.mahn.gdqreminder.BuildConfig;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;

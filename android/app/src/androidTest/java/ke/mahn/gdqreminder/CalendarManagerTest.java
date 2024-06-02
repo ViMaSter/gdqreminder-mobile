@@ -14,11 +14,21 @@ import org.junit.runner.RunWith;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 @RunWith(AndroidJUnit4.class)
-public class ExampleInstrumentedTest {
+public class CalendarManagerTest {
     @Test
-    public void useAppContext() {
-        // Context of the app under test.
+    public void InsertCalendarIfMissingReturnsPositiveInteger() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        long calendarID = CalendarManager.InsertCalendarIfMissing(appContext);
+        assertTrue(calendarID > 0);
+
+        assertEquals("ke.mahn.gdqreminder", appContext.getPackageName());
+    }
+
+    @Test
+    public void InsertCalendarIfMissingReturnsNegativeInteger() {
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        long calendarID = CalendarManager.InsertCalendarIfMissing(appContext);
+        assertTrue(calendarID < 0);
 
         assertEquals("ke.mahn.gdqreminder", appContext.getPackageName());
     }

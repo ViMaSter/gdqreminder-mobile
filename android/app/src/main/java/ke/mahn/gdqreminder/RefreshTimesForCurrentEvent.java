@@ -76,7 +76,7 @@ public class RefreshTimesForCurrentEvent extends ListenableWorker {
                         reader.close();
                         inputStream.close();
                         JSONArray runs = new JSONArray(response.toString());
-                        JSONArray trackedPKs = CalendarPlugin.internalGetAllEvents(context).getJSONArray("events");
+                        JSONArray trackedPKs = CalendarManager.internalGetAllEvents(context).getJSONArray("events");
                         List<String> trackedPKsList = new java.util.ArrayList<>();
                         for (int i = 0; i < trackedPKs.length(); i++) {
                             trackedPKsList.add(trackedPKs.getJSONObject(i).getString("pk"));
@@ -90,9 +90,9 @@ public class RefreshTimesForCurrentEvent extends ListenableWorker {
                                 continue;
                             }
 
-                            CalendarPlugin.internalUpsertEvent(
+                            CalendarManager.internalUpsertEvent(
                                     context,
-                                    CalendarPlugin.InsertCalendarIfMissing(context),
+                                    CalendarManager.InsertCalendarIfMissing(context),
                                     runs.getJSONObject(i).getString("pk"),
                                     Instant.parse(fields.getString("starttime")).toEpochMilli(),
                                     Instant.parse(fields.getString("endtime")).toEpochMilli(),
