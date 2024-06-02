@@ -17,8 +17,5 @@
 				"alert"
 			]
 		}
-	},
-	"server": {
-		"androidScheme": "http"
 	}
 }
