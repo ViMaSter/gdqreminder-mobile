@@ -497,11 +497,6 @@ export default defineComponent({
             <GDQHeader @toggleDarkMode="toggleDarkMode" @toggleFilter="toggleFilter" :currentEventName="currentEventName"></GDQHeader>
             
             <div class="mdc-top-app-bar--fixed-adjust" id="runs">
-                <!-- add two material design filter chips: "you" and "friend"-->
-                <md-chip-set>
-                    <md-filter-chip label="You" selected></md-filter-chip>
-                    <md-filter-chip label="Friend" selected></md-filter-chip>
-                </md-chip-set>
                 <div class="transition"></div>
                 <template v-for="(runs, day, index) in runsByDay" :key="runs.map((run) => run).join('')">
                     <GDQDay class="gdqday" :runners="runners" :runsByID="runsByID" :runsIDsInOrder="runs" :day="(day as string)"></GDQDay>
