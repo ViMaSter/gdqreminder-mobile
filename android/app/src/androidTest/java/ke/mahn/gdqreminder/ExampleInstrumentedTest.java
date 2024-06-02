@@ -1,4 +1,4 @@
-package com.getcapacitor.myapp;
+package ke.mahn.gdqreminder;
 
 import static org.junit.Assert.*;
 
@@ -15,12 +15,11 @@ import org.junit.runner.RunWith;
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
-
     @Test
-    public void useAppContext() throws Exception {
+    public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        assertEquals("com.getcapacitor.app", appContext.getPackageName());
+        assertEquals("ke.mahn.gdqreminder", appContext.getPackageName());
     }
 }
