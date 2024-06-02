@@ -14,6 +14,9 @@ const config: CapacitorConfig = {
       presentationOptions: ["badge", "sound", "alert"],
     },
   },
+  server: {
+    androidScheme: "http"
+  }
 };
 
 export default config;
