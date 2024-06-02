@@ -64,7 +64,7 @@ jobs:
           export SENTRY_RELEASE=$version
           SENTRY_RELEASE=$version
           npm run build
-      - run: npx cap sync
+      - run: npx cap sync android
 
       - uses: actions/cache@v4
         with:
