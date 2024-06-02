@@ -42,6 +42,7 @@ div
 {
     position: sticky;
     top: 1.25em;
+    margin: 0.25em 0 0.55em;
 
     &.is-over
     {
