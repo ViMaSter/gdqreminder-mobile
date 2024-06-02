@@ -67,27 +67,4 @@ export default defineComponent({
   -o-animation: rotating 2s linear infinite;
   animation: rotating 2s linear infinite;
 }
-
-md-list
-{
-    --md-list-container-color: white;
-    --md-list-item-label-text-color: black;
-    margin: initial !important;
-}
-md-list-item:hover
-{
-  background-color: hsl(0deg 0% 87%);
-}
-.dark-mode
-{
-  md-list
-  {
-    --md-list-container-color: black;
-    --md-list-item-label-text-color: hsl(0deg 0% 87%);
-  }
-  md-list-item:hover
-  {
-    background-color: rgba(255, 255, 255, 0.12);
-  }
-}
 </style>

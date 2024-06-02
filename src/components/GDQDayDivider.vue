@@ -40,6 +40,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 div
 {
+    color: var(--md-sys-color-on-background);
     position: sticky;
     top: 1.25em;
     margin: 0.25em 0 0.55em;
@@ -52,7 +53,6 @@ div
 }
 span
 {
-    color: var(--calendar-day);
     display: block;
     text-align: center;
     line-height: 1;

@@ -100,21 +100,17 @@ span {
   height: 50px;
 }
 
-.dark-mode span
+span
 {
-    color: hsl(0deg 0% 89%);
+    color: var(--md-sys-color-on-background);
 }
-.dark-mode li[divider]
+li[divider]
 {
-  border-bottom-color: rgba(255, 255, 255, 0.45) !important;
+  border-bottom-color: var(--md-sys-color-background);
 }
 md-list-item
 {
   justify-content: right;
   font-size: 1.5em;
-}
-md-list-item span
-{
-  color: #00aeef !important;
 }
 </style>

@@ -170,11 +170,8 @@ body
   font-family: Roboto;
   margin: 0;
   width: 100vw;
-}
-body.dark-mode
-{
-  background: black;
-  color: white;
-  --_icon-color: white;
+
+  background: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
 }
 </style>

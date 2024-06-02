@@ -71,19 +71,6 @@ export default defineComponent({
     };
     const friendRunStore = useFriendRunReminderStore();
     setFriendClass(friendRunStore.allReminders);
-    watchEffect(() => {
-      let classes = ["reminder"];
-      if (hasActiveReminder.value) {
-        classes.push("is-set");
-      }
-      if (savedByFriend.value) {
-        classes.push("with-friend");
-      }
-      reminderClasses.value = classes.join(" ");
-    });
-    friendRunStore.$subscribe((_, store) => {
-      setFriendClass(store.runs);
-    });
 
     const generateRunTypeClassName = () => {
       if (props.fields.display_name == "Pre-Show") {
@@ -112,6 +99,22 @@ export default defineComponent({
       }
       return "";
     };
+
+    watchEffect(() => {
+      let classes = ["reminder"];
+      if (hasActiveReminder.value) {
+        classes.push("is-set");
+      }
+      if (savedByFriend.value) {
+        classes.push("with-friend");
+      }
+
+      classes.push(generateRunTypeClassName());
+      reminderClasses.value = classes.join(" ");
+    });
+    friendRunStore.$subscribe((_, store) => {
+      setFriendClass(store.runs);
+    });
     const scrollRunContainerBy = inject<(x: number, y: number) => void>(
       "scrollRunContainerBy"
     );
@@ -230,14 +233,14 @@ export default defineComponent({
         <span class="meta-entry person"
           ><md-icon filled>person</md-icon> {{ runners }}</span>
       </span>
-    </div>
-    <div :class="reminderClasses">
-      <div class="alarm">
-        <md-icon>alarm</md-icon>
       </div>
-      <div class="friend">
-        <md-icon filled>group</md-icon>
-      </div>
+      <div :class="reminderClasses">
+        <div class="alarm">
+          <md-icon>alarm</md-icon>
+        </div>
+        <div class="friend">
+          <md-icon filled>group</md-icon>
+        </div>
     </div>
   </div>
 </template>
@@ -383,11 +386,21 @@ export default defineComponent({
     height: 100%;
     flex: 0 0 auto;
 
-    .alarm {      
-      background: var(--background-alarm);
-    }
-    .friend {
-      background: var(--background-friend);
+    .dark-mode & {
+      color: var(	--md-sys-color-primary-container);
+      &.bonus-game {
+        color: var(--md-sys-color-secondary-container);
+      }
+      &.in-person {
+        color: var(--md-sys-color-tertiary-container);
+      }
+
+      .alarm {      
+        background: hsla(52, 76%, 41%, 1);
+      }
+      .friend {
+        background: hsla(0, 0%, 74%, 1);
+      }
     }
 
     &.is-set .alarm md-icon,
@@ -411,58 +424,16 @@ export default defineComponent({
 }
 
 // coloring
-.content {
-  background: var(--vote-purple);
- --mdc-theme-primary: color.adjust(var(--vote-purple, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-purple, $lightness: +100%));
+.run {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
 }
-.in-person .content {
-  background: var(--vote-blue);
- --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-blue, $lightness: +100%));
+.bonus-game.run {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
 }
-.bonus-game .content {
-  background: var(--vote-cyan);
- --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
-}
-.agdq {
-  .content {
-    background: var(--vote-cyan);
-   --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
-  }
-  .in-person .content {
-    background: var(--vote-blue);
-   --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-blue, $lightness: +100%));
-  }
-  .bonus-game .content {
-    background: var(--vote-red);
-   --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-red, $lightness: +100%));
-  }
-}
-
-.sgdq {
-  .content {
-    background: var(--vote-red);
-   --mdc-theme-primary: color.adjust(var(--vote-red, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-red, $lightness: +100%));
-  }
-  .in-person .content {
-    background: var(--vote-blue);
-   --mdc-theme-primary: color.adjust(var(--vote-blue, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-blue, $lightness: +100%));
-  }
-  .bonus-game .content {
-    background: var(--vote-cyan);
-   --mdc-theme-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
-  --md-sys-color-primary: color.adjust(var(--vote-cyan, $lightness: +100%));
-  }
-}
-
-* {
-  color: var(--primary-text);
+.in-person.run {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
 }
 </style>

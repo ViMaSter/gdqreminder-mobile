@@ -1,5 +1,6 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
+import { reflectColor } from '@/utilities/colorHelper';
 
 export default defineComponent({
     setup() {
@@ -8,16 +9,22 @@ export default defineComponent({
         const hide = () => {
             hidden.value = true;
         };
+        const now = new Date();
+        const month = now.getMonth();
+        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isAgdq = month >= 0 && month <= 2 || month >= 9 && month <= 11;
+        const isSgdq = !(month >= 0 && month <= 2 || month >= 9 && month <= 11);
+
         const generateClass = () => {
-            const now = new Date();
-            const month = now.getMonth();
             return Object.entries({
                 wrapper: true,
                 hidden: hidden.value,
-                agdq: month >= 0 && month <= 2 || month >= 9 && month <= 11,
-                sgdq: !(month >= 0 && month <= 2 || month >= 9 && month <= 11),
+                agdq : isAgdq,
+                sgdq : isSgdq,
             }).filter(([_, value]) => value).map(([key]) => key).join(' ');
         };
+
+        reflectColor(isAgdq ? "AGDQ" : isSgdq ? "SGDQ" : "Other", isDarkMode);
         return {hide, root, generateClass};
     }
 });
@@ -39,41 +46,15 @@ export default defineComponent({
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: var(--mdc-theme-primary);
+        background-color: var(--md-sys-surface);
+        color: var(--md-sys-on-surface);
         opacity: 1;
 
-        transition: all .5s cubic-bezier(0.64, 0, 0.78, 0);
+        transition: opacity .5s cubic-bezier(0.64, 0, 0.78, 0);
 
         &.hidden
         {
             opacity: 0;
-        }
-
-        &.agdq
-        {
-           --mdc-theme-primary: white;
-  --md-sys-color-primary: white;
-        }
-
-        &.sgdq
-        {
-           --mdc-theme-primary: white;
-  --md-sys-color-primary: white;
-        }
-
-        .dark-mode &
-        {
-            &.agdq
-            {
-               --mdc-theme-primary: hsl(180deg 100% calc(15% * 0.35));
-  --md-sys-color-primary: hsl(180deg 100% calc(15% * 0.35));
-            }
-
-            &.sgdq
-            {
-               --mdc-theme-primary: hsl(343deg 49% calc(19% * 0.35));
-  --md-sys-color-primary: hsl(343deg 49% calc(19% * 0.35));
-            }
         }
     }
 
