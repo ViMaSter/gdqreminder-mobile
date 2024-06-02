@@ -27,6 +27,7 @@ import { getApp } from 'firebase/app';
 import { Capacitor } from '@capacitor/core';
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
 import { useRunReminderStore } from "@/stores/runReminders";
+import { argbFromHex, themeFromSourceColor, applyTheme, hexFromArgb } from "@material/material-color-utilities";
 
 import {
   getAuth,
@@ -34,6 +35,7 @@ import {
   initializeAuth,
   signInAnonymously,
 } from 'firebase/auth';
+import { reflectColor } from '@/utilities/colorHelper';
 
 const getFirebaseAuth = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -234,6 +236,7 @@ export default defineComponent({
             scrollable.value?.querySelector("#runs")!.scrollTo(0, 0);
 
             currentEventName.value = newEvent;
+            reflectColor(newEvent, document.body.classList.contains('dark-mode'));
             if (drawer.value)
             {
                 drawer.value.open = false;
@@ -363,6 +366,7 @@ export default defineComponent({
             const themeStore = useThemeStore();
             document.body.classList.toggle('dark-mode');
             themeStore.override(document.body.classList.contains('dark-mode') ? Theme.Dark : Theme.Light);
+            reflectColor(currentEventName.value, document.body.classList.contains('dark-mode'));
         };
 
         const filterTypes = ["", "friend+alert", "alert"];
@@ -431,6 +435,8 @@ export default defineComponent({
             showSnackbar("Copied your user ID to clipboard:");
         };
 
+        reflectColor(currentEventName.value, document.body.classList.contains('dark-mode'));
+
         return {
             friendUserID,
             copyID,
@@ -491,6 +497,11 @@ export default defineComponent({
             <GDQHeader @toggleDarkMode="toggleDarkMode" @toggleFilter="toggleFilter" :currentEventName="currentEventName"></GDQHeader>
             
             <div class="mdc-top-app-bar--fixed-adjust" id="runs">
+                <!-- add two material design filter chips: "you" and "friend"-->
+                <md-chip-set>
+                    <md-filter-chip label="You" selected></md-filter-chip>
+                    <md-filter-chip label="Friend" selected></md-filter-chip>
+                </md-chip-set>
                 <div class="transition"></div>
                 <template v-for="(runs, day, index) in runsByDay" :key="runs.map((run) => run).join('')">
                     <GDQDay class="gdqday" :runners="runners" :runsByID="runsByID" :runsIDsInOrder="runs" :day="(day as string)"></GDQDay>
@@ -505,8 +516,20 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 
+mwc-drawer > *
+{
+    color: var(--mdc-theme-on-surface);
+}
     md-dialog
     {
+        --md-dialog-container-color: var(--mdc-theme-surface);
+        --md-dialog-headline-color: var(--mdc-theme-on-surface);
+        --md-dialog-supporting-text-color: var(--mdc-theme-on-surface);
+        --md-filled-text-field-container-color: var(--mdc-theme-surface);
+        --md-filled-text-field-focus-active-indicator-color: var(--mdc-theme-primary);
+        --md-filled-text-field-label-text-color: var(--mdc-theme-on-surface);
+        --md-filled-field-active-indicator-color: var(--mdc-theme-primary);
+
         md-filled-text-field
         {
             width: 100%;
@@ -521,26 +544,20 @@ export default defineComponent({
     {
         .transition
         {
-           --mdc-theme-primary: 281, 100%, 10.2%;
-  --md-sys-color-primary: 281, 100%, 10.2%;
-            --from: hsla(var(--mdc-theme-primary), 1);
-            --to: hsla(var(--mdc-theme-primary), 0);
+            --from: hsla(var(--md-sys-color-primary), 1);
+            --to: hsla(var(--mmd-sys-color-primary), 0);
         }
 
         .agdq .transition
         {
-           --mdc-theme-primary: 180, 100%, 5%;
-  --md-sys-color-primary: 180, 100%, 5%;
-            --from: hsla(var(--mdc-theme-primary), 1);
-            --to: hsla(var(--mdc-theme-primary), 0);
+            --from: hsla(var(--md-sys-color-primary), 1);
+            --to: hsla(var(--md-sys-color-primary), 0);
         }
 
         .sgdq .transition
         {
-           --mdc-theme-primary: 347, 89%, 10.4%;
-  --md-sys-color-primary: 347, 89%, 10.4%;
-            --from: hsla(var(--mdc-theme-primary), 1);
-            --to: hsla(var(--mdc-theme-primary), 0);
+            --from: hsla(var(--md-sys-color-primary), 1);
+            --to: hsla(var(--md-sys-color-primary), 0);
         }
     }
 
@@ -561,7 +578,6 @@ export default defineComponent({
 
     #runs {
         position: relative;
-        
         overflow-x: hidden;
     }
 
@@ -571,32 +587,5 @@ export default defineComponent({
         height: 100vh;
 
         overflow-x: hidden;
-    }
-
-    .dark-mode {
-        .container
-        {
-            background: hsla(281, 100%, 51%, 0.2);
-
-            &.sgdq
-            {
-                background: hsla(347, 89%, 52%, 0.2);
-            }
-
-            &.agdq
-            {
-                background: hsla(180, 100%, 50%, 0.1);
-            }
-        }
-
-        mwc-drawer
-        {
-            --mdc-theme-surface: black;
-        }
-
-        mwc-drawer *
-        {
-            color: hsl(0deg 0% 87%) !important;
-        }
     }
 </style>
