@@ -46,8 +46,8 @@ export default defineComponent({
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: var(--md-sys-surface);
-        color: var(--md-sys-on-surface);
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
         opacity: 1;
 
         transition: opacity .5s cubic-bezier(0.64, 0, 0.78, 0);
