@@ -17,5 +17,18 @@
 				"alert"
 			]
 		}
-	}
+	},
+	"server": {
+		"androidScheme": "http"
+	},
+	"packageClassList": [
+		"FCMPlugin",
+		"FCMPlugin",
+		"FirebaseAuthenticationPlugin",
+		"FirebaseAuthenticationPlugin",
+		"AppLauncherPlugin",
+		"PushNotificationsPlugin",
+		"SafeAreaPlugin",
+		"SafeAreaPlugin"
+	]
 }

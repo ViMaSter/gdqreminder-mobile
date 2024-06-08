@@ -31,6 +31,12 @@ export default defineComponent({
   </md-list>
 </template>
 
+<style lang="scss">
+.mdc-drawer__header
+{
+  padding-top: var(--safe-area-inset-top);
+}
+</style>
 <style lang="scss" scoped>
 @-webkit-keyframes rotating {
   from {

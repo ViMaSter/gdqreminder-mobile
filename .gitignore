@@ -30,4 +30,3 @@ dist-ssr
 /test-results/
 /playwright-report/
 /playwright/.cache/
-ios/App/App/public

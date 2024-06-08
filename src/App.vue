@@ -13,6 +13,7 @@ import { store } from './utilities/firebaseConfig';
 import { onSnapshot, doc, Unsubscribe } from 'firebase/firestore'
 import { useFriendRunReminderStore } from './stores/friendRuns';
 import { SubscriptionCallback } from 'pinia';
+import { SafeArea } from 'capacitor-plugin-safe-area';
 
 if (useThemeStore().currentTheme === Theme.Dark)
 {
@@ -140,6 +141,25 @@ onMounted(() => {
   watch(mainContent, () => {
     loadingContent.value!.hide();
   });
+});
+
+SafeArea.getSafeAreaInsets().then(({ insets }) => {
+  for (const [key, value] of Object.entries(insets)) {
+    document.documentElement.style.setProperty(
+      `--safe-area-inset-${key}`,
+      `${value}px`,
+    );
+  }
+});
+
+SafeArea.addListener('safeAreaChanged', data => {
+  const { insets } = data;
+  for (const [key, value] of Object.entries(insets)) {
+    document.documentElement.style.setProperty(
+      `--safe-area-inset-${key}`,
+      `${value}px`,
+    );
+  }
 });
 </script>
 
