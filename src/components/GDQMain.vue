@@ -1,5 +1,5 @@
 <script lang="ts">
-import {onMounted, ref, Ref, provide, defineComponent} from 'vue';
+import {onMounted, ref, Ref, provide, defineComponent, watch} from 'vue';
 import { AppLauncher } from '@capacitor/app-launcher';
 import { Snackbar } from '@material/mwc-snackbar';
 import '@material/mwc-drawer';
@@ -27,7 +27,6 @@ import { getApp } from 'firebase/app';
 import { Capacitor } from '@capacitor/core';
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
 import { useRunReminderStore } from "@/stores/runReminders";
-import { argbFromHex, themeFromSourceColor, applyTheme, hexFromArgb } from "@material/material-color-utilities";
 
 import {
   getAuth,
@@ -55,12 +54,20 @@ export default defineComponent({
     async setup() {
         const scrollable = ref<HTMLDivElement>();
         provide<(x: number, y: number) => void>("scrollRunContainerBy", (x : number, y : number) => {
-            const header = scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")!;
+            const header = scrollable.value!.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")! as HTMLElement;
             header.scrollTo(0, 0);
             header.addEventListener("scroll", function () { header.scrollTo(0, 0); });
+            header.style.overflow = "visible";
 
             scrollable.value!.querySelector("#runs")!.scrollBy(x, y);
         });
+
+        watch(scrollable, (newValue) => {
+            if (newValue) {
+                const header = newValue.parentElement!.shadowRoot!.querySelector(".mdc-drawer-app-content")! as HTMLElement;
+                header.style.overflow = "visible";
+            }
+        }, { immediate: true });
         
         const currentRun : Ref<[HTMLDivElement, GDQRunDataFields] | null> = ref(null);
         provide("currentRun", currentRun)!;
@@ -511,6 +518,11 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 
+mwc-drawer
+{
+  padding-top: var(--safe-area-inset-top);
+}
+
 mwc-drawer > *
 {
     color: var(--mdc-theme-on-surface);
@@ -581,6 +593,6 @@ mwc-drawer > *
         width: 100vw;
         height: 100vh;
 
-        overflow-x: hidden;
+        overflow: hidden;
     }
 </style>

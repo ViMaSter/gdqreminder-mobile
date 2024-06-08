@@ -22,6 +22,13 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+mwc-top-app-bar-fixed
+{
+  background-color: var(--mdc-theme-primary);
+  padding-top: var(--safe-area-inset-top);
+  margin-top: calc(var(--safe-area-inset-top)* -1);
+}
+
 .dark-mode
 {
   span
@@ -30,7 +37,6 @@ export default defineComponent({
   }
   li[divider]
   {
-    // neutral
     border-bottom-color: var(--md-sys-color-background);
   }
 }

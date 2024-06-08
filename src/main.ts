@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/vue";
 
 import App from './App.vue'
 import { Capacitor } from '@capacitor/core';
+import { SafeArea } from 'capacitor-plugin-safe-area';
 
 const app = createApp(App)
 const pinia = createPinia();
@@ -32,3 +33,5 @@ if (Capacitor.getPlatform() !== 'web') {
 
 app.use(pinia);
 app.mount('#app')
+
+SafeArea.setImmersiveNavigationBar();
