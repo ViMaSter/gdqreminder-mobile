@@ -578,6 +578,11 @@ mwc-drawer > *
         z-index: 1000;
     }
 
+    #appContent
+    {
+        width: 100vw;
+    }
+
     #appContent, #runs
     {
         height: 100%;
