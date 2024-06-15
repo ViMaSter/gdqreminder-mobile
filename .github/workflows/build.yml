@@ -129,7 +129,7 @@ jobs:
    
   buildIOS:
     name: Build iOS
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs: [prepareCache]
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
