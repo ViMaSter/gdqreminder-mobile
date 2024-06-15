@@ -128,7 +128,7 @@ jobs:
           path: ./android/app/build/outputs/apk/debug/app-debug.apk
    
   buildIOS:
-    name: Build AAB
+    name: Build iOS
     runs-on: ubuntu-latest
     needs: [prepareCache]
     env:
