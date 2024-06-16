@@ -97,6 +97,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          if-no-files-found: error
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ./android/app/build/outputs/bundle/release/app-release.aab
 
@@ -124,6 +125,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          if-no-files-found: error
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ./android/app/build/outputs/apk/debug/app-debug.apk
    
@@ -144,6 +146,7 @@ jobs:
         run: /usr/bin/xcodebuild -version
 
       - name: Install the Apple certificate and provisioning profile
+        id: profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
@@ -151,13 +154,15 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           # create variables
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          CERTIFICATE_PATH=${{ runner.temp }}/build_certificate.p12
+          PP_PATH=${{ runner.temp }}/profile.mobileprovision
+          KEYCHAIN_PATH=${{ runner.temp }}/app-signing.keychain-db
 
           # import certificate and provisioning profile from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          uuid=`grep UUID -A1 -a $PP_PATH | grep -io "[-A-F0-9]\{36\}"`
+          echo "uuid=$uuid" >> $GITHUB_OUTPUT
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -170,7 +175,7 @@ jobs:
 
           # apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/$uuid.mobileprovision
           
       - name: Fetch GoogleService-Info.plist
         env:
@@ -178,20 +183,52 @@ jobs:
         run: |
           echo -n "$GOOGLESERVICE_INFO_PLIST_BASE64" | base64 --decode > ios/App/App/GoogleService-Info.plist
 
+      - run: |
+          cd ios/App
+          version=$(cat ../../package.json | sed -n 's/.*"version": "\(.*\)",/\1/p')
+          sed -i '' "s/\tCURRENT_PROJECT_VERSION = .*/\tCURRENT_PROJECT_VERSION = $version;/g" App.xcodeproj/project.pbxproj
+          sed -i '' "s/\tMARKETING_VERSION = .*/\tMARKETING_VERSION = $version;/g" App.xcodeproj/project.pbxproj
+
       - name: build archive
         run: |
           cd ios/App
           xcodebuild clean
           pod install
 
-          xcodebuild  -workspace App.xcworkspace \
+          xcodebuild PROVISIONING_PROFILE=${{ steps.profile.outputs.uuid }} \
+          -workspace App.xcworkspace \
           -scheme "App" \
           -archivePath $RUNNER_TEMP/App.xcarchive \
-          -sdk iphoneos \
           -configuration Release \
-          -derivedDataPath build \
-          -destination generic/platform=iOS \
-          clean archive          
+          -arch arm64 \
+          clean archive
+          
+      - name: export ipa
+        env:
+          EXPORT_PLIST: ${{ secrets.EXPORT_OPTIONS_PLIST }}
+        run: |
+          EXPORT_PLIST_PATH=${{ runner.temp }}/ExportOptions.plist
+          echo -n "$EXPORT_PLIST" | base64 --decode --output $EXPORT_PLIST_PATH
+          xcodebuild PROVISIONING_PROFILE=${{ steps.profile.outputs.uuid }} -exportArchive -archivePath $RUNNER_TEMP/App.xcarchive -exportOptionsPlist $EXPORT_PLIST_PATH -exportPath ${{ runner.temp }}/export
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: ios-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
+          path: ${{ runner.temp }}/export/App.ipa
+
+      - name: decode API key
+        env:
+          API_KEY_BASE64: ${{ secrets.IOS_APPSTORE_API_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/private_keys
+          echo -n "$API_KEY_BASE64" | base64 --decode --output ~/private_keys/AuthKey_${{ secrets.IOS_APPSTORE_API_KEY_ID }}.p8
+      # use 
+      - name: Upload to testflight
+        run: |
+          xcrun altool --validate-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
+          xcrun altool --upload-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
 
   publishToProduction:
     name: '[PRODUCTION] Publish to Google Play'
