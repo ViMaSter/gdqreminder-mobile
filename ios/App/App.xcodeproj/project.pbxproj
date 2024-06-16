@@ -32,6 +32,7 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		AA101B142C1F157E009F265C /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		AA6EA6742C14DED600871214 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		AA6EA6782C14E8FC00871214 /* Version.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Version.swift; sourceTree = "<group>"; };
 		AA6EA67A2C14E90300871214 /* VersionPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionPlugin.swift; sourceTree = "<group>"; };
@@ -84,6 +85,7 @@
 		504EC3061FED79650016851F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				AA101B142C1F157E009F265C /* App.entitlements */,
 				AA6EA6762C14E8D200871214 /* plugins */,
 				AA6EA6742C14DED600871214 /* GoogleService-Info.plist */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
@@ -386,6 +388,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -399,7 +402,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = ke.mahn.gdqreminder;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "GitHub Actions";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "GitHub Actions (with Push Notifications)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OBJC_BRIDGING_HEADER = "App/plugins/Version/App-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -414,6 +417,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -426,7 +430,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = ke.mahn.gdqreminder;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "GitHub Actions";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "GitHub Actions (with Push Notifications)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "App/plugins/Version/App-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
