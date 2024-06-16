@@ -183,6 +183,12 @@ jobs:
         run: |
           echo -n "$GOOGLESERVICE_INFO_PLIST_BASE64" | base64 --decode > ios/App/App/GoogleService-Info.plist
 
+      - run: |
+          cd ios/App
+          version=$(cat ../../package.json | sed -n 's/.*"version": "\(.*\)",/\1/p')
+          sed -i '' "s/\tCURRENT_PROJECT_VERSION = .*/\tCURRENT_PROJECT_VERSION = $version;/g" App.xcodeproj/project.pbxproj
+          sed -i '' "s/\tMARKETING_VERSION = .*/\tMARKETING_VERSION = $version;/g" App.xcodeproj/project.pbxproj
+
       - name: build archive
         run: |
           cd ios/App
@@ -218,6 +224,7 @@ jobs:
         run: |
           mkdir -p ~/private_keys
           echo -n "$API_KEY_BASE64" | base64 --decode --output ~/private_keys/AuthKey_${{ secrets.IOS_APPSTORE_API_KEY_ID }}.p8
+      # use 
       - name: Upload to testflight
         run: |
           xcrun altool --validate-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
