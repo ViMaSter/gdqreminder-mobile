@@ -204,25 +204,7 @@ jobs:
           EXPORT_PLIST_PATH=${{ runner.temp }}/ExportOptions.plist
           echo -n "$EXPORT_PLIST" | base64 --decode --output $EXPORT_PLIST_PATH
           xcodebuild PROVISIONING_PROFILE=${{ steps.profile.outputs.uuid }} -exportArchive -archivePath $RUNNER_TEMP/App.xcarchive -exportOptionsPlist $EXPORT_PLIST_PATH -exportPath ${{ runner.temp }}/export
-      # - name: decode API key
-      #   env:
-      #     API_KEY_BASE64: ${{ secrets.IOS_APPSTORE_API_PRIVATE_KEY }}
-      #   run: |
-      #     mkdir -p ~/private_keys
-      #     echo -n "$API_KEY_BASE64" | base64 --decode --output ~/private_keys/AuthKey_${{ secrets.IOS_APPSTORE_API_KEY_ID }}.p8
-      # - name: Upload to testflight
-      #   run: |
-      #     xcrun altool --validate-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
-      #     xcrun altool --upload-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
-      # - name: Upload release
-      #   uses: svenstaro/upload-release-action@v2
-      #   with:
-      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
-      #     file: ${{ runner.temp }}/export/App.ipa
-      #     asset_name: ${{ env.APP_NAME }}_${{ inputs.version }}_ios.ipa
-      #     release_name: ${{ inputs.version }}
-      #     tag: ${{ inputs.version }}
-      #     overwrite: true
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
