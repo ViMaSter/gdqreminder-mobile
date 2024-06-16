@@ -210,13 +210,13 @@ jobs:
       #     echo -n "$API_KEY_BASE64" | base64 --decode --output ~/private_keys/AuthKey_${{ secrets.IOS_APPSTORE_API_KEY_ID }}.p8
       # - name: Upload to testflight
       #   run: |
-      #     xcrun altool --validate-app -f ${{ runner.temp }}/export/${{ env.XCODE_PROJECT }}.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
-      #     xcrun altool --upload-app -f ${{ runner.temp }}/export/${{ env.XCODE_PROJECT }}.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
+      #     xcrun altool --validate-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
+      #     xcrun altool --upload-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
       # - name: Upload release
       #   uses: svenstaro/upload-release-action@v2
       #   with:
       #     repo_token: ${{ secrets.GITHUB_TOKEN }}
-      #     file: ${{ runner.temp }}/export/${{ env.XCODE_PROJECT }}.ipa
+      #     file: ${{ runner.temp }}/export/App.ipa
       #     asset_name: ${{ env.APP_NAME }}_${{ inputs.version }}_ios.ipa
       #     release_name: ${{ inputs.version }}
       #     tag: ${{ inputs.version }}
@@ -225,7 +225,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
-          path: ${{ runner.temp }}/export/${{ env.XCODE_PROJECT }}.ipa
+          path: ${{ runner.temp }}/export/App.ipa
 
   publishToProduction:
     name: '[PRODUCTION] Publish to Google Play'
