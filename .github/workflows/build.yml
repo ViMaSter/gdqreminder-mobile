@@ -97,6 +97,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          if-no-files-found: error
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ./android/app/build/outputs/bundle/release/app-release.aab
 
@@ -124,6 +125,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          if-no-files-found: error
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ./android/app/build/outputs/apk/debug/app-debug.apk
    
@@ -224,6 +226,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
+          if-no-files-found: error
           name: ios-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: ${{ runner.temp }}/export/App.ipa
 
