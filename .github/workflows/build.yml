@@ -150,18 +150,21 @@ jobs:
           BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
           DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.DISTRIBUTION_CERTIFICATE_BASE64 }}
           DISTRIBUTION_P12_PASSWORD: ${{ secrets.DISTRIBUTION_P12_PASSWORD }}
+          STORE_PROVISION_PROFILE_BASE64: ${{ secrets.STORE_PROVISION_PROFILE_BASE64 }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           # create variables
           BUILD_CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           DISTRIBUTION_CERTIFICATE_PATH=$RUNNER_TEMP/distribution_certificate.p12
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          STORE_PP_PATH=$RUNNER_TEMP/store_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # import certificate and provisioning profile from secrets
           echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $BUILD_CERTIFICATE_PATH
           echo -n "$DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode -o $DISTRIBUTION_CERTIFICATE_PATH
           echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          echo -n "$STORE_PROVISION_PROFILE_BASE64" | base64 --decode -o $STORE_PP_PATH
 
           # create temporary keychain
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -176,6 +179,7 @@ jobs:
           # apply provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $STORE_PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
           
       - name: Fetch GoogleService-Info.plist
         env:
