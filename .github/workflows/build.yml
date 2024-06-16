@@ -144,6 +144,7 @@ jobs:
         run: /usr/bin/xcodebuild -version
 
       - name: Install the Apple certificate and provisioning profile
+        id: profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
