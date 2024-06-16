@@ -60,7 +60,7 @@ export const useRunReminderStore = defineStore({
     },
     async remove(pk : string) : Promise<boolean> {
       this.$state.runs = this.$state.runs.filter(run => run !== pk);
-      const calendarError = await Calendar.cleanupEvents({sync_ids: this.$state.runs});
+      const calendarError = await Calendar.cleanupEvents({sync_ids: Array.from(this.$state.runs)});
       if (calendarError.error)
       {
         console.error("Failed to remove run reminder from calendar:" + calendarError.error);

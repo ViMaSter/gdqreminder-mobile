@@ -1,4 +1,4 @@
-import { EventDetails, EventListResult, EventUpdateResult } from "./calendarPlugin";
+import { EventDetails, EventUpdateResult } from "./calendarPlugin";
 
 export interface CalendarPlugin {
     upsertEvent(options: EventDetails): Promise<EventUpdateResult>;

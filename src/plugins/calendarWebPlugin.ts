@@ -1,6 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { CalendarPlugin, EventDetails, EventListResult, EventUpdateResult } from './calendarPlugin';
+import type { CalendarPlugin, EventDetails, EventUpdateResult } from './calendarPlugin';
 
 export class CalendarWeb extends WebPlugin implements CalendarPlugin {
     currentEvents : EventDetails[] = [];

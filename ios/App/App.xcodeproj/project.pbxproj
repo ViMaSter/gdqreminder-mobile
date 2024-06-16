@@ -20,6 +20,8 @@
 		AA6EA67B2C14E90300871214 /* VersionPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6EA67A2C14E90300871214 /* VersionPlugin.swift */; };
 		AA6EA6802C14F24500871214 /* VersionPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = AA6EA67F2C14F24500871214 /* VersionPlugin.m */; };
 		AA6EA6852C14F91500871214 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6EA6842C14F91500871214 /* ViewController.swift */; };
+		AA7213D62C1F847E0010FCCE /* CalendarPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = AA7213D22C1F847E0010FCCE /* CalendarPlugin.m */; };
+		AA7213D72C1F847E0010FCCE /* CalendarPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7213D32C1F847E0010FCCE /* CalendarPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +41,9 @@
 		AA6EA67E2C14F24400871214 /* App-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "App-Bridging-Header.h"; sourceTree = "<group>"; };
 		AA6EA67F2C14F24500871214 /* VersionPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VersionPlugin.m; sourceTree = "<group>"; };
 		AA6EA6842C14F91500871214 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		AA7213D02C1F847E0010FCCE /* App-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "App-Bridging-Header.h"; sourceTree = "<group>"; };
+		AA7213D22C1F847E0010FCCE /* CalendarPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CalendarPlugin.m; sourceTree = "<group>"; };
+		AA7213D32C1F847E0010FCCE /* CalendarPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarPlugin.swift; sourceTree = "<group>"; };
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
@@ -113,6 +118,7 @@
 		AA6EA6762C14E8D200871214 /* plugins */ = {
 			isa = PBXGroup;
 			children = (
+				AA7213D42C1F847E0010FCCE /* Calendar */,
 				AA6EA6772C14E8E000871214 /* Version */,
 			);
 			path = plugins;
@@ -127,6 +133,16 @@
 				AA6EA67E2C14F24400871214 /* App-Bridging-Header.h */,
 			);
 			path = Version;
+			sourceTree = "<group>";
+		};
+		AA7213D42C1F847E0010FCCE /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				AA7213D02C1F847E0010FCCE /* App-Bridging-Header.h */,
+				AA7213D22C1F847E0010FCCE /* CalendarPlugin.m */,
+				AA7213D32C1F847E0010FCCE /* CalendarPlugin.swift */,
+			);
+			path = Calendar;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -245,6 +261,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA7213D72C1F847E0010FCCE /* CalendarPlugin.swift in Sources */,
+				AA7213D62C1F847E0010FCCE /* CalendarPlugin.m in Sources */,
 				AA6EA6852C14F91500871214 /* ViewController.swift in Sources */,
 				AA6EA67B2C14E90300871214 /* VersionPlugin.swift in Sources */,
 				AA6EA6792C14E8FC00871214 /* Version.swift in Sources */,

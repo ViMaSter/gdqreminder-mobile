@@ -9,7 +9,7 @@ public class VersionPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "VersionPlugin"
     public let jsName = "Version"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "Version", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "getCurrent", returnType: CAPPluginReturnPromise)
     ]
 
     @objc func getCurrent(_ call: CAPPluginCall) {

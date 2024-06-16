@@ -179,11 +179,15 @@ SafeArea.addListener('safeAreaChanged', data => {
 *
 {
   -webkit-touch-callout: none;
+
     -webkit-user-select: none;
      -khtml-user-select: none;
        -moz-user-select: none;
         -ms-user-select: none;
             user-select: none;
+
+  /* workaround for iOS Safari, which changes run name text size if alerts or friend indicators are active */
+  -webkit-text-size-adjust: 100%;
 }
 body
 {

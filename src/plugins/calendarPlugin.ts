@@ -4,10 +4,6 @@ export interface Result {
     error: string;
 }
 
-export interface EventListResult extends Result {
-    events: EventDetails[];
-}
-
 export interface EventUpdateResult extends Result {
 }
 
