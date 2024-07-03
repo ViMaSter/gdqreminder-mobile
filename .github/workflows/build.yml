@@ -224,8 +224,8 @@ jobs:
         run: |
           mkdir -p ~/private_keys
           echo -n "$API_KEY_BASE64" | base64 --decode --output ~/private_keys/AuthKey_${{ secrets.IOS_APPSTORE_API_KEY_ID }}.p8
-      # use 
       - name: Upload to testflight
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceRelease
         run: |
           xcrun altool --validate-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
           xcrun altool --upload-app -f ${{ runner.temp }}/export/App.ipa -t ios --apiKey ${{ secrets.IOS_APPSTORE_API_KEY_ID }} --apiIssuer ${{ secrets.IOS_APPSTORE_ISSUER_ID }}
