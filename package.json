@@ -33,6 +33,7 @@
     "@material/web": "^1.5.0",
     "@sentry/cli": "^2.32.1",
     "@sentry/vue": "^8.9.2",
+    "@vitejs/plugin-legacy": "^5.4.1",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "capacitor-plugin-safe-area": "^3.0.1",
     "conventional-changelog-conventionalcommits": "^8.0.0",

@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import legacy from '@vitejs/plugin-legacy'
 
 // https://vitejs.dev/config/
 
@@ -15,7 +16,11 @@ const plugins = [
       }
     }
   }),
-  vueJsx()
+  vueJsx(),
+  legacy({
+    targets: ['defaults', 'Android >= 66'],
+    modernPolyfills: true,
+  }),
 ];
 if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
     plugins.push(sentryVitePlugin({
@@ -34,6 +39,7 @@ if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
 export default defineConfig({
   build: {
     sourcemap: true,
+    target: 'es2015',
   },
   plugins,
   resolve: {
