@@ -19,7 +19,7 @@ const plugins = [
   vueJsx(),
   legacy({
     targets: ['defaults', 'Android >= 66'],
-    modernPolyfills: true,
+    modernPolyfills: true
   }),
 ];
 if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
@@ -38,8 +38,7 @@ if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_RELEASE) {
 
 export default defineConfig({
   build: {
-    sourcemap: true,
-    target: 'es2015',
+    sourcemap: true
   },
   plugins,
   resolve: {
