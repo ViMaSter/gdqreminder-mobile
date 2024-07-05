@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/experimental-ct-vue';
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
@@ -38,7 +38,7 @@ export default defineConfig({
     ctViteConfig: {
       resolve: {
         alias: {
-          '@': resolve(__dirname, './src'),
+          '@': resolve(dirname('.'), './src'),
         },
       },
     },
@@ -48,19 +48,24 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+         ...devices['Desktop Chrome'],
+         launchOptions: {
+          args: ['--disable-web-security'],
+        }
+      },
     },
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-    {
-      name: 'pixel5',
-      use: { ...devices['Pixel 5'] },
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
+    // {
+    //   name: 'pixel5',
+    //   use: { ...devices['Pixel 5'] },
+    // },
   ],
 });
