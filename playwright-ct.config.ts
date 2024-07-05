@@ -44,7 +44,7 @@ export default defineConfig({
     },
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects for browser and phone */
   projects: [
     {
       name: 'chromium',
@@ -55,17 +55,14 @@ export default defineConfig({
         }
       },
     },
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
-    // {
-    //   name: 'pixel5',
-    //   use: { ...devices['Pixel 5'] },
-    // },
+    {
+      name: 'pixel5',
+      use: {
+         ...devices['Pixel 5'],
+         launchOptions: {
+          args: ['--disable-web-security'],
+        }
+        },
+    },
   ],
 });
