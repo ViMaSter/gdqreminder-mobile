@@ -30,7 +30,7 @@
     "@material/mwc-icon-button": "^0.27.0",
     "@material/mwc-snackbar": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
-    "@material/web": "^1.5.0",
+    "@material/web": "^1.5.1",
     "@sentry/cli": "^2.32.1",
     "@sentry/vue": "^8.9.2",
     "@vitejs/plugin-legacy": "^5.4.1",
