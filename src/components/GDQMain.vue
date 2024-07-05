@@ -330,13 +330,17 @@ export default defineComponent({
         let lastEvent : GDQEventDataFields = determineLatestEventWithRuns(descendingEventList);
 
         const drawer = ref<TopAppBarFixedWithOpen>()!;
-        const lastEventStart = new Date(lastEvent.datetime);
-        const lastEventEnd = new Date(lastEvent.datetime);
-        lastEventStart.setTime(lastEventStart.getTime() - 1000 * 60 * 60 * 24 * 60);
-        lastEventEnd.setTime(lastEventEnd.getTime() + 1000 * 60 * 60 * 24 * 60);
-        if (lastEventStart < now && now < lastEventEnd)
+
+        const eventRunningNow = descendingEventList.find((event) => {
+            const eventStart = new Date(event.datetime);
+            const eventEnd = new Date(event.datetime);
+            eventStart.setTime(eventStart.getTime() - 1000 * 60 * 60 * 24 * 60);
+            eventEnd.setTime(eventEnd.getTime() + 1000 * 60 * 60 * 24 * 60);
+            return eventStart < now && now < eventEnd;
+        });
+        if (eventRunningNow)
         {
-            await updateCurrentEvent(lastEvent.short);
+            await updateCurrentEvent(eventRunningNow.short);
         }
         else
         {
