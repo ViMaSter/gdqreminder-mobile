@@ -1,7 +1,7 @@
 name: Merge `autoupdate` branches
 on:
   workflow_run:
-    workflows: ["Android build"]
+    workflows: ["Mobile App build"]
     types: 
       - completed
 
