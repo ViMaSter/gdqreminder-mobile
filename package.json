@@ -48,7 +48,7 @@
     "@playwright/experimental-ct-vue": "^1.45.1",
     "@rushstack/eslint-patch": "^1.10.3",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^10.0.6",
+    "@semantic-release/github": "^10.0.7",
     "@sentry/vite-plugin": "^2.18.0",
     "@types/node": "^20.14.10",
     "@vitejs/plugin-vue": "^5.0.5",
