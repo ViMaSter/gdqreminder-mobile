@@ -11,9 +11,10 @@ test('can show at least one run of last event', async ({ page }) => {
   await page.click('mwc-top-app-bar-fixed [slot="navigationIcon"]');
 
   await page.waitForSelector('.mdc-drawer');
-  await page.waitForSelector('mwc-list mwc-list-item:not(.rotating)');
+  await page.waitForSelector('md-list-item.rotating');
+  await expect(page.locator('md-list-item.rotating')).toHaveCount(0);
   
-  await page.click('mwc-list mwc-list-item');
+  await page.click('md-list md-list-item');
 
   await page.waitForSelector('.day-divider');
   await expect(page.locator('.dayNumber').first()).toHaveText(/\d+/);
