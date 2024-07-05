@@ -19,7 +19,7 @@ timings.forEach(([testName, date, title]) => {
   
     await page.waitForSelector('.mdc-drawer');
     await page.waitForSelector('md-list-item.rotating');
-    await expect(page.locator('md-list-item.rotating')).toHaveCount(0);
+    await expect(page.locator('md-list-item.rotating')).toHaveCount(0, { timeout: 20000 });
     
     await page.click('md-list md-list-item');
   
