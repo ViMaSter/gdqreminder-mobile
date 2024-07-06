@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -254,9 +256,10 @@ public class CalendarManager {
         return ret;
     }
 
-    public static void RefreshCalendarData(Context context) {
+    public static Exception RefreshCalendarData(Context context) {
         try {
-            URL uri = new URL("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + Instant.now().toString());
+            Instant aroundAMonthAgo = Instant.now().minus(35, ChronoUnit.DAYS);
+            URL uri = new URL("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + aroundAMonthAgo.toString());
             HttpURLConnection connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
@@ -315,11 +318,13 @@ public class CalendarManager {
                         Instant.parse(fields.getString("endtime")).toEpochMilli(),
                         fields.getString("display_name"),
                         fields.getString("description"),
-                        fields.getString("setup_time")
+                        "https://twitch.tv/gamesdonequick"
                 );
             }
+            return null;
         } catch (Exception e) {
             e.printStackTrace();
+            return e;
         }
     }
 }
