@@ -22,7 +22,7 @@
     "@capacitor/android": "^6.1.1",
     "@capacitor/app-launcher": "^6.0.1",
     "@capacitor/core": "^6.1.1",
-    "@capacitor/ios": "^6.1.0",
+    "@capacitor/ios": "^6.1.1",
     "@capacitor/push-notifications": "^6.0.1",
     "@material/material-color-utilities": "^0.3.0",
     "@material/mwc-dialog": "^0.27.0",
