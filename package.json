@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2",
-    "@playwright/experimental-ct-vue": "^1.46.1",
+    "@playwright/experimental-ct-vue": "^1.47.0",
     "@rushstack/eslint-patch": "^1.10.4",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^10.3.2",
