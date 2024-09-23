@@ -58,7 +58,7 @@
     "@vue/test-utils": "^2.4.6",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.28.0",
-    "jsdom": "^25.0.0",
+    "jsdom": "^25.0.1",
     "prettier": "^3.3.3",
     "sass": "^1.79.3",
     "semantic-release": "^24.1.1",
