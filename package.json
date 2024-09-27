@@ -40,7 +40,7 @@
     "firebase": "^10.13.2",
     "ky": "^1.7.2",
     "pinia": "^2.2.2",
-    "vue": "^3.5.9",
+    "vue": "^3.5.10",
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
