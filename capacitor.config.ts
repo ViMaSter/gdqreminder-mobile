@@ -1,9 +1,9 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'ke.mahn.gdqreminder',
-  appName: 'GDQ Reminder',
-  webDir: 'dist',
+  appId: "ke.mahn.gdqreminder",
+  appName: "GDQ Reminder",
+  webDir: "dist",
   bundledWebRuntime: false,
   plugins: {
     FirebaseAuthentication: {
@@ -15,8 +15,8 @@ const config: CapacitorConfig = {
     },
   },
   server: {
-    androidScheme: "http"
-  }
+    androidScheme: "http",
+  },
 };
 
 export default config;

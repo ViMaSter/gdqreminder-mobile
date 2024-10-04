@@ -1,16 +1,14 @@
-import { DateProvider } from "@/interfaces/DateProvider"
+import { DateProvider } from "@/interfaces/DateProvider";
 
-export class FakeDateProvider implements DateProvider
-{
-    #startAt;
-    #date;
-    constructor(date : Date)
-    {
-        this.#startAt = new Date().getTime();
-        this.#date = date;
-    }
-    getCurrent(): Date {
-        const offset = ((new Date().getTime() - this.#startAt) / 1000);
-        return new Date(this.#date.getTime() + offset);
-    }
+export class FakeDateProvider implements DateProvider {
+  #startAt;
+  #date;
+  constructor(date: Date) {
+    this.#startAt = new Date().getTime();
+    this.#date = date;
+  }
+  getCurrent(): Date {
+    const offset = (new Date().getTime() - this.#startAt) / 1000;
+    return new Date(this.#date.getTime() + offset);
+  }
 }
