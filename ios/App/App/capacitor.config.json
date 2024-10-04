@@ -23,12 +23,10 @@
 	},
 	"packageClassList": [
 		"FCMPlugin",
-		"FCMPlugin",
 		"FirebaseAuthenticationPlugin",
-		"FirebaseAuthenticationPlugin",
+		"AppPlugin",
 		"AppLauncherPlugin",
 		"PushNotificationsPlugin",
-		"SafeAreaPlugin",
 		"SafeAreaPlugin"
 	]
 }

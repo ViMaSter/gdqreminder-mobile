@@ -4,41 +4,43 @@ import { GDQRunDataFields } from "@/interfaces/GDQRun";
 import { defineComponent, inject, ref, Ref, watch } from "vue";
 export default defineComponent({
   async setup() {
-    const currentRun : Ref<[HTMLDivElement, GDQRunDataFields]> = inject("currentRun")!;
+    const currentRun: Ref<[HTMLDivElement, GDQRunDataFields]> =
+      inject("currentRun")!;
     const now = inject<DateProvider>("dateProvider")!;
 
     const visibilityClasses = ref("");
     const offset = ref(0);
 
-    const inverseLerp = (a : number, b : number, n : number) => {
-        return ( n - a ) / ( b - a );
-    }
+    const inverseLerp = (a: number, b: number, n: number) => {
+      return (n - a) / (b - a);
+    };
 
-    const update = (newRun : [HTMLDivElement, GDQRunDataFields]) => {
-        if (newRun && newRun[0])
-        {
-            const [runElement, runData] = newRun;
-            visibilityClasses.value = "timeIndicator shown";
-            const progress = inverseLerp(
-                new Date(runData.starttime).getTime(),
-                new Date(runData.endtime).getTime(), 
-                now.getCurrent().getTime()
-            );
-            offset.value = Math.round(runElement.offsetTop + (runElement.clientHeight * progress));
-            return;
-        }
-        visibilityClasses.value = "timeIndicator";
-    }
+    const update = (newRun: [HTMLDivElement, GDQRunDataFields]) => {
+      if (newRun && newRun[0]) {
+        const [runElement, runData] = newRun;
+        visibilityClasses.value = "timeIndicator shown";
+        const progress = inverseLerp(
+          new Date(runData.starttime).getTime(),
+          new Date(runData.endtime).getTime(),
+          now.getCurrent().getTime(),
+        );
+        offset.value = Math.round(
+          runElement.offsetTop + runElement.clientHeight * progress,
+        );
+        return;
+      }
+      visibilityClasses.value = "timeIndicator";
+    };
 
     setInterval(() => {
-        update(currentRun.value);
+      update(currentRun.value);
     }, 60000);
-    
+
     watch(currentRun, update);
 
     return {
-        visibilityClasses,
-        offset
+      visibilityClasses,
+      offset,
     };
   },
 });
@@ -60,10 +62,9 @@ export default defineComponent({
 
   display: none;
 
-    &.shown
-    {
-        display: block;
-    }
+  &.shown {
+    display: block;
+  }
 
   .circle {
     width: 12px;

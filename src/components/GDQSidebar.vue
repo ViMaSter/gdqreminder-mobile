@@ -1,30 +1,35 @@
 <script lang="ts">
-import {defineComponent, toRef} from 'vue';
-import '@material/web/all.js';
+import { defineComponent, toRef } from "vue";
+import "@material/web/all.js";
 export default defineComponent({
-    props: {
-        eventsByShorthand: {
-            type: Object as () => {[key : string] : any},
-            required: true,
-        },
-        doneLoading: {
-            type: Boolean,
-            required: true
-        }
+  props: {
+    eventsByShorthand: {
+      type: Object as () => { [key: string]: any },
+      required: true,
     },
-    async setup(props) {
-      const eventByShorthands = toRef(props, "eventsByShorthand");
-      const doneLoading = toRef(props, "doneLoading");
-      return {
-        eventByShorthands
-      }
-    }
+    doneLoading: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  async setup(props) {
+    const eventByShorthands = toRef(props, "eventsByShorthand");
+
+    return {
+      eventByShorthands,
+    };
+  },
 });
 </script>
 
 <template>
   <md-list>
-    <md-list-item v-for="[displayName] in (Object.entries(eventByShorthands))" :key="displayName" @click="$emit('onUpdateCurrentEvent', displayName)">{{displayName}}</md-list-item>
+    <md-list-item
+      v-for="[displayName] in Object.entries(eventByShorthands)"
+      :key="displayName"
+      @click="$emit('onUpdateCurrentEvent', displayName)"
+      >{{ displayName }}</md-list-item
+    >
     <md-list-item v-if="!doneLoading" class="rotating">
       <md-icon>autorenew</md-icon>
     </md-list-item>
@@ -32,8 +37,7 @@ export default defineComponent({
 </template>
 
 <style lang="scss">
-.mdc-drawer__header
-{
+.mdc-drawer__header {
   padding-top: var(--safe-area-inset-top);
 }
 </style>

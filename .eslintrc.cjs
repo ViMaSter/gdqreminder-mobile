@@ -11,12 +11,5 @@ module.exports = {
   ],
   "env": {
     "vue/setup-compiler-macros": true
-  },
-  "vue/block-lang": ["error",
-    {
-      "script": {
-        "lang": "ts"
-      }
-    }
-  ]
+  }
 }

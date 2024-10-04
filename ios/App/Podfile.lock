@@ -1,22 +1,24 @@
 PODS:
-  - Capacitor (6.0.0):
+  - Capacitor (6.1.2):
     - CapacitorCordova
-  - CapacitorAppLauncher (6.0.0):
+  - CapacitorApp (6.0.1):
+    - Capacitor
+  - CapacitorAppLauncher (6.0.2):
     - Capacitor
   - CapacitorCommunityFcm (6.0.0):
     - Capacitor
     - Firebase/Messaging
-  - CapacitorCordova (6.0.0)
-  - CapacitorFirebaseAuthentication (6.0.0):
+  - CapacitorCordova (6.1.2)
+  - CapacitorFirebaseAuthentication (6.1.0):
     - Capacitor
-    - CapacitorFirebaseAuthentication/Lite (= 6.0.0)
-    - FirebaseAuth (~> 10.24)
-  - CapacitorFirebaseAuthentication/Lite (6.0.0):
+    - CapacitorFirebaseAuthentication/Lite (= 6.1.0)
+    - FirebaseAuth (~> 10.25)
+  - CapacitorFirebaseAuthentication/Lite (6.1.0):
     - Capacitor
-    - FirebaseAuth (~> 10.24)
-  - CapacitorPluginSafeArea (3.0.1):
+    - FirebaseAuth (~> 10.25)
+  - CapacitorPluginSafeArea (3.0.3):
     - Capacitor
-  - CapacitorPushNotifications (6.0.0):
+  - CapacitorPushNotifications (6.0.2):
     - Capacitor
   - Firebase/CoreOnly (10.27.0):
     - FirebaseCore (= 10.27.0)
@@ -91,6 +93,7 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorAppLauncher (from `../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorCommunityFcm (from `../../node_modules/@capacitor-community/fcm`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
@@ -117,6 +120,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
   CapacitorAppLauncher:
     :path: "../../node_modules/@capacitor/app-launcher"
   CapacitorCommunityFcm:
@@ -131,13 +136,14 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/push-notifications"
 
 SPEC CHECKSUMS:
-  Capacitor: 559d073c4ca6c27f8e7002c807eea94c3ba435a9
-  CapacitorAppLauncher: 24ce4be152a84883378d22114ffe6c492056ced2
+  Capacitor: 679f9673fdf30597493a6362a5d5bf233d46abc2
+  CapacitorApp: 0bc633b4eae40a1f32cd2834788fad3bc42da6a1
+  CapacitorAppLauncher: 9ac785e8d3936388249212b6e16cb32225960c5f
   CapacitorCommunityFcm: a4a524712c41db0a97e23f7f7d4b38b5d33de7a0
-  CapacitorCordova: 8c4bfdf69368512e85b1d8b724dd7546abeb30af
-  CapacitorFirebaseAuthentication: 8c75784e96c4106ebab9da2fc022366bca661451
-  CapacitorPluginSafeArea: b99681e1d9986ae1c059ca0e1b5e7025916e5e04
-  CapacitorPushNotifications: e18636e8a96f1d70b4c669e21c730e995bf5e5c9
+  CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
+  CapacitorFirebaseAuthentication: 731483d98bf879a1c1b071c1efedd4bd5b0da6f2
+  CapacitorPluginSafeArea: e1eca7f70974f0e270d96f70cd0a5f51523164b1
+  CapacitorPushNotifications: ccd797926c030acad3d5498ef452c735c90a2c89
   Firebase: 26b040b20866a55f55eb3611b9fcf3ae64816b86
   FirebaseAppCheckInterop: 0dd062c9926a76332ca5711dbed6f1a9ac540b54
   FirebaseAuth: 77a012b7e08042bf44d0db835ca2e86e6ca7bbd3
@@ -152,6 +158,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
 
-PODFILE CHECKSUM: 259255c0d6683fc5115df1c0e030da57c3e66ec3
+PODFILE CHECKSUM: f8e8f8c0f728819e43ed9945f90353bb47a90a06
 
 COCOAPODS: 1.15.2

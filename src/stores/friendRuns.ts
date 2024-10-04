@@ -1,21 +1,21 @@
-import { defineStore } from 'pinia'
+import { defineStore } from "pinia";
 
 type FriendRunReminderState = {
-  runs : string[]
+  runs: string[];
 };
-const key = 'FriendRunReminder';
+const key = "FriendRunReminder";
 
 export const useFriendRunReminderStore = defineStore({
   id: key,
-  state: () : FriendRunReminderState => {
-    return {runs: []};
+  state: (): FriendRunReminderState => {
+    return { runs: [] };
   },
   getters: {
-    allReminders: (state) => state.runs
+    allReminders: (state) => state.runs,
   },
   actions: {
-    set(runs : string[]) {
+    set(runs: string[]) {
       this.$state.runs = runs;
-    }
-  }
-})
+    },
+  },
+});

@@ -1,7 +1,7 @@
 export interface VersionInfo {
-    versionCode : number;
-    versionName : string;
+  versionCode: number;
+  versionName: string;
 }
 export interface VersionPlugin {
-    getCurrent(): Promise<VersionInfo>;
+  getCurrent(): Promise<VersionInfo>;
 }

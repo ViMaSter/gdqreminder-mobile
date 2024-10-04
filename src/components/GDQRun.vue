@@ -1,12 +1,22 @@
 <script lang="ts">
-import { defineComponent, ref, inject, onMounted, watchEffect, computed, Ref } from "vue";
+import {
+  defineComponent,
+  ref,
+  inject,
+  onMounted,
+  watchEffect,
+  computed,
+  Ref,
+  onBeforeMount,
+} from "vue";
 import "../utilities/pushNotificationHelper";
 import { GDQRunDataFields } from "@/interfaces/GDQRun";
 import PushNotificationHelper from "../utilities/pushNotificationHelper";
 import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
-import '@material/web/all.js';
+import "@material/web/all.js";
+import { App } from "@capacitor/app";
 
 export default defineComponent({
   props: {
@@ -28,32 +38,29 @@ export default defineComponent({
     },
   },
   setup(props) {
-    let reminder = useRunReminderStore();
-    
+    const reminder = useRunReminderStore();
+
     const showSnackbar = inject<(text: string) => void>("showSnackbar")!;
     const onFocus = () => {
       showSnackbar(
         `"${runName} (${
           props.fields.category
-        })" run by "${props.runnerNames.join(", ")}"`
+        })" run by "${props.runnerNames.join(", ")}"`,
       );
     };
 
     const hasActiveReminder = ref(
-      reminder.allReminders.includes(props.pk.toString())
+      reminder.allReminders.includes(props.pk.toString()),
     );
 
     const runName = props.fields.display_name.replaceAll("\\n", " ");
     const start = new Date(props.fields.starttime);
     const end = new Date(props.fields.endtime);
     const duration = new Date(end.getTime() - start.getTime());
-    const startString = start.toLocaleTimeString(
-      navigator.language,
-      {
-        hour: "numeric",
-        minute: "numeric"
-      }
-    );
+    const startString = start.toLocaleTimeString(navigator.language, {
+      hour: "numeric",
+      minute: "numeric",
+    });
     const durationHMMSS = `${duration.getUTCHours()}:${duration
       .getUTCMinutes()
       .toString()
@@ -63,10 +70,10 @@ export default defineComponent({
       .padStart(2, "0")}`;
     const runners = ref(`${props.runnerNames.join(", ")}`);
 
-    let reminderClasses = ref("");
-    let savedByFriend = ref(false);
+    const reminderClasses = ref("");
+    const savedByFriend = ref(false);
 
-    const setFriendClass = (friendRuns : string[]) => {
+    const setFriendClass = (friendRuns: string[]) => {
       savedByFriend.value = friendRuns.includes(props.pk.toString());
     };
     const friendRunStore = useFriendRunReminderStore();
@@ -101,7 +108,7 @@ export default defineComponent({
     };
 
     watchEffect(() => {
-      let classes = ["reminder"];
+      const classes = ["reminder"];
       if (hasActiveReminder.value) {
         classes.push("is-set");
       }
@@ -116,45 +123,49 @@ export default defineComponent({
       setFriendClass(store.runs);
     });
     const scrollRunContainerBy = inject<(x: number, y: number) => void>(
-      "scrollRunContainerBy"
+      "scrollRunContainerBy",
     );
 
     const timeProvider = inject<DateProvider>("dateProvider")!;
     const now = timeProvider.getCurrent();
     const run = ref<HTMLDivElement>();
     const isActive = ref(start < now && now < end);
-    let currentRun : Ref<[HTMLDivElement, GDQRunDataFields]> | null = null;
+    let currentRun: Ref<[HTMLDivElement, GDQRunDataFields]> | null = null;
     onMounted(() => {
       if (start < now && now < end) {
         run.value!.scrollIntoView(true);
         scrollRunContainerBy!(0, -50);
       }
-      currentRun = inject<Ref<[HTMLDivElement, GDQRunDataFields]>>("currentRun")!;
-      if (isActive.value)
-      {
+      currentRun =
+        inject<Ref<[HTMLDivElement, GDQRunDataFields]>>("currentRun")!;
+      if (isActive.value) {
         currentRun.value = [run.value!, props.fields];
       }
     });
     const isInThePast = ref(end < now);
-    const generateIsOverClassName = computed(() => `run ${generateRunTypeClassName()} ${isInThePast.value ?  "is-over" : ""}`);
+    const generateIsOverClassName = computed(
+      () =>
+        `run ${generateRunTypeClassName()} ${isInThePast.value ? "is-over" : ""}`,
+    );
 
-    let interval = setInterval(() => {
+    const interval = setInterval(() => {
       const now = timeProvider.getCurrent();
       isInThePast.value = end < now;
       isActive.value = start < now && now < end;
 
-      if (isActive.value)
-      {
-        if (!run.value)
-        {
+      if (isActive.value) {
+        if (!run.value) {
           clearInterval(interval);
         }
         currentRun!.value = [run.value!, props.fields];
       }
     }, 200);
 
-    const jumpToTwitch = inject<()=>void>("jumpToTwitch")!;
-    const jumpToYouTube = inject<(runName: string, runnerNames: string[])=>void>("jumpToYouTube")!;
+    const jumpToTwitch = inject<() => void>("jumpToTwitch")!;
+    const jumpToYouTube =
+      inject<(runName: string, runnerNames: string[]) => void>(
+        "jumpToYouTube",
+      )!;
 
     return {
       pk: props.pk,
@@ -172,25 +183,23 @@ export default defineComponent({
       isActive,
       isInThePast,
       jumpToTwitch,
-      jumpToYouTube
+      jumpToYouTube,
     };
   },
   methods: {
     toggleReminder: async function () {
-      if (this.isActive)
-      {
-          this.jumpToTwitch();
-          return;
+      if (this.isActive) {
+        this.jumpToTwitch();
+        return;
       }
-      
-      if (this.isInThePast)
-      {
-          this.jumpToYouTube(this.runName, this.runnerNames);
-          return;
+
+      if (this.isInThePast) {
+        this.jumpToYouTube(this.runName, this.runnerNames);
+        return;
       }
       const reminderStore = useRunReminderStore();
       if (reminderStore.allReminders.includes(this.pk.toString())) {
-        if (!await reminderStore.remove(this.pk.toString())) {
+        if (!(await reminderStore.remove(this.pk.toString()))) {
           return;
         }
         PushNotificationHelper.unsubscribeFromStartOfRun(this.pk.toString());
@@ -198,14 +207,15 @@ export default defineComponent({
         return false;
       }
 
-      if (!await reminderStore.add(
-        this.pk.toString(),
-        this.runName,
-        this.start,
-        this.end,
-        `Runner: ${this.runnerNames.join(", ")}\nCategory: ${this.fields.category}`
-      ))
-      {
+      if (
+        !(await reminderStore.add(
+          this.pk.toString(),
+          this.runName,
+          this.start,
+          this.end,
+          `Runner: ${this.runnerNames.join(", ")}\nCategory: ${this.fields.category}`,
+        ))
+      ) {
         return;
       }
       PushNotificationHelper.subscribeToStartOfRun(this.pk.toString());
@@ -217,7 +227,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <div     @click="toggleReminder()"
+  <div
+    @click="toggleReminder()"
     @focus="onFocus()"
     tabindex="0"
     :class="className"
@@ -227,20 +238,23 @@ export default defineComponent({
       <span class="runName">{{ runName }}</span>
       <span class="meta">
         <span class="meta-entry schedule"
-          ><md-icon>schedule</md-icon>{{ startString }}</span>
+          ><md-icon>schedule</md-icon>{{ startString }}</span
+        >
         <span class="meta-entry timer"
-          ><md-icon filled>timer</md-icon>{{ durationHMMSS }}</span>
+          ><md-icon filled>timer</md-icon>{{ durationHMMSS }}</span
+        >
         <span class="meta-entry person"
-          ><md-icon filled>person</md-icon> {{ runners }}</span>
+          ><md-icon filled>person</md-icon> {{ runners }}</span
+        >
       </span>
+    </div>
+    <div :class="reminderClasses">
+      <div class="alarm">
+        <md-icon>alarm</md-icon>
       </div>
-      <div :class="reminderClasses">
-        <div class="alarm">
-          <md-icon>alarm</md-icon>
-        </div>
-        <div class="friend">
-          <md-icon filled>group</md-icon>
-        </div>
+      <div class="friend">
+        <md-icon filled>group</md-icon>
+      </div>
     </div>
   </div>
 </template>
@@ -256,9 +270,9 @@ export default defineComponent({
   border-radius: 11px;
   margin-bottom: 14px;
   overflow: hidden;
-    
+
   md-icon[filled] {
-    font-variation-settings: 'FILL' 1;
+    font-variation-settings: "FILL" 1;
   }
 
   &.is-over {
@@ -335,6 +349,16 @@ export default defineComponent({
   }
 
   .reminder {
+    display: flex;
+    transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1) margin-right;
+    margin-right: -100%;
+
+    justify-content: center;
+    align-items: center;
+
+    height: 100%;
+    flex: 0 0 auto;
+
     & > * {
       height: 50px;
       width: 0px;
@@ -353,7 +377,7 @@ export default defineComponent({
       transition: 0.15s ease-out all;
       margin-right: 0px;
       .alarm {
-      transition: 0.15s ease-out all;
+        transition: 0.15s ease-out all;
         width: 50px;
       }
     }
@@ -361,7 +385,7 @@ export default defineComponent({
       transition: 0.15s ease-out all;
       margin-right: 0px;
       .friend {
-      transition: 0.15s ease-out all;
+        transition: 0.15s ease-out all;
         width: 50px;
       }
     }
@@ -376,18 +400,8 @@ export default defineComponent({
       }
     }
 
-    display: flex;
-    transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1) margin-right;
-    margin-right: -100%;
-
-    justify-content: center;
-    align-items: center;
-
-    height: 100%;
-    flex: 0 0 auto;
-
     .dark-mode & {
-      color: var(	--md-sys-color-primary-container);
+      color: var(--md-sys-color-primary-container);
       &.bonus-game {
         color: var(--md-sys-color-secondary-container);
       }
@@ -395,7 +409,7 @@ export default defineComponent({
         color: var(--md-sys-color-tertiary-container);
       }
 
-      .alarm {      
+      .alarm {
         background: hsla(52, 76%, 41%, 1);
       }
       .friend {
@@ -411,8 +425,7 @@ export default defineComponent({
       transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
     }
 
-    .friend md-icon
-    { 
+    .friend md-icon {
       margin-bottom: -3px;
       --md-icon-size: 44px;
       margin-right: 3px;
