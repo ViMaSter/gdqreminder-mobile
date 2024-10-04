@@ -1,5 +1,13 @@
 <script lang="ts">
-import { onMounted, ref, Ref, provide, defineComponent, watch, onBeforeMount } from "vue";
+import {
+  onMounted,
+  ref,
+  Ref,
+  provide,
+  defineComponent,
+  watch,
+  onBeforeMount,
+} from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Snackbar } from "@material/mwc-snackbar";
 import "@material/mwc-drawer";
@@ -599,6 +607,8 @@ export default defineComponent({
 
 <template>
   <div :class="generateContainerClassNames()">
+    <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
+    <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
     <md-dialog ref="dialog">
       <div slot="headline">
         <md-button @click="copyID">Copy your user ID</md-button>
@@ -652,6 +662,7 @@ export default defineComponent({
         </div>
       </div>
     </mwc-drawer>
+    <!-- eslint-enable vue/no-deprecated-slot-attribute -->
   </div>
 </template>
 

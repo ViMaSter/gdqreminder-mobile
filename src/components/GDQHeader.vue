@@ -13,6 +13,8 @@ export default defineComponent({
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
+  <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
   <mwc-top-app-bar-fixed>
     <md-icon-button slot="navigationIcon"
       ><md-icon>menu</md-icon></md-icon-button
@@ -25,6 +27,7 @@ export default defineComponent({
       ><md-icon>dark_mode</md-icon></md-icon-button
     >
   </mwc-top-app-bar-fixed>
+    <!-- eslint-enable vue/no-deprecated-slot-attribute false positive: -->
 </template>
 
 <style lang="scss" scoped>
