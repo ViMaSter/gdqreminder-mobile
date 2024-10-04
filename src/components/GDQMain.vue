@@ -119,6 +119,15 @@ export default defineComponent({
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
 
+    onBeforeMount(() => {
+      App.addListener("backButton", async () => {
+        drawer.value!.open = !drawer.value!.open;
+        if (!drawer.value!.open) {
+          await App.minimizeApp();
+        }
+      });
+    });
+
     onMounted(() => {
       const container = drawer.value!.parentNode;
       container!.addEventListener("MDCTopAppBar:nav", () => {
