@@ -1,18 +1,13 @@
-import { defineConfig, devices } from '@playwright/experimental-ct-vue';
-import { dirname, resolve } from 'path';
-import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+import { defineConfig, devices } from "@playwright/experimental-ct-vue";
+import { dirname, resolve } from "path";
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './',
+  testDir: "./",
   /* The base directory, relative to the config file, for snapshot files created with toMatchSnapshot and toHaveScreenshot. */
-  snapshotDir: './__snapshots__',
+  snapshotDir: "./__snapshots__",
   /* Maximum time one test can run for. */
   timeout: 10 * 1000,
   /* Run tests in files in parallel */
@@ -24,21 +19,28 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: "html",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
 
     /* Port to use for Playwright component endpoint. */
     ctPort: 3100,
 
-    video: 'retain-on-failure',
+    video: "retain-on-failure",
 
     ctViteConfig: {
       resolve: {
         alias: {
-          '@': resolve(dirname('.'), './src'),
+          "@": resolve(dirname("."), "./src"),
+        },
+      },
+      css: {
+        preprocessorOptions: {
+          scss: {
+            api: "modern-compiler",
+          },
         },
       },
     },
@@ -47,22 +49,22 @@ export default defineConfig({
   /* Configure projects for browser and phone */
   projects: [
     {
-      name: 'chromium',
+      name: "chromium",
       use: {
-         ...devices['Desktop Chrome'],
-         launchOptions: {
-          args: ['--disable-web-security'],
-        }
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          args: ["--disable-web-security"],
+        },
       },
     },
     {
-      name: 'pixel5',
+      name: "pixel5",
       use: {
-         ...devices['Pixel 5'],
-         launchOptions: {
-          args: ['--disable-web-security'],
-        }
+        ...devices["Pixel 5"],
+        launchOptions: {
+          args: ["--disable-web-security"],
         },
+      },
     },
   ],
 });
