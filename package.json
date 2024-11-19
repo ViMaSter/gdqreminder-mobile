@@ -19,7 +19,7 @@
   "dependencies": {
     "@capacitor-community/fcm": "^6.0.0",
     "@capacitor-firebase/authentication": "^6.2.0",
-    "@capacitor/android": "^6.1.2",
+    "@capacitor/android": "^6.2.0",
     "@capacitor/app": "^6.0.2",
     "@capacitor/app-launcher": "^6.0.3",
     "@capacitor/core": "^6.1.2",
