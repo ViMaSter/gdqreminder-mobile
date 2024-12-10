@@ -39,7 +39,7 @@
     "capacitor-plugin-safe-area": "^3.0.3",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "firebase": "^10.14.1",
-    "ky": "^1.7.2",
+    "ky": "^1.7.3",
     "pinia": "^2.3.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
