@@ -60,6 +60,7 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 export default defineComponent({
   async setup() {
     const scrollable = ref<HTMLDivElement>();
+    const wrapper = ref<HTMLDivElement>();
     provide<(x: number, y: number) => void>(
       "scrollRunContainerBy",
       (x: number, y: number) => {
@@ -74,6 +75,7 @@ export default defineComponent({
         header.style.overflow = "visible";
 
         scrollable.value!.querySelector("#runs")!.scrollBy(x, y);
+        wrapper.value!.scrollTop = 0;
       },
     );
 
@@ -582,6 +584,7 @@ export default defineComponent({
       runners,
       reminder,
       scrollable,
+      wrapper,
       toggleFilter,
       toggleDarkMode,
       generateContainerClassNames: () => {
@@ -606,7 +609,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div :class="generateContainerClassNames()">
+  <div ref="wrapper" :class="generateContainerClassNames()">
     <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
     <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
     <md-dialog ref="dialog">
