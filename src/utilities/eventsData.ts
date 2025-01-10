@@ -13,7 +13,7 @@ export class EventsData {
     }
     const response = await CapacitorHttp.get({
       url:
-        "https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" +
+        "https://tracker.gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" +
         datetime_gte.toISOString(),
     });
 

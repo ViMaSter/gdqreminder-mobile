@@ -258,7 +258,7 @@ public class CalendarManager {
     public static Exception RefreshCalendarData(Context context) {
         try {
             Instant aroundAMonthAgo = Instant.now().minus(35, ChronoUnit.DAYS);
-            URL uri = new URL("https://gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + aroundAMonthAgo.toString());
+            URL uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + aroundAMonthAgo.toString());
             HttpURLConnection connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
@@ -278,7 +278,7 @@ public class CalendarManager {
             inputStream.close();
             JSArray events = new JSArray(response.toString());
             String currentShort = events.getJSONObject(0).getJSONObject("fields").getString("short");
-            uri = new URL("https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + currentShort);
+            uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + currentShort);
             connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
