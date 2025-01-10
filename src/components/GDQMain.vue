@@ -261,7 +261,7 @@ export default defineComponent({
       const orderedRuns = (
         (
           await CapacitorHttp.get({
-            url: `https://gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`,
+            url: `https://tracker.gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=${eventShort}`,
           })
         ).data as GDQRunData[]
       )
@@ -283,7 +283,7 @@ export default defineComponent({
         (
           (
             await CapacitorHttp.get({
-              url: `https://gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`,
+              url: `https://tracker.gamesdonequick.com/tracker/api/v1/search/?type=runner&ids=${uniqueRunner.join(",")}`,
             })
           ).data as GDQRunnerData[]
         ).map((runner) => [runner.pk, runner.fields]),
