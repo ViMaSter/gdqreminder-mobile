@@ -241,6 +241,7 @@ export default defineComponent({
     const currentEventName = ref(
       `${(await Version.getCurrent()).versionName}.${(await Version.getCurrent()).versionCode}`,
     );
+    const currentEventID = ref(-1);
     const runsByID = ref<{
       [pk: string]: GDQRunData;
     }>({});
@@ -302,8 +303,9 @@ export default defineComponent({
 
       scrollable.value?.querySelector("#runs")!.scrollTo(0, 0);
 
-      currentEventName.value = newEvent.short;
-      reflectColor(newEvent.short, document.body.classList.contains("dark-mode"));
+      currentEventName.value = newEvent.short.toUpperCase();
+      currentEventID.value = newEvent.id;
+      reflectColor(currentEventName.value, document.body.classList.contains("dark-mode"));
       if (drawer.value) {
         drawer.value.open = false;
       }
@@ -455,7 +457,7 @@ export default defineComponent({
       }
 
       const newestEvent = determineLatestEventWithRuns(descendingEventList);
-      if (newestEvent.short == currentEventName.value) {
+      if (newestEvent.short.toUpperCase() == currentEventName.value) {
         return;
       }
       await updateCurrentEvent(newestEvent);
@@ -483,7 +485,7 @@ export default defineComponent({
     const reminder = useRunReminderStore();
     const friendRunStore = useFriendRunReminderStore();
     const refreshRuns = () => {
-      const orderedRuns = runsByEventID.value[currentEventName.value];
+      const orderedRuns = runsByEventID.value[currentEventID.value];
       const runs: { [day: string]: string[] } = {};
       orderedRuns.forEach(([runID]) => {
         const hasAlert = reminder.allReminders.includes(runID);
@@ -568,6 +570,7 @@ export default defineComponent({
       snackbar,
       orderedDays,
       currentEventName,
+      currentEventID,
       updateCurrentEvent,
       updateCurrentEventToNewest,
       runsByID,
