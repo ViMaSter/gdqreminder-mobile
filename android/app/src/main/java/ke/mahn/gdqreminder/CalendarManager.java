@@ -128,7 +128,7 @@ public class CalendarManager {
         Map<String, String> sync_idToId = new HashMap<>();
         for (int i = 0; i < allEvents.getJSONArray("events").length(); i++) {
             JSONObject event = allEvents.getJSONArray("events").getJSONObject(i);
-            sync_idToId.put(event.getString("pk"), event.getString("id"));
+            sync_idToId.put(event.getString("syncid"), event.getString("id"));
         }
 
         for (String sync_id : sync_idToId.keySet()) {
@@ -238,7 +238,7 @@ public class CalendarManager {
         while (cursor.moveToNext()) {
             JSObject event = new JSObject();
             event.put("id", cursor.getString(PROJECTION_ID_INDEX));
-            event.put("pk", cursor.getString(PROJECTION_SYNC_ID_INDEX));
+            event.put("syncid", cursor.getString(PROJECTION_SYNC_ID_INDEX));
             event.put("title", cursor.getString(PROJECTION_TITLE_INDEX));
             event.put("location", cursor.getString(PROJECTION_LOCATION_INDEX));
             event.put("notes", cursor.getString(PROJECTION_DESCRIPTION_INDEX));
@@ -258,7 +258,7 @@ public class CalendarManager {
     public static Exception RefreshCalendarData(Context context) {
         try {
             Instant aroundAMonthAgo = Instant.now().minus(35, ChronoUnit.DAYS);
-            URL uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" + aroundAMonthAgo.toString());
+            URL uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v2/events/");
             HttpURLConnection connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
@@ -277,8 +277,8 @@ public class CalendarManager {
             reader.close();
             inputStream.close();
             JSArray events = new JSArray(response.toString());
-            String currentShort = events.getJSONObject(0).getJSONObject("fields").getString("short");
-            uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v1/search/?type=run&eventshort=" + currentShort);
+            String currentEventID = events.getJSONObject(0).getJSONArray("results").getJSONObject(0).getString("id");
+            uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v2/events/" + currentEventID + "/runs/");
             connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
@@ -295,15 +295,15 @@ public class CalendarManager {
             reader.close();
             inputStream.close();
             JSONArray runs = new JSONArray(response.toString());
-            JSONArray trackedPKs = internalGetAllEvents(context).getJSONArray("events");
+            JSONArray trackedPKs = internalGetAllEvents(context).getJSONArray("results");
             List<String> trackedPKsList = new ArrayList<>();
             for (int i = 0; i < trackedPKs.length(); i++) {
-                trackedPKsList.add(trackedPKs.getJSONObject(i).getString("pk"));
+                trackedPKsList.add(trackedPKs.getJSONObject(i).getString("id"));
             }
 
             for (int i = 0; i < runs.length(); i++) {
                 JSONObject fields = runs.getJSONObject(i).getJSONObject("fields");
-                String pk = runs.getJSONObject(i).getString("pk");
+                String pk = runs.getJSONObject(i).getString("id");
 
                 if (!trackedPKsList.contains(pk)) {
                     continue;
@@ -312,7 +312,7 @@ public class CalendarManager {
                 internalUpsertEvent(
                         context,
                         InsertCalendarIfMissing(context),
-                        runs.getJSONObject(i).getString("pk"),
+                        runs.getJSONObject(i).getString("id"),
                         Instant.parse(fields.getString("starttime")).toEpochMilli(),
                         Instant.parse(fields.getString("endtime")).toEpochMilli(),
                         fields.getString("display_name"),
