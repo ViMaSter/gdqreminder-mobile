@@ -4,7 +4,7 @@ import { CapacitorHttp } from "@capacitor/core";
 export class EventsData {
   static async getEventsData(datetime_gte: Date): Promise<GDQEventData[]> {
     datetime_gte.setHours(0, 0, 0, 0);
-    const key = "eventsData-" + datetime_gte.toISOString();
+    const key = "eventsDataV2-" + datetime_gte.toISOString();
     if (localStorage.getItem(key)) {
       const eventsData = JSON.parse(localStorage.getItem(key) as string);
       if (eventsData.expiration > Date.now()) {
@@ -13,14 +13,15 @@ export class EventsData {
     }
     const response = await CapacitorHttp.get({
       url:
-        "https://tracker.gamesdonequick.com/tracker/api/v1/search/?type=event&datetime_gte=" +
-        datetime_gte.toISOString(),
+        "https://tracker.gamesdonequick.com/tracker/api/v2/events/"
     });
 
-    const data = response.data as GDQEventData[];
+    const data = (response.data.results as GDQEventData[]).filter((event) => {
+      return new Date(event.datetime) >= datetime_gte;
+    });
     const eventsData = {
       expiration: Date.now() + 1000 * 60 * 60 * 24 * 30 * 2,
-      data: data,
+      data,
     };
     localStorage.setItem(key, JSON.stringify(eventsData));
     return eventsData.data;

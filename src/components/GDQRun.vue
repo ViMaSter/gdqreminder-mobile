@@ -10,7 +10,7 @@ import {
   onBeforeMount,
 } from "vue";
 import "../utilities/pushNotificationHelper";
-import { GDQRunDataFields } from "@/interfaces/GDQRun";
+import { GDQRunData } from "@/interfaces/GDQRun";
 import PushNotificationHelper from "../utilities/pushNotificationHelper";
 import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
@@ -24,8 +24,8 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    fields: {
-      type: Object as () => GDQRunDataFields,
+    runData: {
+      type: Object as () => GDQRunData,
       required: true,
     },
     runnerNames: {
@@ -44,7 +44,7 @@ export default defineComponent({
     const onFocus = () => {
       showSnackbar(
         `"${runName} (${
-          props.fields.category
+          props.runData.category
         })" run by "${props.runnerNames.join(", ")}"`,
       );
     };
@@ -53,9 +53,9 @@ export default defineComponent({
       reminder.allReminders.includes(props.pk.toString()),
     );
 
-    const runName = props.fields.display_name.replaceAll("\\n", " ");
-    const start = new Date(props.fields.starttime);
-    const end = new Date(props.fields.endtime);
+    const runName = props.runData.display_name.replaceAll("\\n", " ");
+    const start = new Date(props.runData.starttime);
+    const end = new Date(props.runData.endtime);
     const duration = new Date(end.getTime() - start.getTime());
     const startString = start.toLocaleTimeString(navigator.language, {
       hour: "numeric",
@@ -80,28 +80,28 @@ export default defineComponent({
     setFriendClass(friendRunStore.allReminders);
 
     const generateRunTypeClassName = () => {
-      if (props.fields.display_name == "Pre-Show") {
+      if (props.runData.display_name == "Pre-Show") {
         return "in-person";
       }
-      if (props.fields.display_name.includes("Daily Recap")) {
+      if (props.runData.display_name.includes("Daily Recap")) {
         return "in-person";
       }
       if (props.runnerNames.join(", ") == "Tech Crew") {
         return "in-person";
       }
-      if (props.fields.console == "SGDQ") {
+      if (props.runData.console == "SGDQ") {
         return "in-person";
       }
-      if (props.fields.console == "AGDQ") {
+      if (props.runData.console == "AGDQ") {
         return "in-person";
       }
-      if (props.fields.console == "Live") {
+      if (props.runData.console == "Live") {
         return "in-person";
       }
-      if (props.fields.console == "GDQ Stage") {
+      if (props.runData.console == "GDQ Stage") {
         return "in-person";
       }
-      if (props.fields.display_name.toLowerCase().includes("bonus game")) {
+      if (props.runData.display_name.toLowerCase().includes("bonus game")) {
         return "bonus-game";
       }
       return "";
@@ -130,16 +130,16 @@ export default defineComponent({
     const now = timeProvider.getCurrent();
     const run = ref<HTMLDivElement>();
     const isActive = ref(start < now && now < end);
-    let currentRun: Ref<[HTMLDivElement, GDQRunDataFields]> | null = null;
+    let currentRun: Ref<[HTMLDivElement, GDQRunData]> | null = null;
     onMounted(() => {
       if (start < now && now < end) {
         run.value!.scrollIntoView(true);
         scrollRunContainerBy!(0, -50);
       }
       currentRun =
-        inject<Ref<[HTMLDivElement, GDQRunDataFields]>>("currentRun")!;
+        inject<Ref<[HTMLDivElement, GDQRunData]>>("currentRun")!;
       if (isActive.value) {
-        currentRun.value = [run.value!, props.fields];
+        currentRun.value = [run.value!, props.runData];
       }
     });
     const isInThePast = ref(end < now);
@@ -157,7 +157,7 @@ export default defineComponent({
         if (!run.value) {
           clearInterval(interval);
         }
-        currentRun!.value = [run.value!, props.fields];
+        currentRun!.value = [run.value!, props.runData];
       }
     }, 200);
 
@@ -213,7 +213,7 @@ export default defineComponent({
           this.runName,
           this.start,
           this.end,
-          `Runner: ${this.runnerNames.join(", ")}\nCategory: ${this.fields.category}`,
+          `Runner: ${this.runnerNames.join(", ")}\nCategory: ${this.runData.category}`,
         ))
       ) {
         return;

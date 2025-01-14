@@ -2,8 +2,7 @@
 import { defineComponent, inject } from "vue";
 import GDQRun from "./GDQRun.vue";
 import GDQDayDivider from "./GDQDayDivider.vue";
-import { GDQRunDataFields } from "../interfaces/GDQRun";
-import { GDQRunnerDataFields } from "../interfaces/GDQRunner";
+import { GDQRunData } from "../interfaces/GDQRun";
 import { DateProvider } from "@/interfaces/DateProvider";
 
 export default defineComponent({
@@ -17,11 +16,7 @@ export default defineComponent({
       required: true,
     },
     runsByID: {
-      type: Object as () => { [pk: string]: GDQRunDataFields },
-      required: true,
-    },
-    runners: {
-      type: Object as () => { [pk: string]: GDQRunnerDataFields },
+      type: Object as () => { [pk: string]: GDQRunData },
       required: true,
     },
   },
@@ -59,9 +54,9 @@ export default defineComponent({
         v-if="index == Object.keys(runsIDsInOrder).length - 1"
         :last="true"
         :pk="runPK"
-        :fields="runsByID[runPK]"
+        :runData="runsByID[runPK]"
         :runner-names="
-          runsByID[runPK].runners.map((runner) => runners[runner].public)
+          runsByID[runPK].runners.map((runner) => runner.name)
         "
       ></GDQRun>
       <GDQRun
@@ -69,9 +64,9 @@ export default defineComponent({
         v-if="index != Object.keys(runsIDsInOrder).length - 1"
         :last="false"
         :pk="runPK"
-        :fields="runsByID[runPK]"
+        :runData="runsByID[runPK]"
         :runner-names="
-          runsByID[runPK].runners.map((runner) => runners[runner].public)
+          runsByID[runPK].runners.map((runner) => runner.name)
         "
       ></GDQRun>
     </template>

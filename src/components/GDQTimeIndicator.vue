@@ -1,10 +1,10 @@
 <script lang="ts">
 import { DateProvider } from "@/interfaces/DateProvider";
-import { GDQRunDataFields } from "@/interfaces/GDQRun";
+import { GDQRunData } from "@/interfaces/GDQRun";
 import { defineComponent, inject, ref, Ref, watch } from "vue";
 export default defineComponent({
   async setup() {
-    const currentRun: Ref<[HTMLDivElement, GDQRunDataFields]> =
+    const currentRun: Ref<[HTMLDivElement, GDQRunData]> =
       inject("currentRun")!;
     const now = inject<DateProvider>("dateProvider")!;
 
@@ -15,7 +15,7 @@ export default defineComponent({
       return (n - a) / (b - a);
     };
 
-    const update = (newRun: [HTMLDivElement, GDQRunDataFields]) => {
+    const update = (newRun: [HTMLDivElement, GDQRunData]) => {
       if (newRun && newRun[0]) {
         const [runElement, runData] = newRun;
         visibilityClasses.value = "timeIndicator shown";

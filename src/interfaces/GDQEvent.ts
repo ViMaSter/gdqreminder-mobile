@@ -1,8 +1,5 @@
-export interface GDQEventDataFields {
+export interface GDQEventData {
+  id: number;
   short: string;
   datetime: string;
-  locked: boolean;
-}
-export interface GDQEventData {
-  fields: GDQEventDataFields;
 }
