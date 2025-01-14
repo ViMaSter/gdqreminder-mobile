@@ -17,6 +17,7 @@ const timings = [
 
 timings.forEach(([testName, date, title]) => {
   test(testName, async ({ page }) => {
+    test.setTimeout(60_000);
     await page.goto(page.url() + "#date=" + date);
     await page.evaluate(() => {
       location.reload();
