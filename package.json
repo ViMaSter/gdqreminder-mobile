@@ -24,7 +24,7 @@
     "@capacitor/app-launcher": "^6.0.3",
     "@capacitor/core": "^6.1.2",
     "@capacitor/ios": "^6.2.0",
-    "@capacitor/push-notifications": "^6.0.3",
+    "@capacitor/push-notifications": "^6.0.4",
     "@material/material-color-utilities": "^0.3.0",
     "@material/mwc-dialog": "^0.27.0",
     "@material/mwc-drawer": "^0.27.0",
