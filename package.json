@@ -32,7 +32,7 @@
     "@material/mwc-snackbar": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
     "@material/web": "^2.2.0",
-    "@sentry/cli": "^2.42.2",
+    "@sentry/cli": "^2.42.3",
     "@sentry/vue": "^9.5.0",
     "@vitejs/plugin-legacy": "^6.0.2",
     "@webcomponents/webcomponentsjs": "^2.8.0",
