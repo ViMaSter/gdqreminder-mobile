@@ -24,8 +24,7 @@ const reflectInFirestore = async (runs: string[]) => {
   });
 };
 
-export const useRunReminderStore = defineStore({
-  id: key,
+export const useRunReminderStore = defineStore(key, {
   state: (): RunReminderState => {
     const state = localStorage.getItem("piniaState-" + key);
     if (!state) {

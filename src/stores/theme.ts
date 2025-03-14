@@ -14,8 +14,7 @@ const defaultValue: ThemeState = {
   selectedTheme: Theme.Device,
 };
 
-export const useThemeStore = defineStore({
-  id: key,
+export const useThemeStore = defineStore(key, {
   state: (): ThemeState => {
     const state = localStorage.getItem("piniaState-" + key);
     if (!state) {

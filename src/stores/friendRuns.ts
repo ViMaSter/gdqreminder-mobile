@@ -5,8 +5,7 @@ type FriendRunReminderState = {
 };
 const key = "FriendRunReminder";
 
-export const useFriendRunReminderStore = defineStore({
-  id: key,
+export const useFriendRunReminderStore = defineStore(key, {
   state: (): FriendRunReminderState => {
     return { runs: [] };
   },
