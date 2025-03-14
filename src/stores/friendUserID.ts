@@ -8,8 +8,7 @@ const defaultValue: FriendUserIDState = {
   friendUserID: undefined,
 };
 
-const useFriendUserIDStore = defineStore({
-  id: key,
+const useFriendUserIDStore = defineStore(key, {
   state: (): FriendUserIDState => {
     const state = localStorage.getItem("piniaState-" + key);
     if (!state) {
