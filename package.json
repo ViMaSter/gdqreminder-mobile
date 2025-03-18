@@ -17,7 +17,7 @@
     "test:e2e": "playwright test -c playwright-ct.config.ts"
   },
   "dependencies": {
-    "@capacitor-community/fcm": "^7.0.0",
+    "@capacitor-community/fcm": "^7.1.1",
     "@capacitor-firebase/authentication": "^7.0.0",
     "@capacitor/android": "^7.1.0",
     "@capacitor/app": "^7.0.0",
