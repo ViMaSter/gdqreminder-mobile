@@ -31,7 +31,7 @@
     "@material/mwc-icon-button": "^0.27.0",
     "@material/mwc-snackbar": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
-    "@material/web": "^2.2.0",
+    "@material/web": "^2.3.0",
     "@sentry/cli": "^2.43.0",
     "@sentry/vue": "^9.10.0",
     "@vitejs/plugin-legacy": "^6.0.2",
