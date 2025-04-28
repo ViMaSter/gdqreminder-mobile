@@ -5,12 +5,12 @@
 <img align="right" width="300" src="https://github.com/ViMaSter/gdqreminder-mobile/assets/1689033/bba6de50-4149-443e-9184-05c65dbfb636)">
 
 1. Install [Visual Studio Code](https://code.visualstudio.com/)
-2. Install recommended Visual Studio Code extensions
-3. 
+2. 
     - For Windows: Install [`nvm-windows` 1.1.9 or later](https://github.com/coreybutler/nvm-windows) 
     - For other operating systems: Install [`nvm` 0.39.2 or later](https://github.com/nvm-sh/nvm#installing-and-updating)
-4. Clone this repository
-5. Run inside your clone of this repository:  
+3. Clone this repository
+4. Open your clone inside Visual Studio Code and install the recommended extensions
+5. Inside your clone of this repository run:  
    `nvm install && nvm use && npm install && npm run dev`
 > [!Tip]  
 > If `npm install` causes your terminal to freeze, kill your terminal process, open a new terminal instance, run `npm install -g npm` and try step 5 again
