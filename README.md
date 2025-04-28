@@ -12,6 +12,8 @@
 4. Clone this repository
 5. Run inside your clone of this repository:  
    `nvm install && nvm use && npm install && npm run dev`
+> [!Tip]  
+> If `npm install` causes your terminal to freeze, kill your terminal process, open a new terminal instance, run `npm install -g npm` and try step 5 again
 6. Open a browser with CORS disabled. Example for Chrome:
     > `--disable-web-security --user-data-dir="/tmp/google"`
 7. Visit `http://localhost:4437`
