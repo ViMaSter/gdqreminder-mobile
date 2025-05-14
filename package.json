@@ -38,7 +38,7 @@
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "capacitor-plugin-safe-area": "4.0.0",
     "conventional-changelog-conventionalcommits": "^8.0.0",
-    "firebase": "^11.7.1",
+    "firebase": "^11.7.2",
     "ky": "^1.8.1",
     "pinia": "^3.0.2",
     "vue": "^3.5.13",
