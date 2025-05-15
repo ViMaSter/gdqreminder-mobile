@@ -52,7 +52,7 @@ export default defineComponent({
       reminder.allReminders.includes(props.pk.toString()),
     );
 
-    const runName = props.runData.display_name.replaceAll("\\n", " ");
+    const runName = (props.runData.display_name.length == 0 ? props.runData.name : props.runData.display_name).replaceAll("\\n", " ");
     const start = new Date(props.runData.starttime);
     const end = new Date(props.runData.endtime);
     const duration = new Date(end.getTime() - start.getTime());
