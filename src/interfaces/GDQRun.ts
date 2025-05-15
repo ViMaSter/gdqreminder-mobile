@@ -10,6 +10,7 @@ export interface GDQRunnerData {
 }
 export interface GDQRunData {
   id: number;
+  name: string; // fallback, as sometimes display_name is empty
   display_name: string;
   console: string;
   category: string;

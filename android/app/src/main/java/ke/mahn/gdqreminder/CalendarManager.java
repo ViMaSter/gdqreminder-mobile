@@ -309,13 +309,17 @@ public class CalendarManager {
                     continue;
                 }
 
+                String displayName = fields.optString("display_name");
+                if (displayName == null || displayName.isEmpty()) {
+                    displayName = fields.optString("name", "");
+                }
                 internalUpsertEvent(
                         context,
                         InsertCalendarIfMissing(context),
                         runs.getJSONObject(i).getString("id"),
                         Instant.parse(fields.getString("starttime")).toEpochMilli(),
                         Instant.parse(fields.getString("endtime")).toEpochMilli(),
-                        fields.getString("display_name"),
+                        displayName,
                         fields.getString("description"),
                         "https://twitch.tv/gamesdonequick"
                 );
