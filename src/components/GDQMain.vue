@@ -255,17 +255,19 @@ export default defineComponent({
     // returns true if there are runs for this event already
     // returns false if there are no runs for this event yet
     const loadRuns = async (eventID: number) => {
+      const response = await CapacitorHttp.get({
+        url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
+      });
+      if (response.status !== 200) {
+        return false;
+      }
       const orderedRuns = (
-        (
-          await CapacitorHttp.get({
-            url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
-          })
-        ).data.results as GDQRunData[]
+        response.data.results as GDQRunData[]
       )
         .sort(
           (a, b) =>
-            new Date(a.starttime).getTime() -
-            new Date(b.starttime).getTime(),
+        new Date(a.starttime).getTime() -
+        new Date(b.starttime).getTime(),
         )
         .map((run): [string, GDQRunData] => [
           run.id.toString(),
