@@ -1,4 +1,3 @@
-export interface DateProvider
-{
-    getCurrent() : Date
+export interface DateProvider {
+  getCurrent(): Date;
 }

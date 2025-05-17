@@ -1,30 +1,36 @@
 <script lang="ts">
-import {defineComponent, toRef} from 'vue';
-import '@material/web/all.js';
+import { defineComponent, toRef } from "vue";
+import "@material/web/all.js";
+import { GDQEventData } from "@/interfaces/GDQEvent";
 export default defineComponent({
-    props: {
-        eventsByShorthand: {
-            type: Object as () => {[key : string] : any},
-            required: true,
-        },
-        doneLoading: {
-            type: Boolean,
-            required: true
-        }
+  props: {
+    eventsByIDs: {
+      type: Object as () => { [id: number]: GDQEventData },
+      required: true,
     },
-    async setup(props) {
-      const eventByShorthands = toRef(props, "eventsByShorthand");
-      const doneLoading = toRef(props, "doneLoading");
-      return {
-        eventByShorthands
-      }
-    }
+    doneLoading: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  async setup(props) {
+    const eventsByIDs = toRef(props, "eventsByIDs");
+
+    return {
+      eventsByIDs,
+    };
+  },
 });
 </script>
 
 <template>
   <md-list>
-    <md-list-item v-for="[displayName] in (Object.entries(eventByShorthands))" :key="displayName" @click="$emit('onUpdateCurrentEvent', displayName)">{{displayName}}</md-list-item>
+    <md-list-item
+      v-for="event in Object.values(eventsByIDs).sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime())"
+      :key="event.short"
+      @click="$emit('onUpdateCurrentEvent', event)"
+      >{{ event.short.toUpperCase() }}</md-list-item
+    >
     <md-list-item v-if="!doneLoading" class="rotating">
       <md-icon>autorenew</md-icon>
     </md-list-item>
@@ -32,8 +38,7 @@ export default defineComponent({
 </template>
 
 <style lang="scss">
-.mdc-drawer__header
-{
+.mdc-drawer__header {
   padding-top: var(--safe-area-inset-top);
 }
 </style>
