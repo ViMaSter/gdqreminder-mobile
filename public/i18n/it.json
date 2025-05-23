@@ -1,1 +1,17 @@
-{}
+{
+    "sidebar": {
+        "headline": "Available events"
+    },
+    "friendCodes": {
+        "headline": "Share your runs",
+        "content-yourCode": "Share your runs by exchanging friend codes! ",
+        "label-yourCode": "Your friend code",
+        "content-friendCode": "Enter a friend code to see which runs your friend has set up!",
+        "label-friendCode": "Enter friend code",
+        "error-friendCode": "Invalid friend code",
+        "note-friendCode": "Your friend's runs will be highlighted, but you'll continue to only receive notifications for runs you set up yourself."
+    },
+    "note": "Note",
+    "cancel": "Cancel",
+    "apply": "Apply"
+}
