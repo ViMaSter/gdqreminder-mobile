@@ -94,21 +94,28 @@ const registerNotifications = async () => {
 
 let unsubscribe: Unsubscribe | null = null;
 const subscribe = (friendUserID: string) => {
+  const friendRunStore = useFriendRunReminderStore();
   if (friendUserID == null || friendUserID.length === 0) {
+    friendRunStore.set([]);
     return;
   }
+
   const docRef = doc(store, "remindersByUserID", friendUserID);
-  const friendRunStore = useFriendRunReminderStore();
   if (unsubscribe != null) {
     unsubscribe();
   }
+  
   unsubscribe = onSnapshot(docRef, (doc) => {
-    if (doc.exists()) {
-      const data = doc.data();
-      if (data) {
-        friendRunStore.set(data.runs);
-      }
+    if (!doc.exists()) {
+      friendRunStore.set([]);
+      return;
     }
+
+    const data = doc.data();
+    if (!data) {
+      friendRunStore.set([]);
+    }
+    friendRunStore.set(data.runs);
   });
 };
 
