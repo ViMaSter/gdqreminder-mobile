@@ -20,6 +20,12 @@ export default defineComponent({
       ><md-icon>menu</md-icon></md-icon-button
     >
     <div slot="title">{{ currentEventName }}</div>
+    <md-icon-button slot="actionItems" @click="$emit('visitTranslationPage')"
+      ><md-icon>translate</md-icon></md-icon-button
+    >
+    <md-icon-button slot="actionItems" @click="$emit('openFriendMenu')"
+      ><md-icon>group</md-icon></md-icon-button
+    >
     <md-icon-button slot="actionItems" @click="$emit('toggleFilter')"
       ><md-icon>filter_list</md-icon></md-icon-button
     >

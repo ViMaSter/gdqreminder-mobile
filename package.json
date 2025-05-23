@@ -23,6 +23,7 @@
     "@capacitor/app": "^7.0.1",
     "@capacitor/app-launcher": "^7.0.1",
     "@capacitor/core": "^7.1.0",
+    "@capacitor/device": "^7.0.1",
     "@capacitor/ios": "^7.2.0",
     "@capacitor/push-notifications": "^7.0.1",
     "@material/material-color-utilities": "^0.3.0",
