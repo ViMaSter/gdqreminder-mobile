@@ -7,7 +7,7 @@ import { Capacitor } from "@capacitor/core";
 import { SafeArea } from "capacitor-plugin-safe-area";
 import { createI18n } from 'vue-i18n'
 import { Device } from '@capacitor/device';
-
+  
 const responseEn = await fetch("/i18n/en.json");
 if (!responseEn.ok) {
   throw new Error(`Failed to load locale file: en`);
