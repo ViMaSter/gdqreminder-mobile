@@ -13,6 +13,7 @@ import { Snackbar } from "@material/mwc-snackbar";
 import "@material/mwc-drawer";
 import { MdDialog } from "@material/web/dialog/dialog";
 import { MdFilledField } from "@material/web/field/filled-field";
+import { MdTextButton } from "@material/web/button/text-button";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
 import { GDQEventData } from "../interfaces/GDQEvent";
@@ -523,15 +524,16 @@ export default defineComponent({
     const userIDStorage = useUserIDStore();
     const friendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
     const friendUserIDInput = ref<MdFilledField>();
+    const apply = ref<MdTextButton>();
 
     watch(friendUserID, (newValue) => {
       try {
         Base16.decode(newValue.trim());
-        dialog.value!.querySelector("md-text-button[value=apply]")!.removeAttribute("disabled");
+        apply.disabled = false;
         friendUserIDInput.value!.error = false;
         friendUserIDInput.value!.errorText = "";
       } catch (e) {
-        dialog.value!.querySelector("md-text-button[value=apply]")!.setAttribute("disabled", "true");
+        apply.disabled = true;
         friendUserIDInput.value!.error = true;
         friendUserIDInput.value!.errorText = t('friendCodes.error-friendCode');
       }
@@ -667,7 +669,7 @@ export default defineComponent({
       </div>
       <div slot="actions">
         <md-text-button form="form" value="cancel">{{$t("cancel")}}</md-text-button>
-        <md-text-button form="form" value="apply">{{$t("apply")}}</md-text-button>
+        <md-text-button form="form" ref="apply" value="apply">{{$t("apply")}}</md-text-button>
       </div>
     </md-dialog>
     <mwc-snackbar ref="snackbar" timeoutMs="10000"> </mwc-snackbar>
