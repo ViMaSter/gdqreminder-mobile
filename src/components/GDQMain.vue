@@ -652,7 +652,7 @@ export default defineComponent({
         <br />
         <hr />
         <br />
-        <form slot="content" id="form" method="dialog">
+        <form id="form" method="dialog">
           {{$t('friendCodes.content-friendCode')}}<br /><br />
           <b>{{$t('note')}}:</b> {{$t('friendCodes.note-friendCode')}}
           <br />
