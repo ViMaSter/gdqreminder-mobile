@@ -31,7 +31,7 @@ test("encoding a string twice requires decoding twice", async () => {
   const decodedString2 = Base16.decode(encodedString2);
   console.log("Decoded String 2:", decodedString2);
   const decodedString1 = Base16.decode(decodedString2);
-  console.log("Decoded String 2:", decodedString1);
+  console.log("Decoded String 1:", decodedString1);
 
   expect(decodedString1).toBe(originalString);
   expect(decodedString2).not.toBe(originalString);
