@@ -18,7 +18,7 @@ const messages : {[code: string]: any } = {
 
 let languageCode = "en";
 try {
-  const languageCode = (await Device.getLanguageCode()).value;
+  languageCode = (await Device.getLanguageCode()).value;
   const response = await fetch(`/i18n/${languageCode}.json`);
   if (!response.ok) {
     throw new Error(`Failed to load locale file: ${languageCode}`);
