@@ -114,6 +114,7 @@ const subscribe = (friendUserID: string) => {
     const data = doc.data();
     if (!data) {
       friendRunStore.set([]);
+      return;
     }
     friendRunStore.set(data.runs);
   });
