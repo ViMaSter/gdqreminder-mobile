@@ -22,14 +22,14 @@ export default class Base16
         if (input.trim() === "") {
             return "";
         }
-
-        if (input.split("-").some((part) => part.length !== 8)) {
+        const splitInput = input.split("-");
+        if (splitInput.some((part) => part.length !== 8)) {
             throw new Error("Each group needs to be exactly 8 characters long");
         }
-        if (input.split("-").some((part) => part.match(/[^0-9a-f]/))) {
+        if (splitInput.some((part) => part.match(/[^0-9a-f]/))) {
             throw new Error("Only hex characters are allowed");
         }
-        const groupCount = input.split("-").length;
+        const groupCount = splitInput.length;
         // if there's more than 8 characters, each 9th needs to be a dash
         for (let i = 0; i < groupCount-1; i++) {
             if (input[i*9 + 8] !== "-") {
