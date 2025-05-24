@@ -1,0 +1,17 @@
+{
+    "sidebar": {
+        "headline": "Verfügbare Events"
+    },
+    "friendCodes": {
+        "headline": "Runs teilen",
+        "content-yourCode": "Teile deine Runs indem du Friend Codes austauschst!",
+        "label-yourCode": "Dein Friend Code",
+        "content-friendCode": "Trag einen Friend Code ein und sieh Runs von Befreundeten!",
+        "label-friendCode": "Friend Code eintragen",
+        "error-friendCode": "Ungültiger Friend Code",
+        "note-friendCode": "Runs von Befreundeten werden zwar hervorgehoben, aber erhältst weiterhin nur Benachrichtigungen für Runs, die du aufgesetzt hast."
+    },
+    "note": "Hinweis",
+    "cancel": "Abbrechen",
+    "apply": "OK"
+}

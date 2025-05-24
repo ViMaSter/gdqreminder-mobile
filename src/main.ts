@@ -5,8 +5,39 @@ import * as Sentry from "@sentry/vue";
 import App from "./App.vue";
 import { Capacitor } from "@capacitor/core";
 import { SafeArea } from "capacitor-plugin-safe-area";
+import { createI18n } from 'vue-i18n'
+import { Device } from '@capacitor/device';
 
+async function fetchLocale(languageCode: string): Promise<any> {
+  const response = await fetch(`/i18n/${languageCode}.json`);
+  if (!response.ok) {
+    throw new Error(`Failed to load locale file: ${languageCode}`);
+  }
+  const locale = await response.json();
+  if (!locale || Object.keys(locale).length === 0) {
+    throw new Error(`Locale file for ${languageCode} is empty`);
+  }
+  return locale;
+}
+const messages: { [code: string]: any } = {
+  en: await fetchLocale("en"),
+};
+let languageCode = "en";
+try {
+  languageCode = (await Device.getLanguageCode()).value;
+  messages[languageCode] = await fetchLocale(languageCode);
+} catch (error) {
+  console.warn(`Using fallback locale 'en' due to error: ${error}`);
+}
+
+const i18n = createI18n({
+  locale: languageCode,
+  fallbackLocale: 'en',
+  messages
+});
 const app = createApp(App);
+app.use(i18n)
+
 const pinia = createPinia();
 
 // disable sentry in dev mode
