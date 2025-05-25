@@ -24,6 +24,7 @@ export default defineConfig({
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+    headless: false,
 
     /* Port to use for Playwright component endpoint. */
     ctPort: 3100,
@@ -52,6 +53,15 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
+        launchOptions: {
+          args: ["--disable-web-security"],
+        },
+      },
+    },
+    {
+      name: "firefox",
+      use: {
+        ...devices["Desktop Firefox"],
         launchOptions: {
           args: ["--disable-web-security"],
         },
