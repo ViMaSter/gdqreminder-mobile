@@ -163,7 +163,7 @@ export default defineComponent({
 
     const jumpToTwitch = inject<() => void>("jumpToTwitch")!;
     const jumpToYouTube =
-      inject<(runName: string, runnerNames: string[]) => void>(
+      inject<(runName: string, runnerNames: string[], youtubeLink : string | undefined) => void>(
         "jumpToYouTube",
       )!;
 
@@ -194,7 +194,10 @@ export default defineComponent({
       }
 
       if (this.isInThePast) {
-        this.jumpToYouTube(this.runName, this.runnerNames);
+        const youTubeLink = this.runData.video_links.find(
+          (link) => link.link_type === "youtube",
+        )?.url;
+        this.jumpToYouTube(this.runName, this.runnerNames, youTubeLink);
         return;
       }
       const reminderStore = useRunReminderStore();

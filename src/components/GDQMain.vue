@@ -103,7 +103,13 @@ export default defineComponent({
     }
     provide<DateProvider>("dateProvider", dateProvider);
 
-    const jumpToYouTube = async (runName: string, runnerNames: string[]) => {
+    const jumpToYouTube = async (runName: string, runnerNames: string[], youtubeLink : string) => {
+      if (youtubeLink) {
+        const { completed } = await AppLauncher.openUrl({ url: youtubeLink });
+        if (completed) {
+          return;
+        }
+      }
       const ytSearchQuery = `${currentEventName.value} ${runName} "${runnerNames.join('" "')}"`;
       const urls = [
         "https://www.youtube.com/c/gamesdonequick/search?query=" +
