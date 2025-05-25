@@ -26,6 +26,7 @@
 		"FirebaseAuthenticationPlugin",
 		"AppPlugin",
 		"AppLauncherPlugin",
+		"DevicePlugin",
 		"PushNotificationsPlugin",
 		"SafeAreaPlugin"
 	]
