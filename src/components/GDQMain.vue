@@ -529,11 +529,11 @@ export default defineComponent({
     watch(friendUserID, (newValue) => {
       try {
         Base16.decode(newValue.trim());
-        apply.disabled = false;
+        apply.value!.disabled = false;
         friendUserIDInput.value!.error = false;
         friendUserIDInput.value!.errorText = "";
       } catch (e) {
-        apply.disabled = true;
+        apply.value!.disabled = true;
         friendUserIDInput.value!.error = true;
         friendUserIDInput.value!.errorText = t('friendCodes.error-friendCode');
       }
