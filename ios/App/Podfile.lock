@@ -1,30 +1,27 @@
 PODS:
-  - Capacitor (7.0.1):
+  - Capacitor (7.2.0):
     - CapacitorCordova
-  - CapacitorApp (7.0.0):
+  - CapacitorApp (7.0.1):
     - Capacitor
-  - CapacitorAppLauncher (7.0.0):
+  - CapacitorAppLauncher (7.0.1):
     - Capacitor
-  - CapacitorCommunityFcm (7.0.0):
+  - CapacitorCommunityFcm (7.1.1):
     - Capacitor
-    - Firebase/Messaging
-  - CapacitorCordova (7.0.1)
-  - CapacitorFirebaseAuthentication (7.0.0):
+    - FirebaseMessaging
+  - CapacitorCordova (7.2.0)
+  - CapacitorDevice (7.0.1):
     - Capacitor
-    - CapacitorFirebaseAuthentication/Lite (= 7.0.0)
+  - CapacitorFirebaseAuthentication (7.2.0):
+    - Capacitor
+    - CapacitorFirebaseAuthentication/Lite (= 7.2.0)
     - FirebaseAuth (~> 11.7.0)
-  - CapacitorFirebaseAuthentication/Lite (7.0.0):
+  - CapacitorFirebaseAuthentication/Lite (7.2.0):
     - Capacitor
     - FirebaseAuth (~> 11.7.0)
   - CapacitorPluginSafeArea (4.0.0):
     - Capacitor
-  - CapacitorPushNotifications (7.0.0):
+  - CapacitorPushNotifications (7.0.1):
     - Capacitor
-  - Firebase/CoreOnly (11.7.0):
-    - FirebaseCore (~> 11.7.0)
-  - Firebase/Messaging (11.7.0):
-    - Firebase/CoreOnly
-    - FirebaseMessaging (~> 11.7.0)
   - FirebaseAppCheckInterop (11.9.0)
   - FirebaseAuth (11.7.0):
     - FirebaseAppCheckInterop (~> 11.0)
@@ -100,13 +97,13 @@ DEPENDENCIES:
   - "CapacitorAppLauncher (from `../../node_modules/@capacitor/app-launcher`)"
   - "CapacitorCommunityFcm (from `../../node_modules/@capacitor-community/fcm`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorDevice (from `../../node_modules/@capacitor/device`)"
   - "CapacitorFirebaseAuthentication (from `../../node_modules/@capacitor-firebase/authentication`)"
   - CapacitorPluginSafeArea (from `../../node_modules/capacitor-plugin-safe-area`)
   - "CapacitorPushNotifications (from `../../node_modules/@capacitor/push-notifications`)"
 
 SPEC REPOS:
   trunk:
-    - Firebase
     - FirebaseAppCheckInterop
     - FirebaseAuth
     - FirebaseAuthInterop
@@ -133,6 +130,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor-community/fcm"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorDevice:
+    :path: "../../node_modules/@capacitor/device"
   CapacitorFirebaseAuthentication:
     :path: "../../node_modules/@capacitor-firebase/authentication"
   CapacitorPluginSafeArea:
@@ -141,15 +140,15 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/push-notifications"
 
 SPEC CHECKSUMS:
-  Capacitor: 23fff43571a4d1e3ee7d67b5a3588c6e757c2913
-  CapacitorApp: 45cb7cbef4aa380b9236fd6980033eb5cde6fcd2
-  CapacitorAppLauncher: 4df31c99517b715c7eb6dc524bcf4db79f8e8dd3
-  CapacitorCommunityFcm: 71af8dd973ce70236458b0d22a5fe29352a9e43e
-  CapacitorCordova: 63d476958d5022d76f197031e8b7ea3519988c64
-  CapacitorFirebaseAuthentication: 871cec2966a90d5e4dd9c64088d9faffeead3757
+  Capacitor: 106e7a4205f4618d582b886a975657c61179138d
+  CapacitorApp: d63334c052278caf5d81585d80b21905c6f93f39
+  CapacitorAppLauncher: 551876cb6b3f5939206ed7dc35d97b42256940c1
+  CapacitorCommunityFcm: 15b0b44dcb160adc28f120719dcf9fbf72e14e1d
+  CapacitorCordova: 5967b9ba03915ef1d585469d6e31f31dc49be96f
+  CapacitorDevice: fe3f190e1d718f4607bdc6b73993433d1c84f409
+  CapacitorFirebaseAuthentication: 7043f8e03813762af1b037da82c67963fa5768e0
   CapacitorPluginSafeArea: af80830df43015a915e504a56318a3027d3fc806
-  CapacitorPushNotifications: c4feed483e03825369c278f5bab75100fb3f94a0
-  Firebase: a64bf6a8546e6eab54f1c715cd6151f39d2329f4
+  CapacitorPushNotifications: 0b653a3264d56daccf0e8769fff15d2f48306de6
   FirebaseAppCheckInterop: 9226f7217b43e99dfa0bc9f674ad8108cef89feb
   FirebaseAuth: 77e25aa24f3e1c626c5babd3338551fc1669ee0e
   FirebaseAuthInterop: 2a26ee1bea6d47df8048683cfa071e7da657798f
@@ -165,6 +164,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
 
-PODFILE CHECKSUM: 2842127da173dbf1bb2b5a2a77fe960f2b8ffbdc
+PODFILE CHECKSUM: 0fc5d57ca9f8ada217659c77149937069371a3d0
 
 COCOAPODS: 1.15.2
