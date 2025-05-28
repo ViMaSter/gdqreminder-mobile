@@ -33,7 +33,7 @@
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
     "@material/web": "^2.3.0",
     "@sentry/cli": "^2.46.0",
-    "@sentry/vue": "^9.22.0",
+    "@sentry/vue": "^9.23.0",
     "@vitejs/plugin-legacy": "^6.1.1",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "capacitor-plugin-safe-area": "4.0.0",
