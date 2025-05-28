@@ -161,7 +161,7 @@ export default defineComponent({
           return;
         }
         if (dialog.value!.returnValue == "apply") {
-          userIDStorage.setFriendUserID(Base16.decode(friendUserID.value.trim()));
+          userIDStorage.setFriendUserID(Base16.decode(encodedFriendUserID.value.trim()));
         }
       });
 
@@ -517,15 +517,15 @@ export default defineComponent({
     };
 
     const userIDStorage = useUserIDStore();
-    const friendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
+    const encodedFriendUserID = ref(Base16.encode(userIDStorage.encodedFriendUserID?.trim() ?? ""));
     const friendUserIDInput = ref<MdFilledTextField>();
     const apply = ref<MdTextButton>();
 
     const updateFriendID = () => {
-      friendUserID.value = friendUserIDInput.value!.value.trim();
+      encodedFriendUserID.value = friendUserIDInput.value!.value.trim();
     };
 
-    watch(friendUserID, (newValue) => {
+    watch(encodedFriendUserID, (newValue) => {
       try {
         Base16.decode(newValue.trim());
         apply.value!.disabled = false;
@@ -543,7 +543,7 @@ export default defineComponent({
         filterTypes[
           (filterTypes.indexOf(activeFilter) + 1) % filterTypes.length
         ];
-      if (activeFilter == "friend+alert" && !friendUserID.value) {
+      if (activeFilter == "friend+alert" && !encodedFriendUserID.value) {
         activeFilter =
           filterTypes[
             (filterTypes.indexOf(activeFilter) + 1) % filterTypes.length
@@ -581,7 +581,7 @@ export default defineComponent({
     );
 
     return {
-      friendUserID,
+      encodedFriendUserID,
       apply,
       friendUserIDInput,
       base16EncodedUserID,
@@ -662,7 +662,7 @@ export default defineComponent({
           <md-filled-text-field
           :label="$t('friendCodes.label-friendCode')"
             placeholder="xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx"
-            :value="friendUserID"
+            :value="encodedFriendUserID"
             ref="friendUserIDInput"
           ></md-filled-text-field>
         </form>
