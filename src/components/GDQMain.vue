@@ -12,7 +12,7 @@ import { AppLauncher } from "@capacitor/app-launcher";
 import { Snackbar } from "@material/mwc-snackbar";
 import "@material/mwc-drawer";
 import { MdDialog } from "@material/web/dialog/dialog";
-import { MdFilledField } from "@material/web/field/filled-field";
+import { MdFilledTextField } from "@material/web/textfield/filled-text-field";
 import { MdTextButton } from "@material/web/button/text-button";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
@@ -518,7 +518,7 @@ export default defineComponent({
 
     const userIDStorage = useUserIDStore();
     const friendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
-    const friendUserIDInput = ref<MdFilledField>();
+    const friendUserIDInput = ref<MdFilledTextField>();
     const apply = ref<MdTextButton>();
 
     const updateFriendID = () => {
