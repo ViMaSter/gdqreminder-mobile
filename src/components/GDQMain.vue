@@ -164,6 +164,10 @@ export default defineComponent({
           userIDStorage.setFriendUserID(Base16.decode(friendUserID.value.trim()));
         }
       });
+
+      friendUserIDInput.value!.addEventListener("input", () => {
+        updateFriendID();
+      });
     });
     const setupSwipeLogic = (drawer: TopAppBarFixedWithOpen) => {
       let touchIdentifier = -1;
@@ -526,6 +530,10 @@ export default defineComponent({
     const friendUserIDInput = ref<MdFilledField>();
     const apply = ref<MdTextButton>();
 
+    const updateFriendID = () => {
+      friendUserID.value = friendUserIDInput.value!.value.trim();
+    };
+
     watch(friendUserID, (newValue) => {
       try {
         Base16.decode(newValue.trim());
@@ -567,10 +575,9 @@ export default defineComponent({
     watch(userID, (newUserID) => {
         base16EncodedUserID.value = Base16.encode(newUserID);
     });
-    getFirebaseAuth().then(async (auth) => {
-      userID.value = (await signInAnonymously(auth)).user!.uid;
-      localStorage.setItem("firebaseUserID", userID.value);
-    });
+    const auth = await getFirebaseAuth();
+    userID.value = (await signInAnonymously(auth)).user!.uid;
+    localStorage.setItem("firebaseUserID", userID.value);
 
     const copyID = async () => {
       navigator.clipboard.writeText(Base16.encode(userID.value));
@@ -584,6 +591,7 @@ export default defineComponent({
 
     return {
       friendUserID,
+      apply,
       friendUserIDInput,
       base16EncodedUserID,
       copyID,
@@ -603,6 +611,7 @@ export default defineComponent({
       runsByDay,
       reminder,
       scrollable,
+      updateFriendID,
       wrapper,
       visitTranslationPage: () => {
         AppLauncher.openUrl({
@@ -647,7 +656,7 @@ export default defineComponent({
         <md-filled-text-field
           class="yourFriendCode"
           :label="$t('friendCodes.label-yourCode')"
-          v-model="base16EncodedUserID"
+          :value="base16EncodedUserID"
           disabled
         ></md-filled-text-field><md-icon-button @click="copyID"><md-icon>content_copy</md-icon></md-icon-button>
         <br />
@@ -662,7 +671,7 @@ export default defineComponent({
           <md-filled-text-field
           :label="$t('friendCodes.label-friendCode')"
             placeholder="xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx"
-            v-model="friendUserID"
+            :value="friendUserID"
             ref="friendUserIDInput"
           ></md-filled-text-field>
         </form>
