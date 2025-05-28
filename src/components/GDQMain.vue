@@ -325,15 +325,6 @@ export default defineComponent({
         }
         runsByDay.value[dayOfRun].push(runID);
       });
-
-      console.log(
-        Object.entries(runsByDay.value)
-          .map(
-            ([day, runs]) =>
-              `${new Date(parseInt(day)).toLocaleDateString()}: ${runs.length}`,
-          )
-          .join("\n"),
-      );
     };
     const now = dateProvider.getCurrent();
 

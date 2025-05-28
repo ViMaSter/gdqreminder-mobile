@@ -24,6 +24,7 @@ export default defineComponent({
       ><md-icon>translate</md-icon></md-icon-button
     >
     <md-icon-button slot="actionItems" @click="$emit('openFriendMenu')"
+      data-test="open-friend-menu"
       ><md-icon>group</md-icon></md-icon-button
     >
     <md-icon-button slot="actionItems" @click="$emit('toggleFilter')"

@@ -128,7 +128,6 @@ userIDStore.$subscribe((mutation, state) => {
   subscribe(state.friendUserID!);
 });
 
-console.log(Capacitor.isPluginAvailable("PushNotification"));
 registerNotifications()
   .then(async () => {
     addListeners().catch((e) => {
