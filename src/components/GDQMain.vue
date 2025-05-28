@@ -517,7 +517,7 @@ export default defineComponent({
     };
 
     const userIDStorage = useUserIDStore();
-    const encodedFriendUserID = ref(Base16.encode(userIDStorage.encodedFriendUserID?.trim() ?? ""));
+    const encodedFriendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
     const friendUserIDInput = ref<MdFilledTextField>();
     const apply = ref<MdTextButton>();
 
@@ -571,7 +571,7 @@ export default defineComponent({
     localStorage.setItem("firebaseUserID", userID.value);
 
     const copyID = async () => {
-      navigator.clipboard.writeText(Base16.encode(userID.value));
+      navigator.clipboard.writeText(base16EncodedUserID.value);
       showSnackbar("Copied your user ID to clipboard:");
     };
 
