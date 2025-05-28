@@ -1,4 +1,4 @@
-import * as firebase from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const config = {
@@ -10,8 +10,8 @@ const config = {
   appId: "1:358208879608:web:c853a88295d758b888f40d",
   measurementId: "G-KHR0FKNFFQ",
 };
-firebase.initializeApp(config);
+const app = initializeApp(config);
 
-const store = getFirestore();
+const store = getFirestore(app);
 
 export { store };
