@@ -278,7 +278,7 @@ jobs:
           sourcemaps: ./dist/assets
           version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
 
-  publishToBeta:
+  publishToInternal:
     name: '[INTERNAL] Publish to Google Play'
     if: (github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease
     runs-on: ubuntu-latest
