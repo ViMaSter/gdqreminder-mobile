@@ -78,11 +78,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "release": {
-    "branches": [
-      {
-        "name": ["main", "beta"]
-      }
-    ],
+    "branches": ["main", "beta"],
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
