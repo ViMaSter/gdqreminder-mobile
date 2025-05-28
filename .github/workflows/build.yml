@@ -279,7 +279,7 @@ jobs:
           version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
 
   publishToBeta:
-    name: '[BETA] Publish to Google Play'
+    name: '[QA] Publish to Google Play'
     if: (github.event_name == 'push' && github.ref == 'refs/heads/beta') || github.event.inputs.forceBetaRelease
     runs-on: ubuntu-latest
     needs: [prepareCache, buildAAB, buildAPK]
@@ -314,7 +314,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
           packageName: ke.mahn.gdqreminder
-          track: beta
+          track: qa
           status: completed
           releaseFiles: ./aab/app-release.aab
       - uses: getsentry/action-release@v1
@@ -323,7 +323,7 @@ jobs:
           SENTRY_ORG: vimaster
           SENTRY_PROJECT: gdqreminder-mobile
         with:
-          environment: beta
+          environment: qa
           sourcemaps: ./dist/assets
           version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
 
