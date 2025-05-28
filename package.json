@@ -80,7 +80,7 @@
   "release": {
     "branches": [
       "main",
-      "beta"
+      "internal"
     ],
     "plugins": [
       [
