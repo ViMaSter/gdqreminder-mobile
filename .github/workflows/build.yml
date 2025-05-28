@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - beta
+      - internal
   pull_request:
   workflow_dispatch:
     inputs:
@@ -13,14 +13,14 @@ on:
         required: true
         default: false
         type: boolean
-      forceBetaRelease:
-        description: Force Google Play Beta release?
+      forceInternalRelease:
+        description: Force Google Play Internal release?
         required: true
         default: false
         type: boolean
 
 env:
-  SENTRY_AUTH_TOKEN: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/beta') || github.event.inputs.forceBetaRelease)) && secrets.SENTRY_AUTH_TOKEN || '' }}
+  SENTRY_AUTH_TOKEN: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)) && secrets.SENTRY_AUTH_TOKEN || '' }}
 
 jobs:
   prepareCache:
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/beta') || github.event.inputs.forceBetaRelease)) && secrets.PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)) && secrets.PAT || secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
@@ -53,7 +53,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/beta') || github.event.inputs.forceBetaRelease)
+        if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)
       - id: version
         run: | 
           version=v$(jq -r .version package.json)
@@ -177,8 +177,8 @@ jobs:
           version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
 
   publishToBeta:
-    name: '[QA] Publish to Google Play'
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/beta') || github.event.inputs.forceBetaRelease
+    name: '[INTERNAL] Publish to Google Play'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease
     runs-on: ubuntu-latest
     needs: [prepareCache, buildAAB, buildAPK]
     env:
@@ -192,7 +192,7 @@ jobs:
       - run: |
           echo "github.event_name: ${{github.event_name}}"
           echo "github.ref: ${{github.ref}}"
-          echo "github.event.inputs.forceBetaRelease: ${{github.event.inputs.forceBetaRelease}}"
+          echo "github.event.inputs.forceInternalRelease: ${{github.event.inputs.forceInternalRelease}}"
       - uses: actions/download-artifact@v4
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
@@ -212,7 +212,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICEACCOUNTJSON }}
           packageName: ke.mahn.gdqreminder
-          track: qa
+          track: internal
           status: completed
           releaseFiles: ./aab/app-release.aab
       - uses: getsentry/action-release@v1
@@ -221,13 +221,13 @@ jobs:
           SENTRY_ORG: vimaster
           SENTRY_PROJECT: gdqreminder-mobile
         with:
-          environment: qa
+          environment: internal
           sourcemaps: ./dist/assets
           version: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
 
   githubRelease:
     name: Publish to GitHub Releases
-    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/beta') || github.event.inputs.forceBetaRelease)
+    if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)
     runs-on: ubuntu-latest
     needs: [prepareCache, buildAAB, buildAPK]
     env:
