@@ -131,7 +131,7 @@ jobs:
   buildIOS:
     name: Build iOS
     runs-on: macos-15
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceRelease
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceRelease
     needs: [prepareCache]
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
