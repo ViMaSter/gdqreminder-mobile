@@ -80,8 +80,8 @@
   },
   "release": {
     "branches": [
-      "main",
-      "internal"
+      { "name": "main" },
+      { "name": "internal", "channel": "internal", "prerelease": "internal" }
     ],
     "plugins": [
       [
