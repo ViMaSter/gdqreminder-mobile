@@ -27,6 +27,7 @@
 		"AppPlugin",
 		"AppLauncherPlugin",
 		"DevicePlugin",
+		"KeyboardPlugin",
 		"PushNotificationsPlugin",
 		"SafeAreaPlugin"
 	]
