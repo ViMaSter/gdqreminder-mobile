@@ -92,9 +92,9 @@ const registerNotifications = async () => {
   await PushNotificationHelper.subscribeToScheduleUpdates();
 };
 
+const friendRunStore = useFriendRunReminderStore();
 let unsubscribe: Unsubscribe | null = null;
 const subscribe = (friendUserID: string) => {
-  const friendRunStore = useFriendRunReminderStore();
   if (friendUserID == null || friendUserID.length === 0) {
     friendRunStore.set([]);
     return;
