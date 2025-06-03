@@ -12,6 +12,8 @@ import { AppLauncher } from "@capacitor/app-launcher";
 import { Snackbar } from "@material/mwc-snackbar";
 import "@material/mwc-drawer";
 import { MdDialog } from "@material/web/dialog/dialog";
+import { MdFilledTextField } from "@material/web/textfield/filled-text-field";
+import { MdTextButton } from "@material/web/button/text-button";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
 import { GDQEventData } from "../interfaces/GDQEvent";
@@ -32,6 +34,8 @@ import { getApp } from "firebase/app";
 import { Capacitor } from "@capacitor/core";
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
 import { useRunReminderStore } from "@/stores/runReminders";
+import Base16 from "@/utilities/base16";
+import { useI18n } from 'vue-i18n'
 
 import {
   getAuth,
@@ -58,6 +62,8 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 
 export default defineComponent({
   async setup() {
+    const { t } = useI18n()
+
     const scrollable = ref<HTMLDivElement>();
     const wrapper = ref<HTMLDivElement>();
     provide<(x: number, y: number) => void>(
@@ -150,27 +156,17 @@ export default defineComponent({
       });
       setupSwipeLogic(drawer.value!);
 
-      const onLongTouch = () => {
-        dialog.value!.open = true;
-      };
-      let timer: NodeJS.Timeout | null = null;
-      const touchDuration = 500;
-      eventHeader.value?.addEventListener("touchstart", () => {
-        timer = setTimeout(onLongTouch, touchDuration);
-      });
-      eventHeader.value?.addEventListener("mousedown", () => {
-        timer = setTimeout(onLongTouch, touchDuration);
-      });
-      eventHeader.value?.addEventListener("touchend", () => {
-        if (timer) clearTimeout(timer);
-      });
-      eventHeader.value?.addEventListener("mouseup", () => {
-        if (timer) clearTimeout(timer);
-      });
       dialog.value?.addEventListener("close", async () => {
-        if (dialog.value!.returnValue == "apply") {
-          userIDStorage.setFriendUserID(friendUserID.value!);
+        if (dialog.value!.returnValue == "cancel") {
+          return;
         }
+        if (dialog.value!.returnValue == "apply") {
+          userIDStorage.setFriendUserID(Base16.decode(encodedFriendUserID.value.trim()));
+        }
+      });
+
+      friendUserIDInput.value!.addEventListener("input", () => {
+        updateFriendID();
       });
     });
     const setupSwipeLogic = (drawer: TopAppBarFixedWithOpen) => {
@@ -329,15 +325,6 @@ export default defineComponent({
         }
         runsByDay.value[dayOfRun].push(runID);
       });
-
-      console.log(
-        Object.entries(runsByDay.value)
-          .map(
-            ([day, runs]) =>
-              `${new Date(parseInt(day)).toLocaleDateString()}: ${runs.length}`,
-          )
-          .join("\n"),
-      );
     };
     const now = dateProvider.getCurrent();
 
@@ -473,6 +460,10 @@ export default defineComponent({
 
     const snackbar = ref<Snackbar>();
 
+    const openFriendMenu = () => {
+      dialog.value!.open = true;
+    };
+
     const toggleDarkMode = () => {
       const themeStore = useThemeStore();
       document.body.classList.toggle("dark-mode");
@@ -526,14 +517,33 @@ export default defineComponent({
     };
 
     const userIDStorage = useUserIDStore();
-    const friendUserID = ref(userIDStorage.friendUserID);
+    const encodedFriendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
+    const friendUserIDInput = ref<MdFilledTextField>();
+    const apply = ref<MdTextButton>();
+
+    const updateFriendID = () => {
+      encodedFriendUserID.value = friendUserIDInput.value!.value.trim();
+    };
+
+    watch(encodedFriendUserID, (newValue) => {
+      try {
+        Base16.decode(newValue.trim());
+        apply.value!.disabled = false;
+        friendUserIDInput.value!.error = false;
+        friendUserIDInput.value!.errorText = "";
+      } catch (e) {
+        apply.value!.disabled = true;
+        friendUserIDInput.value!.error = true;
+        friendUserIDInput.value!.errorText = t('friendCodes.error-friendCode');
+      }
+    });
 
     const toggleFilter = () => {
       activeFilter =
         filterTypes[
           (filterTypes.indexOf(activeFilter) + 1) % filterTypes.length
         ];
-      if (activeFilter == "friend+alert" && !friendUserID.value) {
+      if (activeFilter == "friend+alert" && !encodedFriendUserID.value) {
         activeFilter =
           filterTypes[
             (filterTypes.indexOf(activeFilter) + 1) % filterTypes.length
@@ -551,14 +561,17 @@ export default defineComponent({
     const eventHeader = ref<HTMLSpanElement>();
     const dialog = ref<MdDialog>();
 
-    let userID = "";
-    getFirebaseAuth().then(async (auth) => {
-      userID = (await signInAnonymously(auth)).user!.uid;
-      localStorage.setItem("firebaseUserID", userID);
+    let userID = ref("");
+    const base16EncodedUserID = ref("");
+    watch(userID, (newUserID) => {
+        base16EncodedUserID.value = Base16.encode(newUserID);
     });
+    const auth = await getFirebaseAuth();
+    userID.value = (await signInAnonymously(auth)).user!.uid;
+    localStorage.setItem("firebaseUserID", userID.value);
 
     const copyID = async () => {
-      navigator.clipboard.writeText(userID);
+      navigator.clipboard.writeText(base16EncodedUserID.value);
       showSnackbar("Copied your user ID to clipboard:");
     };
 
@@ -568,7 +581,10 @@ export default defineComponent({
     );
 
     return {
-      friendUserID,
+      encodedFriendUserID,
+      apply,
+      friendUserIDInput,
+      base16EncodedUserID,
       copyID,
       dialog,
       eventHeader,
@@ -586,9 +602,17 @@ export default defineComponent({
       runsByDay,
       reminder,
       scrollable,
+      updateFriendID,
       wrapper,
+      visitTranslationPage: () => {
+        AppLauncher.openUrl({
+          url: "https://crowdin.com/project/gdqreminder",
+        });
+      },
+      openFriendMenu,
       toggleFilter,
       toggleDarkMode,
+      userID,
       generateContainerClassNames: () => {
         const classNames = ["container"];
         if (currentEventName.value.startsWith("SGDQ")) {
@@ -615,24 +639,42 @@ export default defineComponent({
     <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
     <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
     <md-dialog ref="dialog">
-      <div slot="headline">
-        <md-button @click="copyID">Copy your user ID</md-button>
-      </div>
-      <form slot="content" id="form" method="dialog">
+      <div slot="headline">{{$t('friendCodes.headline')}}</div>
+      <div slot="content">
+        {{$t('friendCodes.content-yourCode')}}
+        <br />
+        <br />
         <md-filled-text-field
-          label="Friend's user ID"
-          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-          v-model="friendUserID"
-        ></md-filled-text-field>
-      </form>
+          class="yourFriendCode"
+          :label="$t('friendCodes.label-yourCode')"
+          :value="base16EncodedUserID"
+          disabled
+        ></md-filled-text-field><md-icon-button @click="copyID"><md-icon>content_copy</md-icon></md-icon-button>
+        <br />
+        <br />
+        <hr />
+        <br />
+        <form id="form" method="dialog">
+          {{$t('friendCodes.content-friendCode')}}<br /><br />
+          <b>{{$t('note')}}:</b> {{$t('friendCodes.note-friendCode')}}
+          <br />
+          <br />
+          <md-filled-text-field
+          :label="$t('friendCodes.label-friendCode')"
+            placeholder="xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx"
+            :value="encodedFriendUserID"
+            ref="friendUserIDInput"
+          ></md-filled-text-field>
+        </form>
+      </div>
       <div slot="actions">
-        <md-text-button form="form" value="cancel">Cancel</md-text-button>
-        <md-text-button form="form" value="apply">Apply</md-text-button>
+        <md-text-button form="form" value="cancel">{{$t("cancel")}}</md-text-button>
+        <md-text-button form="form" ref="apply" value="apply">{{$t("apply")}}</md-text-button>
       </div>
     </md-dialog>
     <mwc-snackbar ref="snackbar" timeoutMs="10000"> </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
-      <span ref="eventHeader" slot="title">Available events</span>
+      <span ref="eventHeader" slot="title">{{ $t('sidebar.headline') }}</span>
       <GDQSidebar
         :doneLoading="doneLoading"
         :eventsByIDs="eventsByIDs"
@@ -640,6 +682,8 @@ export default defineComponent({
       ></GDQSidebar>
       <div id="appContent" slot="appContent" ref="scrollable">
         <GDQHeader
+          @visitTranslationPage="visitTranslationPage"
+          @openFriendMenu="openFriendMenu"
           @toggleDarkMode="toggleDarkMode"
           @toggleFilter="toggleFilter"
           :currentEventName="currentEventName"
@@ -690,7 +734,13 @@ md-dialog {
   md-filled-text-field {
     width: 100%;
   }
-  width: 375px;
+  md-filled-text-field.yourFriendCode {
+    width: 85%;
+  }
+  md-icon-button {
+    width: 15%;
+  }
+  width: 80%;
 }
 .padding {
   height: 8em;

@@ -92,23 +92,31 @@ const registerNotifications = async () => {
   await PushNotificationHelper.subscribeToScheduleUpdates();
 };
 
+const friendRunStore = useFriendRunReminderStore();
 let unsubscribe: Unsubscribe | null = null;
 const subscribe = (friendUserID: string) => {
   if (friendUserID == null || friendUserID.length === 0) {
+    friendRunStore.set([]);
     return;
   }
+
   const docRef = doc(store, "remindersByUserID", friendUserID);
-  const friendRunStore = useFriendRunReminderStore();
   if (unsubscribe != null) {
     unsubscribe();
   }
+  
   unsubscribe = onSnapshot(docRef, (doc) => {
-    if (doc.exists()) {
-      const data = doc.data();
-      if (data) {
-        friendRunStore.set(data.runs);
-      }
+    if (!doc.exists()) {
+      friendRunStore.set([]);
+      return;
     }
+
+    const data = doc.data();
+    if (!data) {
+      friendRunStore.set([]);
+      return;
+    }
+    friendRunStore.set(data.runs);
   });
 };
 
@@ -120,7 +128,6 @@ userIDStore.$subscribe((mutation, state) => {
   subscribe(state.friendUserID!);
 });
 
-console.log(Capacitor.isPluginAvailable("PushNotification"));
 registerNotifications()
   .then(async () => {
     addListeners().catch((e) => {
