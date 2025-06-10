@@ -1,0 +1,34 @@
+name: Lint documentation
+
+on:
+  push:
+    branches:
+      - main
+      - internal
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  vale-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Vale via Snap
+        run: |
+          sudo snap install vale
+
+      - name: Run Vale on docs
+        id: vale
+        run: |
+          OUTPUT=$(vale --glob='docs/**' --minAlertLevel=suggestion .)
+          echo "$OUTPUT"
+          echo "$OUTPUT" > vale_output.txt
+
+      - name: Check Vale output
+        run: |
+          if ! grep -q "0 errors, 0 warnings and 0 suggestions" vale_output.txt; then
+            echo "Vale found issues in the documentation."
+            exit 1
+          fi
