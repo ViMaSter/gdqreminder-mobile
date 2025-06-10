@@ -25,8 +25,7 @@ jobs:
         run: |
           OUTPUT=$(vale --glob='docs/**' --minAlertLevel=suggestion .)
           echo "$OUTPUT"
-          echo "$OUTPUT" > vale_output.txt
+          echo "$OUTPUT" | sed 's/\x1b\[[0-9;]*m//g' > vale_output.txt
           if ! grep -q "0 errors, 0 warnings and 0 suggestions" vale_output.txt; then
-            echo "Vale found issues in the documentation."
             exit 1
           fi
