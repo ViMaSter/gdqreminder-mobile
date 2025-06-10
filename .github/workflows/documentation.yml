@@ -26,9 +26,6 @@ jobs:
           OUTPUT=$(vale --glob='docs/**' --minAlertLevel=suggestion .)
           echo "$OUTPUT"
           echo "$OUTPUT" > vale_output.txt
-
-      - name: Check Vale output
-        run: |
           if ! grep -q "0 errors, 0 warnings and 0 suggestions" vale_output.txt; then
             echo "Vale found issues in the documentation."
             exit 1
