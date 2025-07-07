@@ -294,8 +294,8 @@ export default defineComponent({
     justify-content: center;
     overflow: hidden;
 
-    flex-grow: 1;
     flex-shrink: 1;
+    width: 100%;
   }
 
   span {
@@ -339,7 +339,6 @@ export default defineComponent({
         text-overflow: ellipsis;
         overflow-x: hidden;
         white-space: nowrap;
-        flex-grow: 1;
       }
     }
 
