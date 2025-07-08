@@ -12,13 +12,28 @@ export class EventsData {
       }
     }
     const response = await CapacitorHttp.get({
-      url:
-        "https://tracker.gamesdonequick.com/tracker/api/v2/events/"
+      url: "https://tracker.gamesdonequick.com/tracker/api/v2/events/",
+      headers: {
+      Accept: "application/xml"
+      }
     });
 
-    const data = (response.data.results as GDQEventData[]).filter((event) => {
+      debugger;
+
+    // Parse the XML response using DOMParser
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(response.data, "application/xml");
+    const items = Array.from(xmlDoc.getElementsByTagName("list-item"));
+
+    const data: GDQEventData[] = items.map((item) => {
+      const id = Number(item.getElementsByTagName("id")[0]?.textContent || 0);
+      const short = item.getElementsByTagName("short")[0]?.textContent || "";
+      const datetime = item.getElementsByTagName("datetime")[0]?.textContent || "";
+      return { id, short, datetime };
+    }).filter((event) => {
       return new Date(event.datetime) >= datetime_gte;
     });
+
     const eventsData = {
       expiration: Date.now() + 1000 * 60 * 60 * 24 * 30 * 2,
       data,

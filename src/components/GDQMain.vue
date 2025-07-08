@@ -17,7 +17,7 @@ import { MdTextButton } from "@material/web/button/text-button";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
 import { GDQEventData } from "../interfaces/GDQEvent";
-import { GDQRunData } from "../interfaces/GDQRun";
+import { GDQRunData, GDQRunnerData } from "../interfaces/GDQRun";
 import Version from "@/plugins/versionPlugin";
 import GDQDay from "./GDQDay.vue";
 import GDQHeader from "./GDQHeader.vue";
@@ -259,12 +259,80 @@ export default defineComponent({
     const loadRuns = async (eventID: number) => {
       const response = await CapacitorHttp.get({
         url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
+        headers: {
+          Accept: "application/xml",
+        },
       });
       if (response.status !== 200) {
         return false;
       }
+      // parse response.data which is xml using DOMParser to GDQRunData[]
+      if (!response.data) {
+        return false;
+      }
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(
+        response.data,
+        "application/xml",
+      );
+      if (xmlDoc.querySelector("parsererror")) {
+        console.error("Error parsing XML response:", xmlDoc.querySelector("parsererror")!
+          .textContent);
+        return false;
+      }
+      // Parse XML <run> elements into GDQRunData[]
+      const runs = Array.from(xmlDoc.querySelectorAll("list-item")).map((runElement) => {
+        // Parse runners
+        const runners: GDQRunnerData[] = [];
+        const runnersList = runElement.querySelector("runners");
+        if (runnersList) {
+          runnersList.querySelectorAll("list-item").forEach((runnerEl) => {
+          runners.push({
+            type: runnerEl.querySelector("type")?.textContent ?? "",
+            id: parseInt(runnerEl.querySelector("id")?.textContent ?? runnerEl.getAttribute("id") ?? "0"),
+            name: runnerEl.querySelector("name")?.textContent ?? "",
+            stream: runnerEl.querySelector("stream")?.textContent ?? "",
+            twitter: runnerEl.querySelector("twitter")?.textContent ?? "",
+            youtube: runnerEl.querySelector("youtube")?.textContent ?? "",
+            platform: runnerEl.querySelector("platform")?.textContent ?? "",
+            pronouns: runnerEl.querySelector("pronouns")?.textContent ?? "",
+          });
+          });
+        }
+
+        // Parse video_links for YouTube link
+        let youtubeLink = "";
+        const videoLinks = runElement.querySelector("video_links");
+        if (videoLinks) {
+          const ytItem = Array.from(videoLinks.querySelectorAll("list-item")).find(
+        (item) => item.querySelector("link_type")?.textContent === "youtube"
+          );
+          if (ytItem) {
+        youtubeLink = ytItem.querySelector("url")?.textContent ?? "";
+          }
+        }
+
+        const runData: GDQRunData = {
+          id: parseInt(runElement.querySelector("id")?.textContent ?? runElement.getAttribute("id") ?? "0"),
+          name: runElement.querySelector("name")?.textContent ?? "",
+          display_name: runElement.querySelector("display_name")?.textContent ?? "",
+          console: runElement.querySelector("console")?.textContent ?? "",
+          category: runElement.querySelector("category")?.textContent ?? "",
+          starttime: runElement.querySelector("starttime")?.textContent ?? "",
+          endtime: runElement.querySelector("endtime")?.textContent ?? "",
+          runners,
+          video_links: [{
+            id: 1,
+            link_type: "youtube",
+            url: youtubeLink,
+          }],
+        };
+        return runData;
+      });
+      // sort runs by starttime
+
       const orderedRuns = (
-        response.data.results as GDQRunData[]
+        runs
       )
         .sort(
           (a, b) =>
