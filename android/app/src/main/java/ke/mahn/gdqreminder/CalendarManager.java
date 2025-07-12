@@ -276,8 +276,20 @@ public class CalendarManager {
             }
             reader.close();
             inputStream.close();
-            JSArray events = new JSArray(response.toString());
-            String currentEventID = events.getJSONObject(0).getJSONArray("results").getJSONObject(0).getString("id");
+            JSONObject eventsResponse = new JSONObject(response.toString());
+            JSONArray results = eventsResponse.getJSONArray("results");
+            String currentEventID = null;
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject event = results.getJSONObject(i);
+                String shortName = event.optString("short", "").toLowerCase();
+                if (shortName.contains("gdq")) {
+                    currentEventID = event.getString("id");
+                    break;
+                }
+            }
+            if (currentEventID == null) {
+                throw new Exception("No event with 'gdq' in short name found.");
+            }
             uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v2/events/" + currentEventID + "/runs/");
             connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
