@@ -297,16 +297,12 @@ export default defineComponent({
     const loadRuns = async (eventID: number) => {
       const cacheKey = `gdq_runs_${eventID}`;
       let orderedRuns: [string, GDQRunData][] = [];
-      let fromCache = false;
 
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         try {
           const parsed = JSON.parse(cached) as GDQRunData[];
           orderedRuns = processRuns(eventID, parsed);
-          if (orderedRuns.length > 0) {
-          fromCache = true;
-          }
         } catch (e) {
           // ignore cache parse errors
         }
