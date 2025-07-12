@@ -256,47 +256,90 @@ export default defineComponent({
   
     // returns true if there are runs for this event already
     // returns false if there are no runs for this event yet
-    const loadRuns = async (eventID: number) => {
-      const response = await CapacitorHttp.get({
-        url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
-      });
-      if (response.status !== 200) {
-        return false;
-      }
-      const orderedRuns = (
-        response.data.results as GDQRunData[]
-      )
-        .sort(
-          (a, b) =>
+    // Helper to process and set runs data
+    const processRuns = (
+      eventID: number,
+      runs: GDQRunData[]
+    ) => {
+      const orderedRuns: [string, GDQRunData][] = runs
+      .sort(
+        (a, b) =>
         new Date(a.starttime).getTime() -
         new Date(b.starttime).getTime(),
-        )
-        .map((run): [string, GDQRunData] => [
-          run.id.toString(),
-          run,
-        ]);
-      if (orderedRuns.length <= 0) {
-        return false;
-      }
-      runsByID.value = {
-        ...runsByID.value,
-        ...Object.fromEntries<GDQRunData>(orderedRuns),
-      };
-      orderedDays.value = [
-        ...new Set<string>(
+      )
+      .map((run): [string, GDQRunData] => [
+        run.id.toString(),
+        run,
+      ]);
+      if (orderedRuns.length > 0) {
+        runsByID.value = {
+          ...runsByID.value,
+          ...Object.fromEntries<GDQRunData>(orderedRuns),
+        };
+        orderedDays.value = [
+          ...new Set<string>(
           orderedRuns.map(([, run]: [string, GDQRunData]) =>
             new Date(run.starttime).toLocaleDateString(),
           ),
-        ),
-      ];
-      runIDsInOrder.value = [
-        ...new Set<string>([
+          ),
+        ];
+        runIDsInOrder.value = [
+          ...new Set<string>([
           ...runIDsInOrder.value,
           ...orderedRuns.map(([pk]) => pk),
-        ]),
-      ];
-      runsByEventID.value[eventID] = orderedRuns;
-      return true;
+          ]),
+        ];
+        runsByEventID.value[eventID] = orderedRuns;
+      }
+      return orderedRuns;
+    };
+
+    const loadRuns = async (eventID: number) => {
+      const cacheKey = `gdq_runs_${eventID}`;
+      let orderedRuns: [string, GDQRunData][] = [];
+      let fromCache = false;
+
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached) as GDQRunData[];
+          orderedRuns = processRuns(eventID, parsed);
+          if (orderedRuns.length > 0) {
+          fromCache = true;
+          }
+        } catch (e) {
+          // ignore cache parse errors
+        }
+      }
+
+      const fetchAndProcessRuns = async () => {
+        try {
+          const response = await CapacitorHttp.get({
+        url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
+          });
+          if (response.status === 200 && response.data?.results) {
+            const freshRuns = response.data.results as GDQRunData[];
+            if (freshRuns.length > 0) {
+              localStorage.setItem(cacheKey, JSON.stringify(freshRuns));
+              return processRuns(eventID, freshRuns);
+            }
+          }
+        } catch (e) {
+          // ignore fetch errors
+        }
+        return [];
+      };
+
+      // If we already have data cached, fetch in the background
+      // If not, await initial loading
+      if (orderedRuns.length > 0) {
+        fetchAndProcessRuns();
+      } else {
+        orderedRuns = await fetchAndProcessRuns();
+      }
+
+      // Return true if we have runs (from cache or will be set async)
+      return orderedRuns.length > 0;
     };
     const updateCurrentEvent = async (newEvent: GDQEventData) => {
       if (!runsByEventID.value[newEvent.id]) {

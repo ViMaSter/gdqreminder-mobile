@@ -7,7 +7,6 @@ import {
   watchEffect,
   computed,
   Ref,
-  onBeforeMount,
 } from "vue";
 import "../utilities/pushNotificationHelper";
 import { GDQRunData } from "@/interfaces/GDQRun";
@@ -16,7 +15,6 @@ import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
 import "@material/web/all.js";
-import { App } from "@capacitor/app";
 
 export default defineComponent({
   props: {
@@ -31,11 +29,7 @@ export default defineComponent({
     runnerNames: {
       type: Array as () => string[],
       required: true,
-    },
-    last: {
-      type: Boolean,
-      required: true,
-    },
+    }
   },
   setup(props) {
     const reminder = useRunReminderStore();
@@ -54,13 +48,37 @@ export default defineComponent({
     );
 
     const runName = (props.runData.display_name.length == 0 ? props.runData.name : props.runData.display_name).replaceAll("\\n", " ");
-    const start = new Date(props.runData.starttime);
+    const start = ref(new Date(props.runData.starttime));
     const end = new Date(props.runData.endtime);
-    const duration = new Date(end.getTime() - start.getTime());
-    const startString = start.toLocaleTimeString(navigator.language, {
-      hour: "numeric",
-      minute: "numeric",
+    const duration = new Date(end.getTime() - start.value.getTime());
+    const startString = ref(
+      start.value.toLocaleTimeString(navigator.language, {
+        hour: "numeric",
+        minute: "numeric",
+      })
+    );
+
+    const time = ref<HTMLSpanElement>();
+
+    watchEffect(() => {
+      const newValue = new Date(props.runData.starttime).toLocaleTimeString(navigator.language, {
+        hour: "numeric",
+        minute: "numeric",
+      });
+      // if the new value is different, fade time opacity to 0, then change the value, then fade opacity back to 1 with 1000ms
+      if (startString.value !== newValue) {
+        (async () => {
+          if (time.value) {
+            time.value.style.transition = "opacity 0.25s";
+            time.value.style.opacity = "0";
+            await new Promise((resolve) => setTimeout(resolve, 250));
+            startString.value = newValue;
+            time.value.style.opacity = "1";
+          }
+        })();
+      }
     });
+
     const durationHMMSS = `${duration.getUTCHours()}:${duration
       .getUTCMinutes()
       .toString()
@@ -129,10 +147,10 @@ export default defineComponent({
     const timeProvider = inject<DateProvider>("dateProvider")!;
     const now = timeProvider.getCurrent();
     const run = ref<HTMLDivElement>();
-    const isActive = ref(start < now && now < end);
+    const isActive = ref(start.value < now && now < end);
     let currentRun: Ref<[HTMLDivElement, GDQRunData]> | null = null;
     onMounted(() => {
-      if (start < now && now < end) {
+      if (start.value < now && now < end) {
         run.value!.scrollIntoView(true);
         scrollRunContainerBy!(0, -50);
       }
@@ -151,7 +169,7 @@ export default defineComponent({
     const interval = setInterval(() => {
       const now = timeProvider.getCurrent();
       isInThePast.value = end < now;
-      isActive.value = start < now && now < end;
+      isActive.value = start.value < now && now < end;
 
       if (isActive.value) {
         if (!run.value) {
@@ -174,6 +192,7 @@ export default defineComponent({
       reminderClasses,
       start,
       end,
+      time,
       startString,
       durationHMMSS,
       runners,
@@ -240,9 +259,9 @@ export default defineComponent({
     <div class="content">
       <span class="runName">{{ runName }}</span>
       <span class="meta">
-        <span class="meta-entry schedule"
-          ><md-icon>schedule</md-icon>{{ startString }}</span
-        >
+          <span class="meta-entry schedule"
+            ><md-icon>schedule</md-icon><span class="time" ref="time">{{ startString }}</span></span
+          >
         <span class="meta-entry timer"
           ><md-icon filled>timer</md-icon>{{ durationHMMSS }}</span
         >
@@ -262,7 +281,6 @@ export default defineComponent({
   </div>
 </template>
 <style scoped lang="scss">
-// layout
 .run {
   position: relative;
 
@@ -320,6 +338,11 @@ export default defineComponent({
     &.meta {
       display: flex;
       flex-shrink: 1;
+
+      .time {
+        display: inline-block;
+        transition: opacity 0.25s;
+      }
     }
 
     &.meta-entry {

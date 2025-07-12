@@ -4,6 +4,7 @@ import GDQRun from "./GDQRun.vue";
 import GDQDayDivider from "./GDQDayDivider.vue";
 import { GDQRunData } from "../interfaces/GDQRun";
 import { DateProvider } from "@/interfaces/DateProvider";
+import { computed } from "vue";
 
 export default defineComponent({
   props: {
@@ -23,9 +24,13 @@ export default defineComponent({
   async setup(props) {
     const now = inject<DateProvider>("dateProvider")!.getCurrent();
     const endOfDay = new Date(parseInt(props.day) + 1 * 1000 * 60 * 60 * 24);
+
+    const runs = computed(() =>
+      props.runsIDsInOrder.map((runPK) => {return {pk: runPK, ...props.runsByID[runPK]}})
+    );
+
     const generateIsOverClassName = () => {
-      const lastRunEndTime = props.runsIDsInOrder
-        .map((runPK) => props.runsByID[runPK])
+      const lastRunEndTime = runs.value
         .filter((run) => new Date(run.starttime) < endOfDay)
         .map((run) => new Date(run.endtime))
         .sort((a, b) => b.getTime() - a.getTime())[0];
@@ -36,7 +41,7 @@ export default defineComponent({
       return "";
     };
 
-    return { ...props, generateIsOverClassName };
+    return { ...props, generateIsOverClassName, runs };
   },
   components: {
     GDQRun,
@@ -44,36 +49,20 @@ export default defineComponent({
   },
 });
 </script>
-
 <template>
   <div :class="'day ' + generateIsOverClassName()" :id="'run-for-' + day">
     <GDQDayDivider class="dd" :day="day"></GDQDayDivider>
-    <template v-for="(runPK, index) in runsIDsInOrder" :key="runPK">
-      <GDQRun
-        class="r"
-        v-if="index == Object.keys(runsIDsInOrder).length - 1"
-        :last="true"
-        :pk="runPK"
-        :runData="runsByID[runPK]"
-        :runner-names="
-          runsByID[runPK].runners.map((runner) => runner.name)
-        "
-      ></GDQRun>
-      <GDQRun
-        class="r"
-        v-if="index != Object.keys(runsIDsInOrder).length - 1"
-        :last="false"
-        :pk="runPK"
-        :runData="runsByID[runPK]"
-        :runner-names="
-          runsByID[runPK].runners.map((runner) => runner.name)
-        "
-      ></GDQRun>
-    </template>
+      <template v-for="(run, index) in runs" :key="run.pk">
+          <GDQRun
+            class="r"
+            :pk="run.pk"
+            :runData="run"
+            :runner-names="run.runners.map((runner) => runner.name)"
+          ></GDQRun>
+      </template>
     <span></span>
   </div>
 </template>
-
 <style lang="scss">
 .day {
   margin-top: 14px;
