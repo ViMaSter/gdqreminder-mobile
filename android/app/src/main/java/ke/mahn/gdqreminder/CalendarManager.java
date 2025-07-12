@@ -306,7 +306,8 @@ public class CalendarManager {
             }
             reader.close();
             inputStream.close();
-            JSONArray runs = new JSONArray(response.toString());
+            JSONObject runsResponse = new JSONObject(response.toString());
+            JSONArray runs = runsResponse.getJSONArray("results");
             JSONArray trackedPKs = internalGetAllEvents(context).getJSONArray("results");
             List<String> trackedPKsList = new ArrayList<>();
             for (int i = 0; i < trackedPKs.length(); i++) {
