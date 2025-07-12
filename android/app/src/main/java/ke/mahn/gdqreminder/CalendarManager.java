@@ -315,21 +315,21 @@ public class CalendarManager {
             }
 
             for (int i = 0; i < runs.length(); i++) {
-                JSONObject fields = runs.getJSONObject(i).getJSONObject("fields");
+                JSONObject fields = runs.getJSONObject(i);
                 String pk = runs.getJSONObject(i).getString("id");
 
                 if (!trackedPKsList.contains(pk)) {
                     continue;
                 }
 
-                String displayName = fields.optString("display_name");
+                String displayName = fields.optString("name");
                 if (displayName == null || displayName.isEmpty()) {
-                    displayName = fields.optString("name", "");
+                    displayName = fields.optString("display_name", "");
                 }
                 internalUpsertEvent(
                         context,
                         InsertCalendarIfMissing(context),
-                        runs.getJSONObject(i).getString("id"),
+                        pk,
                         Instant.parse(fields.getString("starttime")).toEpochMilli(),
                         Instant.parse(fields.getString("endtime")).toEpochMilli(),
                         displayName,
