@@ -276,8 +276,20 @@ public class CalendarManager {
             }
             reader.close();
             inputStream.close();
-            JSArray events = new JSArray(response.toString());
-            String currentEventID = events.getJSONObject(0).getJSONArray("results").getJSONObject(0).getString("id");
+            JSONObject eventsResponse = new JSONObject(response.toString());
+            JSONArray results = eventsResponse.getJSONArray("results");
+            String currentEventID = null;
+            for (int i = 0; i < results.length(); i++) {
+                JSONObject event = results.getJSONObject(i);
+                String shortName = event.optString("short", "").toLowerCase();
+                if (shortName.contains("gdq")) {
+                    currentEventID = event.getString("id");
+                    break;
+                }
+            }
+            if (currentEventID == null) {
+                throw new Exception("No event with 'gdq' in short name found.");
+            }
             uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v2/events/" + currentEventID + "/runs/");
             connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
@@ -294,29 +306,30 @@ public class CalendarManager {
             }
             reader.close();
             inputStream.close();
-            JSONArray runs = new JSONArray(response.toString());
-            JSONArray trackedPKs = internalGetAllEvents(context).getJSONArray("results");
+            JSONObject runsResponse = new JSONObject(response.toString());
+            JSONArray runs = runsResponse.getJSONArray("results");
+            JSONArray trackedPKs = internalGetAllEvents(context).getJSONArray("events");
             List<String> trackedPKsList = new ArrayList<>();
             for (int i = 0; i < trackedPKs.length(); i++) {
                 trackedPKsList.add(trackedPKs.getJSONObject(i).getString("id"));
             }
 
             for (int i = 0; i < runs.length(); i++) {
-                JSONObject fields = runs.getJSONObject(i).getJSONObject("fields");
+                JSONObject fields = runs.getJSONObject(i);
                 String pk = runs.getJSONObject(i).getString("id");
 
                 if (!trackedPKsList.contains(pk)) {
                     continue;
                 }
 
-                String displayName = fields.optString("display_name");
+                String displayName = fields.optString("name");
                 if (displayName == null || displayName.isEmpty()) {
-                    displayName = fields.optString("name", "");
+                    displayName = fields.optString("display_name", "");
                 }
                 internalUpsertEvent(
                         context,
                         InsertCalendarIfMissing(context),
-                        runs.getJSONObject(i).getString("id"),
+                        pk,
                         Instant.parse(fields.getString("starttime")).toEpochMilli(),
                         Instant.parse(fields.getString("endtime")).toEpochMilli(),
                         displayName,
