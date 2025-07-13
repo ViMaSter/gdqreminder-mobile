@@ -8,9 +8,9 @@ import {
   computed,
   Ref,
 } from "vue";
-import "../utilities/pushNotificationHelper";
+import "@/utilities/pushNotificationHelper";
 import { GDQRunData } from "@/interfaces/GDQRun";
-import PushNotificationHelper from "../utilities/pushNotificationHelper";
+import PushNotificationHelper from "@/utilities/pushNotificationHelper";
 import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
