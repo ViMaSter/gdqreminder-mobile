@@ -8,6 +8,11 @@ function handleButtonClick() {
 </script>
 <template>
   <div class="container">
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
     <button @click="handleButtonClick">Go to Main</button>
     <p>Settings View</p>
     <!-- Add your settings content here -->
