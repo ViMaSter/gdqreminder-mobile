@@ -11,6 +11,9 @@
         "error-friendCode": "Invalid friend code",
         "note-friendCode": "Your friend's runs will be highlighted, but you'll continue to only receive notifications for runs you set up yourself."
     },
+    "settings": {
+        "title": "Settings"
+    },
     "note": "Note",
     "cancel": "Cancel",
     "apply": "Apply"
