@@ -11,6 +11,9 @@
         "error-friendCode": "Ungültiger Friend Code",
         "note-friendCode": "Runs von Befreundeten werden zwar hervorgehoben, aber erhältst weiterhin nur Benachrichtigungen für Runs, die du aufgesetzt hast."
     },
+    "settings": {
+        "title": "Einstellungen"
+    },
     "note": "Hinweis",
     "cancel": "Abbrechen",
     "apply": "OK"
