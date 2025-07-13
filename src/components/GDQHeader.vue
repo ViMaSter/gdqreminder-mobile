@@ -33,6 +33,9 @@ export default defineComponent({
     <md-icon-button slot="actionItems" @click="$emit('toggleDarkMode')"
       ><md-icon>dark_mode</md-icon></md-icon-button
     >
+    <md-icon-button slot="actionItems" @click="$emit('showSettings')"
+      ><md-icon>settings</md-icon></md-icon-button
+    >
   </mwc-top-app-bar-fixed>
     <!-- eslint-enable vue/no-deprecated-slot-attribute false positive: -->
 </template>
