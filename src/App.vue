@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import LoadingIndicator from "./components/LoadingIndicator.vue";
+import GDQSettings from "./components/GDQSettings.vue";
 import GDQMain from "./components/GDQMain.vue";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { EventHandler } from "./utilities/eventHandler";
 import { AppLauncher } from "@capacitor/app-launcher";
-import { Capacitor } from "@capacitor/core";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { onMounted, provide, ref, watch } from "vue";
 import PushNotificationHelper from "./utilities/pushNotificationHelper";
@@ -168,13 +168,25 @@ SafeArea.addListener("safeAreaChanged", (data) => {
     );
   }
 });
+
+const visibility = ref<Record<string, boolean>>({
+  settings: false,
+  main: true,
+});
+const setVisibility = async (key : string, value: boolean) => {
+  visibility.value[key] = value;
+};
+
 </script>
 
 <template>
   <LoadingIndicator class="loading" ref="loadingContent"></LoadingIndicator>
-  <Suspense>
-    <GDQMain ref="mainContent"></GDQMain>
-  </Suspense>
+  <TransitionGroup name="list" class="wrapper">
+    <Suspense v-if="visibility['main']" :key="'main'">
+      <GDQMain @setVisibility="setVisibility" ref="mainContent" class="main"></GDQMain>
+    </Suspense>
+    <GDQSettings v-if="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings" :key="'settings'"></GDQSettings>
+  </TransitionGroup>
   <link
     href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
     rel="stylesheet"
@@ -184,7 +196,36 @@ SafeArea.addListener("safeAreaChanged", (data) => {
     rel="stylesheet"
   />
 </template>
-<style>
+<style lang="scss">
+.list-move.gdq-settings, /* apply transition to moving elements */
+.list-enter-active.gdq-settings,
+.list-leave-active.gdq-settings {
+  transition: all 0.25s ease;
+}
+.list-move.main, /* apply transition to moving elements */
+.list-enter-active.main,
+.list-leave-active.main {
+  transition: opacity 0.25s ease;
+  transform: initial !important;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px) translateY(0px) !important;
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.list-leave-active {
+  position: absolute !important;
+  top: 0px !important;
+}
+
+.gdq-settings {
+  z-index: 1000;
+}
+
 .loading {
   z-index: 10000;
 }
