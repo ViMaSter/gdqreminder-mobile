@@ -6,7 +6,7 @@ import {
   provide,
   defineComponent,
   watch,
-  onBeforeMount,
+  onBeforeMount
 } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Snackbar } from "@material/mwc-snackbar";
@@ -664,12 +664,19 @@ export default defineComponent({
       },
     };
   },
+  emits: ['setVisibility'],
   components: {
     GDQDay,
     GDQHeader,
     GDQSidebar,
     GDQTimeIndicator,
   },
+  methods: {
+    showSettings() {
+      this.$emit('setVisibility', "settings", true);
+      this.$emit('setVisibility', "main", false);
+    }
+  }
 });
 </script>
 
@@ -725,6 +732,7 @@ export default defineComponent({
           @openFriendMenu="openFriendMenu"
           @toggleDarkMode="toggleDarkMode"
           @toggleFilter="toggleFilter"
+          @showSettings="showSettings"
           :currentEventName="currentEventName"
         ></GDQHeader>
 
