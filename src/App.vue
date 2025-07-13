@@ -182,10 +182,10 @@ const setVisibility = async (key : string, value: boolean) => {
 <template>
   <LoadingIndicator class="loading" ref="loadingContent"></LoadingIndicator>
   <TransitionGroup name="list" class="wrapper">
-    <Suspense v-if="visibility['main']" :key="'main'">
+    <Suspense v-show="visibility['main']" :key="'main'">
       <GDQMain @setVisibility="setVisibility" ref="mainContent" class="main"></GDQMain>
     </Suspense>
-    <GDQSettings v-if="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings" :key="'settings'"></GDQSettings>
+    <GDQSettings v-show="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings" :key="'settings'"></GDQSettings>
   </TransitionGroup>
   <link
     href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
