@@ -2,7 +2,7 @@
 import { defineComponent, inject } from "vue";
 import GDQRun from "./GDQRun.vue";
 import GDQDayDivider from "./GDQDayDivider.vue";
-import { GDQRunData } from "../interfaces/GDQRun";
+import { GDQRunData } from "@/interfaces/GDQRun";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { computed } from "vue";
 

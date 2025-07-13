@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import LoadingIndicator from "./components/LoadingIndicator.vue";
-import GDQSettings from "./components/GDQSettings.vue";
-import GDQMain from "./components/GDQMain.vue";
+import GDQSettings from "./pages/GDQSettings.vue";
+import GDQMain from "./pages/GDQMain.vue";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { EventHandler } from "./utilities/eventHandler";
 import { AppLauncher } from "@capacitor/app-launcher";
@@ -200,12 +200,12 @@ const setVisibility = async (key : string, value: boolean) => {
 .list-move.gdq-settings, /* apply transition to moving elements */
 .list-enter-active.gdq-settings,
 .list-leave-active.gdq-settings {
-  transition: all 0.25s ease;
+  transition: all 0.25s ease-out;
 }
 .list-move.main, /* apply transition to moving elements */
 .list-enter-active.main,
 .list-leave-active.main {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.25s ease-out;
   transform: initial !important;
 }
 
