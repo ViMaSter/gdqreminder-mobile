@@ -15,7 +15,7 @@
         "headline": "Settings",
         "headline-generalNotifications": "General notifications",
         "label-eventAnnouncements": "New events",
-        "description-eventAnnouncements": "Receive push notifications when runs for a new AGDQ or SGDQ event got announced",
+        "description-eventAnnouncements": "Receive push notifications when the initial schedule for a new GDQ event is announced",
         "label-eventUpdates": "Event updates",
         "description-eventUpdates": "Receive push notifications when a new run is added to an event",
         "headline-language": "Language",
