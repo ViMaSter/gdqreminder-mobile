@@ -7,7 +7,6 @@ import { EventHandler } from "./utilities/eventHandler";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { onMounted, provide, ref, watch } from "vue";
-import PushNotificationHelper from "./utilities/pushNotificationHelper";
 import { useUserIDStore } from "./stores/friendUserID";
 import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
@@ -88,8 +87,6 @@ const registerNotifications = async () => {
   }
 
   await PushNotifications.register();
-
-  await PushNotificationHelper.subscribeToScheduleUpdates();
 };
 
 const friendRunStore = useFriendRunReminderStore();
@@ -185,7 +182,9 @@ const setVisibility = async (key : string, value: boolean) => {
     <Suspense :key="'main'">
       <GDQMain v-show="visibility['main']" @setVisibility="setVisibility" ref="mainContent" class="main"></GDQMain>
     </Suspense>
-    <GDQSettings v-show="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings" :key="'settings'"></GDQSettings>
+    <Suspense :key="'settings'">
+      <GDQSettings v-show="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings"></GDQSettings>
+    </Suspense>
   </TransitionGroup>
   <link
     href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
