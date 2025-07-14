@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onUnmounted, Ref, ref } from 'vue';
+import { onBeforeMount, onUnmounted, Ref, ref } from 'vue';
 import { AppLauncher } from "@capacitor/app-launcher";
 import { MdDialog } from "@material/web/dialog/dialog";
 import Version from "@/plugins/versionPlugin";
 import PushNotificationHelper from '@/utilities/pushNotificationHelper';
 import { MdSwitch } from '@material/web/switch/switch';
 import { useI18n } from 'vue-i18n';
+import { App } from "@capacitor/app";
 const emit = defineEmits(['setVisibility']);
 const { t } = useI18n();
 
@@ -22,6 +23,16 @@ const languageDialog = ref<MdDialog>();
 const openLanguageDialog = () => {
   languageDialog.value!.open = true;
 };
+
+onBeforeMount(() => {
+  App.addListener("backButton", async () => {
+    if (languageDialog.value!.open) {
+      languageDialog.value!.open = false;
+      return;
+    }
+    closeSettings();
+  });
+});
 
 const visitTranslationPage = () => {
   AppLauncher.openUrl({
