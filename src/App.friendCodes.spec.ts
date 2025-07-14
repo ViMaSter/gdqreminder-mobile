@@ -6,9 +6,9 @@ test("adding and removing friend code with pre-existing runs toggles friend indi
   test.setTimeout(60_000);
   await page.goto(page.url());
 
-  await page.waitForSelector('mwc-top-app-bar-fixed [slot="title"]');
+  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
 
-  await page.click('mwc-top-app-bar-fixed [slot="navigationIcon"]');
+  await page.click('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="navigationIcon"]');
 
   await page.waitForSelector(".mdc-drawer");
 
@@ -35,7 +35,7 @@ test("adding your own friend code means clock and friend indicator are shown", a
   test.setTimeout(60_000);
   await page.goto(page.url() + "#date=2025-01-04%2000:00:00");
 
-  await page.waitForSelector('mwc-top-app-bar-fixed [slot="title"]');
+  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
 
   await page.waitForSelector(".day-divider");
 
