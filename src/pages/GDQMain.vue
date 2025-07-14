@@ -142,6 +142,11 @@ export default defineComponent({
 
     onBeforeMount(() => {
       App.addListener("backButton", async () => {
+        // Return early if this component is not visible (v-show is false)
+        const el = wrapper.value;
+        if (!el || el.style.display === "none") {
+          return;
+        }
         drawer.value!.open = !drawer.value!.open;
         if (!drawer.value!.open) {
           await App.minimizeApp();
