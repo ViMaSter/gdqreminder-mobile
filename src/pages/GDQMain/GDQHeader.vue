@@ -15,7 +15,7 @@ export default defineComponent({
 <template>
   <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
   <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
-  <mwc-top-app-bar-fixed>
+  <mwc-top-app-bar-fixed data-test-selector="main">
     <md-icon-button slot="navigationIcon"
       ><md-icon>menu</md-icon></md-icon-button
     >
