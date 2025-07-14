@@ -12,7 +12,20 @@
         "note-friendCode": "Runs von Befreundeten werden zwar hervorgehoben, aber erhältst weiterhin nur Benachrichtigungen für Runs, die du aufgesetzt hast."
     },
     "settings": {
-        "title": "Einstellungen"
+        "headline": "Einstellungen",
+        "headline-generalNotifications": "Allgemeine Benachrichtigungen",
+        "label-eventAnnouncements": "Neue Events",
+        "description-eventAnnouncements": "Push Notifications erhalten, wenn die Runs eines neuen AGDQ oder SGDQ Event angekündigt wurden",
+        "label-eventUpdates": "Event Updates",
+        "description-eventUpdates": "Push Notifications erhalten, wenn ein neuer Run einem Event hinzugefügt wurde",
+        "headline-language": "Sprache",
+        "label-appLanguage": "Sprache der App",
+        "option-systemDefault": "Systemstandard benutzen",
+        "option-english": "Englisch",
+        "option-german": "Deutsch",
+        "label-helpTranslate": "Mithelfen",
+        "headline-information": "Informationen",
+        "label-version": "Version"
     },
     "note": "Hinweis",
     "cancel": "Abbrechen",
