@@ -14,6 +14,7 @@ import PushNotificationHelper from "@/utilities/pushNotificationHelper";
 import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
+import { useSettingsStore } from "@/stores/settings";
 import "@material/web/all.js";
 
 export default defineComponent({
@@ -47,12 +48,14 @@ export default defineComponent({
       reminder.allReminders.includes(props.pk.toString()),
     );
 
+    const settingsStore = useSettingsStore();
+
     const runName = (props.runData.display_name.length == 0 ? props.runData.name : props.runData.display_name).replaceAll("\\n", " ");
     const start = ref(new Date(props.runData.starttime));
     const end = new Date(props.runData.endtime);
     const duration = new Date(end.getTime() - start.value.getTime());
     const startString = ref(
-      start.value.toLocaleTimeString(navigator.language, {
+      start.value.toLocaleTimeString(settingsStore.currentLanguage, {
         hour: "numeric",
         minute: "numeric",
       })
@@ -61,7 +64,7 @@ export default defineComponent({
     const time = ref<HTMLSpanElement>();
 
     watchEffect(() => {
-      const newValue = new Date(props.runData.starttime).toLocaleTimeString(navigator.language, {
+      const newValue = new Date(props.runData.starttime).toLocaleTimeString(settingsStore.currentLanguage, {
         hour: "numeric",
         minute: "numeric",
       });
