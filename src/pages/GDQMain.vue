@@ -643,11 +643,6 @@ export default defineComponent({
       scrollable,
       updateFriendID,
       wrapper,
-      visitTranslationPage: () => {
-        AppLauncher.openUrl({
-          url: "https://crowdin.com/project/gdqreminder",
-        });
-      },
       openFriendMenu,
       toggleFilter,
       toggleDarkMode,
@@ -728,7 +723,6 @@ export default defineComponent({
       ></GDQSidebar>
       <div id="appContent" slot="appContent" ref="scrollable">
         <GDQHeader
-          @visitTranslationPage="visitTranslationPage"
           @openFriendMenu="openFriendMenu"
           @toggleDarkMode="toggleDarkMode"
           @toggleFilter="toggleFilter"
@@ -769,6 +763,7 @@ mwc-drawer {
 mwc-drawer > * {
   color: var(--mdc-theme-on-surface);
 }
+
 md-dialog {
   --md-dialog-container-color: var(--mdc-theme-surface);
   --md-dialog-headline-color: var(--mdc-theme-on-surface);
@@ -789,6 +784,7 @@ md-dialog {
   }
   width: 80%;
 }
+
 .padding {
   height: 8em;
 }
