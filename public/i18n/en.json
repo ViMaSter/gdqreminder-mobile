@@ -12,7 +12,20 @@
         "note-friendCode": "Your friend's runs will be highlighted, but you'll continue to only receive notifications for runs you set up yourself."
     },
     "settings": {
-        "title": "Settings"
+        "headline": "Settings",
+        "headline-generalNotifications": "General notifications",
+        "label-eventAnnouncements": "New events",
+        "description-eventAnnouncements": "Receive push notifications when runs for a new AGDQ or SGDQ event got announced",
+        "label-eventUpdates": "Event updates",
+        "description-eventUpdates": "Receive push notifications when a new run is added to an event",
+        "headline-language": "Language",
+        "label-appLanguage": "App language",
+        "option-systemDefault": "Use system default",
+        "option-english": "English",
+        "option-german": "German",
+        "label-helpTranslate": "Help translate",
+        "headline-information": "Information",
+        "label-version": "Version"
     },
     "note": "Note",
     "cancel": "Cancel",
