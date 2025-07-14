@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, inject } from "vue";
 import { DateProvider } from "@/interfaces/DateProvider";
+import { useSettingsStore } from "@/stores/settings";
 
 export default defineComponent({
   props: {
@@ -10,6 +11,7 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const settings = useSettingsStore();
     const dayDate = new Date(parseInt(props.day));
     const now = inject<DateProvider>("dateProvider")!.getCurrent();
     const endOfDay = new Date(dayDate.getTime() + 1 * 1000 * 60 * 60 * 24);
@@ -22,7 +24,7 @@ export default defineComponent({
     };
     return {
       dayName: dayDate
-        .toLocaleDateString(undefined, { weekday: "long" })
+        .toLocaleDateString(settings.currentLanguage, { weekday: "long" })
         .slice(0, 2),
       dayNumber: dayDate.getDate(),
       generateIsOverClassName,
