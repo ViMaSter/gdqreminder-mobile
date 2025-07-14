@@ -5,7 +5,9 @@ import { MdDialog } from "@material/web/dialog/dialog";
 import Version from "@/plugins/versionPlugin";
 import PushNotificationHelper from '@/utilities/pushNotificationHelper';
 import { MdSwitch } from '@material/web/switch/switch';
+import { useI18n } from 'vue-i18n';
 const emit = defineEmits(['setVisibility']);
+const { t } = useI18n();
 
 const closeSettings = () => {
   emit('setVisibility', "settings", false);
@@ -93,67 +95,65 @@ const toggleEventUpdates = async () => {
 const versionCode = `${(await Version.getCurrent()).versionName}.${(await Version.getCurrent()).versionCode}`;
 
 const languages = {
-  'system': 'System default',
-  'english': 'English',
-  'german': 'German'
+  'system': t('settings.option-systemDefault'),
+  'english': t('settings.option-english'),
+  'german': t('settings.option-german'),
 };
 type LanguageKey = keyof typeof languages;
 const selectedLanguage : Ref<LanguageKey> = ref('system');
 const overrideAppLanguage = (language: LanguageKey) => {
   selectedLanguage.value = language;
-  console.log(`Language set to: ${language}`);
-  languageDialog.value!.close();
-  // location = location;
+  location = location;
 };
 </script>
 <template>
   <div class="container">
     <mwc-top-app-bar-fixed>
       <md-icon-button slot="navigationIcon" @click="closeSettings"><md-icon>arrow_back</md-icon></md-icon-button>
-      <div slot="title">{{ $t('settings.title') }}</div>
+      <div slot="title">{{ $t('settings.headline') }}</div>
     </mwc-top-app-bar-fixed>
     <main class="mdc-top-app-bar--fixed-adjust">
       <md-list>
         <md-list-item>
-          <div slot="supporting-text">General notifications</div>
+          <div slot="supporting-text">{{ $t('settings.headline-generalNotifications') }}</div>
         </md-list-item>
         <md-divider></md-divider>
         <md-list-item type="button" @click="toggleEventAnnouncements">
-          <div slot="headline">New events</div>
-          <div slot="supporting-text">Receive push notifications when runs for a new AGDQ or SGDQ event got announced</div>
+          <div slot="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
+          <div slot="supporting-text">{{ $t('settings.description-eventAnnouncements') }}</div>
           <md-switch :selected="eventAnnouncements" @change="toggleEventAnnouncements" ref="eventAnnouncementsSwitch" slot="end"></md-switch>
         </md-list-item>
         <md-divider></md-divider>
         <md-list-item type="button" @click="toggleEventUpdates">
-          <div slot="headline">Schedule updates</div>
-          <div slot="supporting-text">Receive push notifications when a new game is added to an event</div>
+          <div slot="headline">{{ $t('settings.label-eventUpdates') }}</div>
+          <div slot="supporting-text">{{ $t('settings.description-eventUpdates') }}</div>
           <md-switch :selected="eventUpdates" @change="toggleEventUpdates" ref="eventUpdatesSwitch" slot="end"></md-switch>
         </md-list-item>
         <md-list-item>
-          <div slot="supporting-text">Language</div>
+          <div slot="supporting-text">{{ $t('settings.headline-language') }}</div>
         </md-list-item>
         <md-divider></md-divider>
         <md-list-item type="button" @click="openLanguageDialog">
-          <div slot="headline">App language</div>
+          <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
           <div slot="supporting-text">{{ languages[selectedLanguage] || 'N/A' }}</div>
         </md-list-item>
         <md-divider></md-divider>
         <md-list-item type="button" @click="visitTranslationPage">
-          <div slot="headline">Help translate</div>
+          <div slot="headline">{{ $t('settings.label-helpTranslate') }}</div>
           <md-icon slot="end" @click="closeSettings"><md-icon>open_in_new</md-icon></md-icon>
         </md-list-item>
         <md-list-item>
-          <div slot="supporting-text">Information</div>
+          <div slot="supporting-text">{{ $t('settings.headline-information') }}</div>
         </md-list-item>
         <md-divider></md-divider>
         <md-list-item>
-          <div slot="headline">Version</div>
+          <div slot="headline">{{ $t('settings.label-version') }}</div>
           <div slot="supporting-text">{{ versionCode }}</div>
         </md-list-item>
       </md-list>
     </main>
     <md-dialog ref="languageDialog">
-      <div slot="headline">App language</div>
+      <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
       <div slot="content">
           <md-list-item
             type="button"
