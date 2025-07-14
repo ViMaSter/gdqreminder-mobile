@@ -21,9 +21,9 @@ const openLanguageDialog = () => {
 };
 
 const visitTranslationPage = () => {
-   AppLauncher.openUrl({
-      url: "https://crowdin.com/project/gdqreminder",
-    });
+  AppLauncher.openUrl({
+    url: "https://crowdin.com/project/gdqreminder",
+  });
 };
 
 
@@ -118,34 +118,47 @@ const overrideAppLanguage = (language: LanguageKey) => {
           <div slot="supporting-text">{{ $t('settings.headline-generalNotifications') }}</div>
         </md-list-item>
         <md-divider></md-divider>
+
         <md-list-item type="button" @click="toggleEventAnnouncements">
           <div slot="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
           <div slot="supporting-text">{{ $t('settings.description-eventAnnouncements') }}</div>
-          <md-switch :selected="eventAnnouncements" @change="toggleEventAnnouncements" ref="eventAnnouncementsSwitch" slot="end"></md-switch>
+          <md-switch :selected="eventAnnouncements" @change="toggleEventAnnouncements" ref="eventAnnouncementsSwitch"
+            slot="end"></md-switch>
+        </md-list-item>
+        <md-list-item><md-icon slot="start" @click="closeSettings">info</md-icon>
+          <div slot="supporting-text">{{ $t('settings.info-eventAnnouncements') }}</div>
         </md-list-item>
         <md-divider></md-divider>
+
         <md-list-item type="button" @click="toggleEventUpdates">
           <div slot="headline">{{ $t('settings.label-eventUpdates') }}</div>
           <div slot="supporting-text">{{ $t('settings.description-eventUpdates') }}</div>
-          <md-switch :selected="eventUpdates" @change="toggleEventUpdates" ref="eventUpdatesSwitch" slot="end"></md-switch>
+          <md-switch :selected="eventUpdates" @change="toggleEventUpdates" ref="eventUpdatesSwitch"
+            slot="end"></md-switch>
+        </md-list-item>
+        <md-list-item><md-icon slot="start" @click="closeSettings">info</md-icon>
+          <div slot="supporting-text">{{ $t('settings.info-eventUpdates') }}</div>
         </md-list-item>
         <md-list-item>
           <div slot="supporting-text">{{ $t('settings.headline-language') }}</div>
         </md-list-item>
         <md-divider></md-divider>
-        <md-list-item type="button" @click="openLanguageDialog">
+
+        <!-- <md-list-item type="button" @click="openLanguageDialog">
           <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
           <div slot="supporting-text">{{ languages[selectedLanguage] || 'N/A' }}</div>
         </md-list-item>
-        <md-divider></md-divider>
+        <md-divider></md-divider> -->
+
         <md-list-item type="button" @click="visitTranslationPage">
           <div slot="headline">{{ $t('settings.label-helpTranslate') }}</div>
-          <md-icon slot="end" @click="closeSettings"><md-icon>open_in_new</md-icon></md-icon>
+          <md-icon slot="end" @click="closeSettings">open_in_new</md-icon>
         </md-list-item>
         <md-list-item>
           <div slot="supporting-text">{{ $t('settings.headline-information') }}</div>
         </md-list-item>
         <md-divider></md-divider>
+        
         <md-list-item>
           <div slot="headline">{{ $t('settings.label-version') }}</div>
           <div slot="supporting-text">{{ versionCode }}</div>
@@ -155,14 +168,10 @@ const overrideAppLanguage = (language: LanguageKey) => {
     <md-dialog ref="languageDialog">
       <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
       <div slot="content">
-          <md-list-item
-            type="button"
-            v-for="(lang, key) in languages"
-            :key="key"
-            @click="overrideAppLanguage(key as LanguageKey)"
-          >
-            <label slot="headline"><md-radio :checked="selectedLanguage === key" slot="end"></md-radio> {{ lang }}</label>
-          </md-list-item>
+        <md-list-item type="button" v-for="(lang, key) in languages" :key="key"
+          @click="overrideAppLanguage(key as LanguageKey)">
+          <label slot="headline"><md-radio :checked="selectedLanguage === key" slot="end"></md-radio> {{ lang }}</label>
+        </md-list-item>
       </div>
     </md-dialog>
   </div>
@@ -191,12 +200,15 @@ md-dialog {
   md-filled-text-field {
     width: 100%;
   }
+
   md-filled-text-field.yourFriendCode {
     width: 85%;
   }
+
   md-icon-button {
     width: 15%;
   }
+
   width: 80%;
 }
 </style>
