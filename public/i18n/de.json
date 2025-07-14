@@ -15,7 +15,7 @@
         "headline": "Einstellungen",
         "headline-generalNotifications": "Allgemeine Benachrichtigungen",
         "label-eventAnnouncements": "Neue Events",
-        "description-eventAnnouncements": "Push Notifications erhalten, wenn die Runs eines neuen AGDQ oder SGDQ Event angekündigt wurden",
+        "description-eventAnnouncements": "Push Notifications erhalten, wenn das Programm eines neuen GDQ Events angekündigt wurde",
         "label-eventUpdates": "Event Updates",
         "description-eventUpdates": "Push Notifications erhalten, wenn ein neuer Run einem Event hinzugefügt wurde",
         "headline-language": "Sprache",
