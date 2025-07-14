@@ -3,10 +3,10 @@ import { onBeforeMount, onUnmounted, Ref, ref } from 'vue';
 import { AppLauncher } from "@capacitor/app-launcher";
 import { MdDialog } from "@material/web/dialog/dialog";
 import Version from "@/plugins/versionPlugin";
-import PushNotificationHelper from '@/utilities/pushNotificationHelper';
 import { MdSwitch } from '@material/web/switch/switch';
 import { useI18n } from 'vue-i18n';
 import { App } from "@capacitor/app";
+import { LanguageKey, languages, useSettingsStore } from '@/stores/settings';
 const emit = defineEmits(['setVisibility']);
 const { t } = useI18n();
 
@@ -40,21 +40,20 @@ const visitTranslationPage = () => {
   });
 };
 
+const settingsStore = useSettingsStore();
 
-let eventAnnouncements = ref(await PushNotificationHelper.isSubscribedToEventAnnouncements());
-let eventUpdates = ref(await PushNotificationHelper.isSubscribedToEventUpdates());
+let eventAnnouncements = ref(settingsStore.subscribedToEventAnnouncements);
+let eventUpdates = ref(settingsStore.subscribedToEventUpdates);
 
 const eventAnnouncementsSwitch = ref<MdSwitch>();
 const toggleEventAnnouncements = async () => {
   if (!eventAnnouncements.value) {
     eventAnnouncementsSwitch.value!.disabled = true;
     try {
-      await PushNotificationHelper.subscribeToEventAnnouncements();
-      eventAnnouncements.value = true;
+      await settingsStore.setSubscriptionToEventAnnouncements(true);
       return;
     } catch (e) {
-      eventAnnouncements.value = false;
-      console.error("Failed to subscribe to event announcements:", e);
+      console.error(e);
     } finally {
       eventAnnouncementsSwitch.value!.disabled = false;
       eventAnnouncementsSwitch.value!.selected = eventAnnouncements.value;
@@ -64,11 +63,9 @@ const toggleEventAnnouncements = async () => {
 
   eventAnnouncementsSwitch.value!.disabled = true;
   try {
-    await PushNotificationHelper.unsubscribeFromEventAnnouncements();
-    eventAnnouncements.value = false;
+      await settingsStore.setSubscriptionToEventAnnouncements(false);
   } catch (e) {
-    eventAnnouncements.value = true;
-    console.error("Failed to unsubscribe from event announcements:", e);
+    console.error(e);
   } finally {
     eventAnnouncementsSwitch.value!.disabled = false;
     eventAnnouncementsSwitch.value!.selected = eventAnnouncements.value;
@@ -80,12 +77,10 @@ const toggleEventUpdates = async () => {
   if (!eventUpdates.value) {
     eventUpdatesSwitch.value!.disabled = true;
     try {
-      await PushNotificationHelper.subscribeToEventUpdates();
-      eventUpdates.value = true;
+      await settingsStore.setSubscriptionToEventUpdates(true);
       return;
     } catch (e) {
-      eventUpdates.value = false;
-      console.error("Failed to subscribe to event updates:", e);
+      console.error(e);
     } finally {
       eventUpdatesSwitch.value!.disabled = false;
       eventUpdatesSwitch.value!.selected = eventUpdates.value;
@@ -95,11 +90,9 @@ const toggleEventUpdates = async () => {
 
   eventUpdatesSwitch.value!.disabled = true;
   try {
-    await PushNotificationHelper.unsubscribeFromEventUpdates();
-    eventUpdates.value = false;
+    await settingsStore.setSubscriptionToEventUpdates(false);
   } catch (e) {
-    eventUpdates.value = true;
-    console.error("Failed to unsubscribe from event updates:", e);
+    console.error(e);
   } finally {
     eventUpdatesSwitch.value!.disabled = false;
     eventUpdatesSwitch.value!.selected = eventUpdates.value;
@@ -109,17 +102,7 @@ const toggleEventUpdates = async () => {
 const { versionName, versionCode: versionCodeValue } = await Version.getCurrent();
 const versionCode = `${versionName}.${versionCodeValue}`;
 
-const languages = {
-  'system': t('settings.option-systemDefault'),
-  'english': t('settings.option-english'),
-  'german': t('settings.option-german'),
-};
-type LanguageKey = keyof typeof languages;
-const selectedLanguage : Ref<LanguageKey> = ref('system');
-const overrideAppLanguage = (language: LanguageKey) => {
-  selectedLanguage.value = language;
-  location = location;
-};
+const selectedLanguage : Ref<LanguageKey> = ref(settingsStore.selectedLanguage as LanguageKey);
 </script>
 <template>
   <div class="container">
@@ -159,11 +142,11 @@ const overrideAppLanguage = (language: LanguageKey) => {
         </md-list-item>
         <md-divider></md-divider>
 
-        <!-- <md-list-item type="button" @click="openLanguageDialog">
+        <md-list-item type="button" @click="openLanguageDialog">
           <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
-          <div slot="supporting-text">{{ languages[selectedLanguage] || 'N/A' }}</div>
+          <div slot="supporting-text">{{ $t('settings.option-'+selectedLanguage) || 'N/A' }}</div>
         </md-list-item>
-        <md-divider></md-divider> -->
+        <md-divider></md-divider>
 
         <md-list-item type="button" @click="visitTranslationPage">
           <div slot="headline">{{ $t('settings.label-helpTranslate') }}</div>
@@ -183,9 +166,9 @@ const overrideAppLanguage = (language: LanguageKey) => {
     <md-dialog ref="languageDialog">
       <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
       <div slot="content">
-        <md-list-item type="button" v-for="(lang, key) in languages" :key="key"
-          @click="overrideAppLanguage(key as LanguageKey)">
-          <label slot="headline"><md-radio :checked="selectedLanguage === key" slot="end"></md-radio> {{ lang }}</label>
+        <md-list-item type="button" v-for="(_, key) in languages" :key="key"
+          @click="settingsStore.setLanguage(key)">
+          <label slot="headline"><md-radio :checked="selectedLanguage === key" slot="end"></md-radio> {{ t('settings.option-'+key) }}</label>
         </md-list-item>
       </div>
     </md-dialog>
