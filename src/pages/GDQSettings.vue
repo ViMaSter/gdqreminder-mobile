@@ -195,7 +195,6 @@ const overrideAppLanguage = (language: LanguageKey) => {
 mwc-top-app-bar-fixed {
   background-color: var(--mdc-theme-primary);
   padding-top: var(--safe-area-inset-top);
-  margin-top: calc(var(--safe-area-inset-top) * -1);
 }
 
 .container {
