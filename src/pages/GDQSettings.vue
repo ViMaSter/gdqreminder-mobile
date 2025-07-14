@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, ref } from 'vue';
+import { onUnmounted, Ref, ref } from 'vue';
 import { AppLauncher } from "@capacitor/app-launcher";
 import { MdDialog } from "@material/web/dialog/dialog";
 import Version from "@/plugins/versionPlugin";
@@ -13,7 +13,10 @@ const closeSettings = () => {
   emit('setVisibility', "settings", false);
   emit('setVisibility', "main", true);
 }
-window.addEventListener('popstate', closeSettings);
+window.addEventListener('popstate', closeSettings);  
+onUnmounted(() => {  
+  window.removeEventListener('popstate', closeSettings);  
+});  
 
 const languageDialog = ref<MdDialog>();
 const openLanguageDialog = () => {
@@ -71,7 +74,7 @@ const toggleEventUpdates = async () => {
       return;
     } catch (e) {
       eventUpdates.value = false;
-      console.error("Failed to subscribe to event announcements:", e);
+      console.error("Failed to subscribe to event updates:", e);
     } finally {
       eventUpdatesSwitch.value!.disabled = false;
       eventUpdatesSwitch.value!.selected = eventUpdates.value;
@@ -85,14 +88,15 @@ const toggleEventUpdates = async () => {
     eventUpdates.value = false;
   } catch (e) {
     eventUpdates.value = true;
-    console.error("Failed to unsubscribe from event announcements:", e);
+    console.error("Failed to unsubscribe from event updates:", e);
   } finally {
     eventUpdatesSwitch.value!.disabled = false;
     eventUpdatesSwitch.value!.selected = eventUpdates.value;
   }
 };
 
-const versionCode = `${(await Version.getCurrent()).versionName}.${(await Version.getCurrent()).versionCode}`;
+const { versionName, versionCode: versionCodeValue } = await Version.getCurrent();
+const versionCode = `${versionName}.${versionCodeValue}`;
 
 const languages = {
   'system': t('settings.option-systemDefault'),
@@ -177,6 +181,12 @@ const overrideAppLanguage = (language: LanguageKey) => {
   </div>
 </template>
 <style lang="scss" scoped>
+mwc-top-app-bar-fixed {
+  background-color: var(--mdc-theme-primary);
+  padding-top: var(--safe-area-inset-top);
+  margin-top: calc(var(--safe-area-inset-top) * -1);
+}
+
 .container {
   font-family: Roboto;
   margin: 0;
