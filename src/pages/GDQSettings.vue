@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, watch, Ref, ref, inject } from 'vue';
+import { onBeforeMount, watch, computed, ref, inject } from 'vue';
 import { AppLauncher } from "@capacitor/app-launcher";
 import { MdDialog } from "@material/web/dialog/dialog";
 import Version from "@/plugins/versionPlugin";
@@ -49,8 +49,8 @@ const visitTranslationPage = () => {
 
 const settingsStore = useSettingsStore();
 
-let eventAnnouncements = ref(settingsStore.subscribedToEventAnnouncements);
-let eventUpdates = ref(settingsStore.subscribedToEventUpdates);
+let eventAnnouncements = computed(() => settingsStore.subscribedToEventAnnouncements);
+let eventUpdates = computed(() => settingsStore.subscribedToEventUpdates);
 
 const eventAnnouncementsSwitch = ref<MdSwitch>();
 const toggleEventAnnouncements = async () => {
@@ -64,8 +64,8 @@ const toggleEventAnnouncements = async () => {
     } finally {
       eventAnnouncementsSwitch.value!.disabled = false;
       eventAnnouncementsSwitch.value!.selected = eventAnnouncements.value;
+      return;
     }
-    return;
   }
 
   eventAnnouncementsSwitch.value!.disabled = true;
@@ -91,8 +91,8 @@ const toggleEventUpdates = async () => {
     } finally {
       eventUpdatesSwitch.value!.disabled = false;
       eventUpdatesSwitch.value!.selected = eventUpdates.value;
+      return;
     }
-    return;
   }
 
   eventUpdatesSwitch.value!.disabled = true;
@@ -109,7 +109,7 @@ const toggleEventUpdates = async () => {
 const { versionName, versionCode: versionCodeValue } = await Version.getCurrent();
 const versionCode = `${versionName}.${versionCodeValue}`;
 
-const selectedLanguage : Ref<LanguageKey> = ref(settingsStore.selectedLanguage as LanguageKey);
+const selectedLanguage = computed(() => settingsStore.selectedLanguage);
 </script>
 <template>
   <div class="container">
