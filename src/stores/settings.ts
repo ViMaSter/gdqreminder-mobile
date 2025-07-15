@@ -14,7 +14,7 @@ type SettingsState = {
   selectedLanguage: LanguageKey;
 };
 
-const key = "settings";
+const key = "piniaState-settings";
 const defaultValue: SettingsState = {
   subscribedToEventAnnouncements: false,
   subscribedToEventUpdates: false,
@@ -23,7 +23,7 @@ const defaultValue: SettingsState = {
 
 export const useSettingsStore = defineStore(key, {
   state: (): SettingsState => {
-    const state = localStorage.getItem("piniaState-" + key);
+    const state = localStorage.getItem(key);
     if (!state) {
       return defaultValue;
     }
@@ -54,7 +54,7 @@ export const useSettingsStore = defineStore(key, {
         );
       }
       this.$state.subscribedToEventAnnouncements = enabled;
-      localStorage.setItem("piniaState-" + key, JSON.stringify(this.$state));
+      localStorage.setItem(key, JSON.stringify(this.$state));
     },
     async setSubscriptionToEventUpdates(enabled: boolean): Promise<void> {
       try {
@@ -69,11 +69,11 @@ export const useSettingsStore = defineStore(key, {
         );
       }
       this.$state.subscribedToEventUpdates = enabled;
-      localStorage.setItem("piniaState-" + key, JSON.stringify(this.$state));
+      localStorage.setItem(key, JSON.stringify(this.$state));
     },
     setLanguage(language: LanguageKey): void {
       this.$state.selectedLanguage = language;
-      localStorage.setItem("piniaState-" + key, JSON.stringify(this.$state));
+      localStorage.setItem(key, JSON.stringify(this.$state));
       location = location;
     }
   },

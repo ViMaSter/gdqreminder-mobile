@@ -9,14 +9,14 @@ export enum Theme {
 type ThemeState = {
   selectedTheme: Theme;
 };
-const key = "theme";
+const key = "piniaState-theme";
 const defaultValue: ThemeState = {
   selectedTheme: Theme.Device,
 };
 
 export const useThemeStore = defineStore(key, {
   state: (): ThemeState => {
-    const state = localStorage.getItem("piniaState-" + key);
+    const state = localStorage.getItem(key);
     if (!state) {
       return defaultValue;
     }
@@ -37,7 +37,7 @@ export const useThemeStore = defineStore(key, {
   actions: {
     override(newTheme: Theme) {
       this.$state.selectedTheme = newTheme;
-      localStorage.setItem("piniaState-" + key, JSON.stringify(this.$state));
+      localStorage.setItem(key, JSON.stringify(this.$state));
     },
   },
 });
