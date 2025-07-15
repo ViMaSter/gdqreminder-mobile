@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { onBeforeMount, onUnmounted, Ref, ref } from 'vue';
+import { onBeforeMount, watch, Ref, ref, inject } from 'vue';
 import { AppLauncher } from "@capacitor/app-launcher";
 import { MdDialog } from "@material/web/dialog/dialog";
 import Version from "@/plugins/versionPlugin";
 import { MdSwitch } from '@material/web/switch/switch';
 import { useI18n } from 'vue-i18n';
-import { App } from "@capacitor/app";
 import { LanguageKey, languages, useSettingsStore } from '@/stores/settings';
 const emit = defineEmits(['setVisibility']);
 const { t } = useI18n();
 
+const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
+const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
+
 const closeSettings = () => {
   emit('setVisibility', "settings", false);
   emit('setVisibility', "main", true);
-}
-window.addEventListener('popstate', closeSettings);  
-onUnmounted(() => {  
-  window.removeEventListener('popstate', closeSettings);  
-});  
+  removeBackButtonHook("settings");
+};
+
 
 const languageDialog = ref<MdDialog>();
 const openLanguageDialog = () => {
@@ -25,12 +25,19 @@ const openLanguageDialog = () => {
 };
 
 onBeforeMount(() => {
-  App.addListener("backButton", async () => {
-    if (languageDialog.value!.open) {
-      languageDialog.value!.open = false;
+  watch(languageDialog, (dialog) => {
+    if (!dialog) {
       return;
     }
-    closeSettings();
+
+    dialog!.addEventListener('open', () => {
+      addBackButtonHook("settings-language-dialog", () => {
+      dialog!.open = false;
+      });
+    });
+    dialog!.addEventListener('close', () => {
+      removeBackButtonHook("settings-language-dialog");
+    });
   });
 });
 
