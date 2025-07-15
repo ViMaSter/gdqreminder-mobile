@@ -230,7 +230,7 @@ export default defineComponent({
         if (!(await reminderStore.remove(this.pk.toString()))) {
           return;
         }
-        PushNotificationHelper.unsubscribeFromStartOfRun(this.pk.toString());
+        PushNotificationHelper.startOfRun.unsubscribe(this.pk.toString());
         this.hasActiveReminder = false;
         return false;
       }
@@ -246,7 +246,7 @@ export default defineComponent({
       ) {
         return;
       }
-      PushNotificationHelper.subscribeToStartOfRun(this.pk.toString());
+      PushNotificationHelper.startOfRun.subscribe(this.pk.toString());
       this.hasActiveReminder = true;
       return true;
     },

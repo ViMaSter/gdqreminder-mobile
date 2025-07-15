@@ -44,9 +44,9 @@ export const useSettingsStore = defineStore(key, {
     async setSubscriptionToEventAnnouncements(enabled: boolean): Promise<void> {
       try {
         if (enabled) {
-          await PushNotificationHelper.subscribeToEventAnnouncements();
+          await PushNotificationHelper.eventAnnouncements.subscribe();
         } else {
-          await PushNotificationHelper.unsubscribeFromEventAnnouncements();
+          await PushNotificationHelper.eventAnnouncements.unsubscribe();
         }
       } catch (error) {
         throw new Error(
@@ -59,9 +59,9 @@ export const useSettingsStore = defineStore(key, {
     async setSubscriptionToEventUpdates(enabled: boolean): Promise<void> {
       try {
         if (enabled) {
-          await PushNotificationHelper.subscribeToEventUpdates();
+          await PushNotificationHelper.eventUpdates.subscribe();
         } else {
-          await PushNotificationHelper.unsubscribeFromEventUpdates();
+          await PushNotificationHelper.eventUpdates.unsubscribe();
         }
       } catch (error) {
         throw new Error(
