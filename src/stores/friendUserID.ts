@@ -3,16 +3,16 @@ import { defineStore } from "pinia";
 type FriendUserIDState = {
   friendUserID?: string;
 };
-const key = "userID";
+const key = "piniaState-userID";
 const defaultValue: FriendUserIDState = {
   friendUserID: undefined,
 };
 
 const useFriendUserIDStore = defineStore(key, {
   state: (): FriendUserIDState => {
-    const state = localStorage.getItem("piniaState-" + key);
+    const state = localStorage.getItem(key);
     if (!state) {
-      localStorage.setItem("piniaState-" + key, JSON.stringify(defaultValue));
+      localStorage.setItem(key, JSON.stringify(defaultValue));
       return defaultValue;
     }
 
@@ -24,7 +24,7 @@ const useFriendUserIDStore = defineStore(key, {
   actions: {
     setFriendUserID(friendUserID: string) {
       this.$patch({ friendUserID });
-      localStorage.setItem("piniaState-" + key, JSON.stringify(this.$state));
+      localStorage.setItem(key, JSON.stringify(this.$state));
     },
   },
 });
