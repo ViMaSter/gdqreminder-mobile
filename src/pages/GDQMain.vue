@@ -1,13 +1,5 @@
 <script lang="ts">
-import {
-  onMounted,
-  ref,
-  Ref,
-  provide,
-  defineComponent,
-  watch,
-  onBeforeMount
-} from "vue";
+import { onMounted, ref, Ref, provide, defineComponent, watch, inject } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Snackbar } from "@material/mwc-snackbar";
 import "@material/mwc-drawer";
@@ -44,7 +36,6 @@ import {
   signInAnonymously,
 } from "firebase/auth";
 import { reflectColor } from "@/utilities/colorHelper";
-import { App } from "@capacitor/app";
 
 const getFirebaseAuth = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -140,21 +131,25 @@ export default defineComponent({
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
 
-    onBeforeMount(() => {
-      App.addListener("backButton", async () => {
-        // Return early if this component is not visible (v-show is false)
-        const el = wrapper.value;
-        if (!el || el.style.display === "none") {
-          return;
-        }
-        drawer.value!.open = !drawer.value!.open;
-        if (!drawer.value!.open) {
-          await App.minimizeApp();
-        }
-      });
-    });
 
     onMounted(() => {
+      const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
+      const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
+      addBackButtonHook(
+        "drawer",
+        () => {
+          drawer.value!.open = true;
+        },
+      );
+      drawer.value!.addEventListener("MDCDrawer:closed", () => {
+        addBackButtonHook("drawer", () => {
+          drawer.value!.open = true;
+        });
+      });
+      drawer.value!.addEventListener("MDCDrawer:opened", () => {
+        removeBackButtonHook("drawer");
+      });
+
       const container = drawer.value!.parentNode;
       container!.addEventListener("MDCTopAppBar:nav", () => {
         drawer.value!.open = !drawer.value!.open;
@@ -671,10 +666,20 @@ export default defineComponent({
     GDQSidebar,
     GDQTimeIndicator,
   },
+  inject: [
+    "addBackButtonHook",
+    "removeBackButtonHook"
+  ],
   methods: {
     showSettings() {
       this.$emit('setVisibility', "settings", true);
       this.$emit('setVisibility', "main", false);
+
+      const addBackButtonHook = this.addBackButtonHook! as ((id: string, hook: () => void) => void);
+      addBackButtonHook("settings", () => {
+        this.$emit('setVisibility', "settings", false);
+        this.$emit('setVisibility', "main", true);
+      });
     }
   }
 });
@@ -739,7 +744,7 @@ export default defineComponent({
           <div class="transition"></div>
           <template
             v-for="(runs, day, index) in runsByDay"
-            :key="runs.map((run) => run).join('')"
+            :key="runs.join('')"
           >
             <GDQDay
               class="gdqday"
