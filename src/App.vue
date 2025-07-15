@@ -12,10 +12,49 @@ import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
 import { SafeArea } from "capacitor-plugin-safe-area";
+import { App } from "@capacitor/app";
 
 if (useThemeStore().currentTheme === Theme.Dark) {
   document.body.classList.add("dark-mode");
 }
+
+const backButtonHooks = ref<Array<{
+  id: string,
+  hook: () => void
+}>>([]);
+const addBackButtonHook = (id: string, hook: () => void) : void => {
+  backButtonHooks.value.push({id, hook});
+};
+const removeBackButtonHook = (id: string) : void => {
+  backButtonHooks.value = backButtonHooks.value.filter((hook) => hook.id !== id);
+};
+const handleBackButton = () => {
+  if (backButtonHooks.value.length === 0) {
+    App.exitApp();
+    return;
+  }
+
+  const callback = backButtonHooks.value.pop();
+  if (callback?.hook) {
+    callback.hook();
+  }
+};
+
+provide("addBackButtonHook", addBackButtonHook);
+provide("removeBackButtonHook", removeBackButtonHook);
+
+
+// Handle back button on Android and offer workaround for web
+App.addListener("backButton", handleBackButton);
+window.addEventListener("keydown", (e) => {
+  if (
+    (e.key === "b" || e.key === "B") &&
+    (e.ctrlKey ||
+    e.metaKey)
+  ) {
+    handleBackButton();
+  }
+});
 
 const jumpToTwitch = async () => {
   const urls = [
@@ -178,7 +217,7 @@ const setVisibility = async (key : string, value: boolean) => {
 
 <template>
   <LoadingIndicator class="loading" ref="loadingContent"></LoadingIndicator>
-  <TransitionGroup name="list" class="wrapper">
+  <TransitionGroup name="list">
     <Suspense :key="'main'">
       <GDQMain v-show="visibility['main']" @setVisibility="setVisibility" ref="mainContent" class="main"></GDQMain>
     </Suspense>
