@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/experimental-ct-vue";
 import { dirname, resolve } from "path";
+import vue from "@vitejs/plugin-vue";
+import vueJsx from "@vitejs/plugin-vue-jsx";
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -32,6 +34,17 @@ export default defineConfig({
     video: "retain-on-failure",
 
     ctViteConfig: {
+      plugins: [
+        vue({
+          template: {
+            compilerOptions: {
+              isCustomElement: (tag) =>
+                tag.startsWith("mwc-") || tag.startsWith("md-"),
+            },
+          },
+        }),
+        vueJsx()
+      ],
       resolve: {
         alias: {
           "@": resolve(dirname("."), "./src"),
@@ -66,6 +79,6 @@ export default defineConfig({
           args: ["--disable-web-security"],
         },
       },
-    },
+    }
   ],
 });
