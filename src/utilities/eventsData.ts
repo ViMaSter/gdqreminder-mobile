@@ -1,3 +1,4 @@
+import Version from "@/plugins/versionPlugin";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { CapacitorHttp } from "@capacitor/core";
 
@@ -12,8 +13,10 @@ export class EventsData {
       }
     }
     const response = await CapacitorHttp.get({
-      url:
-        "https://tracker.gamesdonequick.com/tracker/api/v2/events/"
+      url: "https://tracker.gamesdonequick.com/tracker/api/v2/events/",
+      headers: {
+        'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
+      },
     });
 
     const data = (response.data.results as GDQEventData[]).filter((event) => {
