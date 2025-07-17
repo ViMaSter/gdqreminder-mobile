@@ -31,6 +31,7 @@ export default defineComponent({
       ><md-icon>dark_mode</md-icon></md-icon-button
     >
     <md-icon-button slot="actionItems" @click="$emit('showSettings')"
+      data-test="settings"
       ><md-icon>settings</md-icon></md-icon-button
     >
   </mwc-top-app-bar-fixed>
