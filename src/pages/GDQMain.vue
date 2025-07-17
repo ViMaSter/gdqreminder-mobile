@@ -1,13 +1,5 @@
 <script lang="ts">
-import {
-  onMounted,
-  ref,
-  Ref,
-  provide,
-  defineComponent,
-  watch,
-  onBeforeMount,
-} from "vue";
+import { onMounted, ref, Ref, provide, defineComponent, watch, inject } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Snackbar } from "@material/mwc-snackbar";
 import "@material/mwc-drawer";
@@ -19,10 +11,10 @@ import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { GDQRunData } from "../interfaces/GDQRun";
 import Version from "@/plugins/versionPlugin";
-import GDQDay from "./GDQDay.vue";
-import GDQHeader from "./GDQHeader.vue";
-import GDQSidebar from "./GDQSidebar.vue";
-import GDQTimeIndicator from "./GDQTimeIndicator.vue";
+import GDQDay from "./GDQMain/GDQDay.vue";
+import GDQHeader from "./GDQMain/GDQHeader.vue";
+import GDQSidebar from "./GDQMain/GDQSidebar.vue";
+import GDQTimeIndicator from "./GDQMain/GDQTimeIndicator.vue";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { RealDateProvider } from "@/services/RealDateProvider";
 import { FakeDateProvider } from "@/services/FakeDateProvider";
@@ -44,7 +36,6 @@ import {
   signInAnonymously,
 } from "firebase/auth";
 import { reflectColor } from "@/utilities/colorHelper";
-import { App } from "@capacitor/app";
 
 const getFirebaseAuth = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -140,16 +131,25 @@ export default defineComponent({
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
 
-    onBeforeMount(() => {
-      App.addListener("backButton", async () => {
-        drawer.value!.open = !drawer.value!.open;
-        if (!drawer.value!.open) {
-          await App.minimizeApp();
-        }
-      });
-    });
 
     onMounted(() => {
+      const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
+      const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
+      addBackButtonHook(
+        "drawer",
+        () => {
+          drawer.value!.open = true;
+        },
+      );
+      drawer.value!.addEventListener("MDCDrawer:closed", () => {
+        addBackButtonHook("drawer", () => {
+          drawer.value!.open = true;
+        });
+      });
+      drawer.value!.addEventListener("MDCDrawer:opened", () => {
+        removeBackButtonHook("drawer");
+      });
+
       const container = drawer.value!.parentNode;
       container!.addEventListener("MDCTopAppBar:nav", () => {
         drawer.value!.open = !drawer.value!.open;
@@ -311,7 +311,10 @@ export default defineComponent({
       const fetchAndProcessRuns = async () => {
         try {
           const response = await CapacitorHttp.get({
-        url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
+            url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
+            headers: {
+              'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
+            },
           });
           if (response.status === 200 && response.data?.results) {
             const freshRuns = response.data.results as GDQRunData[];
@@ -643,11 +646,6 @@ export default defineComponent({
       scrollable,
       updateFriendID,
       wrapper,
-      visitTranslationPage: () => {
-        AppLauncher.openUrl({
-          url: "https://crowdin.com/project/gdqreminder",
-        });
-      },
       openFriendMenu,
       toggleFilter,
       toggleDarkMode,
@@ -664,12 +662,29 @@ export default defineComponent({
       },
     };
   },
+  emits: ['setVisibility'],
   components: {
     GDQDay,
     GDQHeader,
     GDQSidebar,
     GDQTimeIndicator,
   },
+  inject: [
+    "addBackButtonHook",
+    "removeBackButtonHook"
+  ],
+  methods: {
+    showSettings() {
+      this.$emit('setVisibility', "settings", true);
+      this.$emit('setVisibility', "main", false);
+
+      const addBackButtonHook = this.addBackButtonHook! as ((id: string, hook: () => void) => void);
+      addBackButtonHook("settings", () => {
+        this.$emit('setVisibility', "settings", false);
+        this.$emit('setVisibility', "main", true);
+      });
+    }
+  }
 });
 </script>
 
@@ -721,10 +736,10 @@ export default defineComponent({
       ></GDQSidebar>
       <div id="appContent" slot="appContent" ref="scrollable">
         <GDQHeader
-          @visitTranslationPage="visitTranslationPage"
           @openFriendMenu="openFriendMenu"
           @toggleDarkMode="toggleDarkMode"
           @toggleFilter="toggleFilter"
+          @showSettings="showSettings"
           :currentEventName="currentEventName"
         ></GDQHeader>
 
@@ -732,7 +747,7 @@ export default defineComponent({
           <div class="transition"></div>
           <template
             v-for="(runs, day, index) in runsByDay"
-            :key="runs.map((run) => run).join('')"
+            :key="runs.join('')"
           >
             <GDQDay
               class="gdqday"
@@ -761,6 +776,7 @@ mwc-drawer {
 mwc-drawer > * {
   color: var(--mdc-theme-on-surface);
 }
+
 md-dialog {
   --md-dialog-container-color: var(--mdc-theme-surface);
   --md-dialog-headline-color: var(--mdc-theme-on-surface);
@@ -781,6 +797,7 @@ md-dialog {
   }
   width: 80%;
 }
+
 .padding {
   height: 8em;
 }

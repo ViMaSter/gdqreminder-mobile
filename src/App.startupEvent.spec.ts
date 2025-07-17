@@ -23,12 +23,12 @@ timings.forEach(([testName, date, title]) => {
       location.reload();
     });
 
-    await page.waitForSelector('mwc-top-app-bar-fixed [slot="title"]');
+    await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
     await expect(
-      page.locator('mwc-top-app-bar-fixed [slot="title"]'),
+      page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]'),
     ).toHaveText(new RegExp(title));
 
-    await page.click('mwc-top-app-bar-fixed [slot="navigationIcon"]');
+    await page.click('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="navigationIcon"]');
 
     await page.waitForSelector(".mdc-drawer");
     await page.waitForSelector("md-list-item.rotating");

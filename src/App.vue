@@ -1,22 +1,60 @@
 <script setup lang="ts">
 import LoadingIndicator from "./components/LoadingIndicator.vue";
-import GDQMain from "./components/GDQMain.vue";
+import GDQSettings from "./pages/GDQSettings.vue";
+import GDQMain from "./pages/GDQMain.vue";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { EventHandler } from "./utilities/eventHandler";
 import { AppLauncher } from "@capacitor/app-launcher";
-import { Capacitor } from "@capacitor/core";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { onMounted, provide, ref, watch } from "vue";
-import PushNotificationHelper from "./utilities/pushNotificationHelper";
 import { useUserIDStore } from "./stores/friendUserID";
 import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
 import { SafeArea } from "capacitor-plugin-safe-area";
+import { App } from "@capacitor/app";
 
 if (useThemeStore().currentTheme === Theme.Dark) {
   document.body.classList.add("dark-mode");
 }
+
+const backButtonHooks = ref<Array<{
+  id: string,
+  hook: () => void
+}>>([]);
+const addBackButtonHook = (id: string, hook: () => void) : void => {
+  backButtonHooks.value.push({id, hook});
+};
+const removeBackButtonHook = (id: string) : void => {
+  backButtonHooks.value = backButtonHooks.value.filter((hook) => hook.id !== id);
+};
+const handleBackButton = () => {
+  if (backButtonHooks.value.length === 0) {
+    App.exitApp();
+    return;
+  }
+
+  const callback = backButtonHooks.value.pop();
+  if (callback?.hook) {
+    callback.hook();
+  }
+};
+
+provide("addBackButtonHook", addBackButtonHook);
+provide("removeBackButtonHook", removeBackButtonHook);
+
+
+// Handle back button on Android and offer workaround for web
+App.addListener("backButton", handleBackButton);
+window.addEventListener("keydown", (e) => {
+  if (
+    (e.key === "b" || e.key === "B") &&
+    (e.ctrlKey ||
+    e.metaKey)
+  ) {
+    handleBackButton();
+  }
+});
 
 const jumpToTwitch = async () => {
   const urls = [
@@ -88,8 +126,6 @@ const registerNotifications = async () => {
   }
 
   await PushNotifications.register();
-
-  await PushNotificationHelper.subscribeToScheduleUpdates();
 };
 
 const friendRunStore = useFriendRunReminderStore();
@@ -168,13 +204,27 @@ SafeArea.addListener("safeAreaChanged", (data) => {
     );
   }
 });
+
+const visibility = ref<Record<string, boolean>>({
+  settings: false,
+  main: true,
+});
+const setVisibility = async (key : string, value: boolean) => {
+  visibility.value[key] = value;
+};
+
 </script>
 
 <template>
   <LoadingIndicator class="loading" ref="loadingContent"></LoadingIndicator>
-  <Suspense>
-    <GDQMain ref="mainContent"></GDQMain>
-  </Suspense>
+  <TransitionGroup name="list">
+    <Suspense :key="'main'">
+      <GDQMain v-show="visibility['main']" @setVisibility="setVisibility" ref="mainContent" class="main"></GDQMain>
+    </Suspense>
+    <Suspense :key="'settings'">
+      <GDQSettings v-show="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings"></GDQSettings>
+    </Suspense>
+  </TransitionGroup>
   <link
     href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
     rel="stylesheet"
@@ -184,7 +234,36 @@ SafeArea.addListener("safeAreaChanged", (data) => {
     rel="stylesheet"
   />
 </template>
-<style>
+<style lang="scss">
+.list-move.gdq-settings, /* apply transition to moving elements */
+.list-enter-active.gdq-settings,
+.list-leave-active.gdq-settings {
+  transition: all 0.25s ease-out;
+}
+.list-move.main, /* apply transition to moving elements */
+.list-enter-active.main,
+.list-leave-active.main {
+  transition: opacity 0.25s ease-out;
+  transform: initial !important;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px) translateY(0px) !important;
+}
+
+/* ensure leaving items are taken out of layout flow so that moving
+   animations can be calculated correctly. */
+.list-leave-active {
+  position: absolute !important;
+  top: 0px !important;
+}
+
+.gdq-settings {
+  z-index: 1000;
+}
+
 .loading {
   z-index: 10000;
 }

@@ -5,7 +5,7 @@ import Calendar from "@/plugins/calendarPlugin";
 type RunReminderState = {
   runs: string[];
 };
-const key = "runReminder";
+const key = "piniaState-runReminder";
 const defaultValue: RunReminderState = {
   runs: [],
 };
@@ -26,7 +26,7 @@ const reflectInFirestore = async (runs: string[]) => {
 
 export const useRunReminderStore = defineStore(key, {
   state: (): RunReminderState => {
-    const state = localStorage.getItem("piniaState-" + key);
+    const state = localStorage.getItem(key);
     if (!state) {
       return defaultValue;
     }
@@ -59,7 +59,7 @@ export const useRunReminderStore = defineStore(key, {
         return false;
       }
       this.$state.runs.push(pk);
-      localStorage.setItem("piniaState-" + key, JSON.stringify(this.$state));
+      localStorage.setItem(key, JSON.stringify(this.$state));
 
       reflectInFirestore(this.$state.runs);
 
@@ -77,7 +77,7 @@ export const useRunReminderStore = defineStore(key, {
         return false;
       }
 
-      localStorage.setItem("piniaState-" + key, JSON.stringify(this.$state));
+      localStorage.setItem(key, JSON.stringify(this.$state));
 
       reflectInFirestore(this.$state.runs);
 
