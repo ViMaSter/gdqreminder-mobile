@@ -149,7 +149,7 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         </md-list-item>
         <md-divider></md-divider>
 
-        <md-list-item type="button" @click="openLanguageDialog">
+        <md-list-item type="button" @click="openLanguageDialog" data-test="open-language-dialog">
           <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
           <div slot="supporting-text">{{ $t('settings.option-'+selectedLanguage) || 'N/A' }}</div>
         </md-list-item>
@@ -170,10 +170,10 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         </md-list-item>
       </md-list>
     </main>
-    <md-dialog ref="languageDialog">
+    <md-dialog ref="languageDialog" data-test="language-dialog">
       <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
       <div slot="content">
-        <md-list-item type="button" v-for="(_, key) in languages" :key="key"
+        <md-list-item type="button" v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key"
           @click="settingsStore.setLanguage(key)">
           <label slot="headline"><md-radio :checked="selectedLanguage === key" slot="end"></md-radio> {{ t('settings.option-'+key) }}</label>
         </md-list-item>
