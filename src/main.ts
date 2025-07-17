@@ -6,8 +6,7 @@ import App from "./App.vue";
 import { Capacitor } from "@capacitor/core";
 import { SafeArea } from "capacitor-plugin-safe-area";
 import { createI18n } from 'vue-i18n'
-import { Device } from '@capacitor/device';
-import { languages, useSettingsStore } from "./stores/settings";
+import { useSettingsStore } from "./stores/settings";
 
 async function fetchLocale(languageCode: string): Promise<any> {
   const response = await fetch(`/i18n/${languageCode}.json`);
