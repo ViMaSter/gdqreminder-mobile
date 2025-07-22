@@ -1,13 +1,13 @@
 <script lang="ts">
 import { onMounted, ref, Ref, provide, defineComponent, watch, inject } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
-import { MDCSnackbar } from "@material/snackbar";
 import "@material/mwc-drawer";
 import { MdDialog } from "@material/web/dialog/dialog";
 import { MdFilledTextField } from "@material/web/textfield/filled-text-field";
 import { MdTextButton } from "@material/web/button/text-button";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
+import Snackbar from "../components/Snackbar.vue";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { GDQRunData } from "../interfaces/GDQRun";
 import Version from "@/plugins/versionPlugin";
@@ -123,17 +123,22 @@ export default defineComponent({
     };
     provide("jumpToYouTube", jumpToYouTube);
 
+    const snackbar = ref<typeof Snackbar>();
     const showSnackbar = (text: string) => {
-      snackbar.value!.stacked = false;
-      snackbar.value!.leading = false;
-      snackbar.value!.open = true;
+      debugger;
+      if (snackbar.value!.actionButtonText == "Open settings" && 
+          snackbar.value!.isOpen) {
+        return;
+      }
       snackbar.value!.labelText = text;
+      snackbar.value!.actionButtonText = null;
+      snackbar.value!.timeoutMs = 10000;
+      snackbar.value!.open();
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
 
-    const snackbar = ref<Element>();
-
     onMounted(() => {
+      snackbar.value!.open();
       const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
       const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
       addBackButtonHook(
@@ -667,6 +672,7 @@ export default defineComponent({
     GDQHeader,
     GDQSidebar,
     GDQTimeIndicator,
+    Snackbar
   },
   inject: [
     "addBackButtonHook",
@@ -682,6 +688,11 @@ export default defineComponent({
         this.$emit('setVisibility', "settings", false);
         this.$emit('setVisibility', "main", true);
       });
+    },
+    snackbarAction (action: string) {
+      if (action == "action")  {
+        this.showSettings();
+      }
     }
   }
 });
@@ -725,6 +736,13 @@ export default defineComponent({
         <md-text-button form="form" ref="apply" value="apply">{{$t("apply")}}</md-text-button>
       </div>
     </md-dialog>
+    <Snackbar
+      ref="snackbar"
+      :labelText="'Open Settings?'"
+      :actionButtonText="'Open settings'"
+      :timeoutMs="4000"
+      @onClosing="snackbarAction"
+    />
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
       <span ref="eventHeader" slot="title">{{ $t('sidebar.headline') }}</span>
       <GDQSidebar

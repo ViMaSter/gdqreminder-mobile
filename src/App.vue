@@ -213,21 +213,9 @@ const visibility = ref<Record<string, boolean>>({
 const setVisibility = async (key : string, value: boolean) => {
   visibility.value[key] = value;
 };
-
-
-const onSnackbarAction = (reason : string) => {
-  console.log("Snackbar action triggered: ", reason);
-};
 </script>
 
 <template>
-  <Snackbar
-    ref="snackbar"
-    :labelText="'Open Settings?'"
-    :actionButtonText="'Settings'"
-    :timeoutMs="4000"
-    @onClosing="onSnackbarAction"
-  />
   <LoadingIndicator class="loading" ref="loadingContent"></LoadingIndicator>
   <TransitionGroup name="list">
     <Suspense :key="'main'">

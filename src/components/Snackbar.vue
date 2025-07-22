@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { MDCSnackbar } from "@material/snackbar";
+import { MDCSnackbar, MDCSnackbarCloseEvent } from "@material/snackbar";
 import { onMounted } from "vue";
 
 let snackbar: MDCSnackbar | null = null;
 onMounted(() => {
   snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar')!);
-  snackbar.open();
 });
 
 const openSnackbar = () => {
@@ -45,17 +44,25 @@ const labelText = ref(props.labelText);
 const actionButtonText = ref(props.actionButtonText);
 
 const open = () => {
-  if (snackbar) snackbar.open();
+  if (!snackbar) {
+    return;
+  }
+
+  snackbar.open();
 };
 const close = (reason?: string) => {
-  if (snackbar) snackbar.close(reason);
+  if (!snackbar) {
+    return;
+  }
+
+  snackbar.close(reason);
 };
 
 const emit = defineEmits<{
   (e: "onOpening"): void;
   (e: "onOpened"): void;
-  (e: "onClosing", payload: { reason?: string }): void;
-  (e: "onClosed", payload: { reason?: string }): void;
+  (e: "onClosing", reason: string): void;
+  (e: "onClosed", reason: string): void;
 }>();
 
 const handleOpening = () => {
@@ -63,18 +70,16 @@ const handleOpening = () => {
   emit("onOpening");
 };
 const handleOpened = () => {
+  isOpen.value = true;
   emit("onOpened");
 };
-const handleClosing = (e: Event) => {
+const handleClosing = (e: MDCSnackbarCloseEvent) => {
   isOpen.value = false;
-  // @ts-ignore
-  const reason = e.detail?.reason;
-  emit("onClosing", { reason });
+  emit("onClosing", e.detail.reason || "");
 };
-const handleClosed = (e: Event) => {
-  // @ts-ignore
-  const reason = e.detail?.reason;
-  emit("onClosed", { reason });
+const handleClosed = (e: MDCSnackbarCloseEvent) => {
+  isOpen.value = false;
+  emit("onClosed", e.detail.reason || "");
 };
 
 onMounted(() => {
