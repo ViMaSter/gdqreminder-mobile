@@ -3,9 +3,6 @@ import { MDCSnackbar, MDCSnackbarCloseEvent } from "@material/snackbar";
 import { onMounted } from "vue";
 
 let snackbar: MDCSnackbar | null = null;
-onMounted(() => {
-  snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar')!);
-});
 
 const openSnackbar = () => {
   if (!snackbar) {
@@ -83,7 +80,7 @@ const handleClosed = (e: MDCSnackbarCloseEvent) => {
 };
 
 onMounted(() => {
-  if (!snackbar) return;
+  snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar')!);
   snackbar.timeoutMs = timeoutMs.value;
   snackbar.closeOnEscape = closeOnEscape.value;
   snackbar.labelText = labelText.value;
