@@ -1,19 +1,8 @@
 <script setup lang="ts">
 import { MDCSnackbar, MDCSnackbarCloseEvent } from "@material/snackbar";
-import { onMounted } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 
 let snackbar: MDCSnackbar | null = null;
-
-const openSnackbar = () => {
-  if (!snackbar) {
-    console.warn("Snackbar is not initialized.");
-    return;
-  }
-
-  snackbar.open();
-};
-
-import { ref, watch, onUnmounted } from "vue";
 
 const props = defineProps({
   timeoutMs: {
