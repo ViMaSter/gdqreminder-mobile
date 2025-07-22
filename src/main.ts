@@ -33,7 +33,7 @@ async function fetchLocale(languageCode: string): Promise<any> {
   try {
     messages[settingsStore.currentLanguage] = await fetchLocale(settingsStore.currentLanguage);
   } catch (error) {
-    console.warn(`Using fallback locale 'en-US' due to error: ${error}`);
+    console.warn(`Using fallback locale 'en-US' instead of '${settingsStore.currentLanguage}' due to error: ${error}`);
   }
 
   const i18n = createI18n({
