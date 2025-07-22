@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMounted, ref, Ref, provide, defineComponent, watch, inject } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
-import { Snackbar } from "@material/mwc-snackbar";
+import { MDCSnackbar } from "@material/snackbar";
 import "@material/mwc-drawer";
 import { MdDialog } from "@material/web/dialog/dialog";
 import { MdFilledTextField } from "@material/web/textfield/filled-text-field";
@@ -131,6 +131,7 @@ export default defineComponent({
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
 
+    const snackbar = ref<Element>();
 
     onMounted(() => {
       const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
@@ -500,8 +501,6 @@ export default defineComponent({
       await updateCurrentEvent(newestEvent);
     };
 
-    const snackbar = ref<Snackbar>();
-
     const openFriendMenu = () => {
       dialog.value!.open = true;
     };
@@ -726,7 +725,6 @@ export default defineComponent({
         <md-text-button form="form" ref="apply" value="apply">{{$t("apply")}}</md-text-button>
       </div>
     </md-dialog>
-    <mwc-snackbar ref="snackbar" timeoutMs="10000"> </mwc-snackbar>
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
       <span ref="eventHeader" slot="title">{{ $t('sidebar.headline') }}</span>
       <GDQSidebar

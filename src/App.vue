@@ -13,6 +13,7 @@ import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
 import { SafeArea } from "capacitor-plugin-safe-area";
 import { App } from "@capacitor/app";
+import Snackbar from "./components/Snackbar.vue";
 
 if (useThemeStore().currentTheme === Theme.Dark) {
   document.body.classList.add("dark-mode");
@@ -213,9 +214,20 @@ const setVisibility = async (key : string, value: boolean) => {
   visibility.value[key] = value;
 };
 
+
+const onSnackbarAction = (reason : string) => {
+  console.log("Snackbar action triggered: ", reason);
+};
 </script>
 
 <template>
+  <Snackbar
+    ref="snackbar"
+    :labelText="'Open Settings?'"
+    :actionButtonText="'Settings'"
+    :timeoutMs="4000"
+    @onClosing="onSnackbarAction"
+  />
   <LoadingIndicator class="loading" ref="loadingContent"></LoadingIndicator>
   <TransitionGroup name="list">
     <Suspense :key="'main'">
