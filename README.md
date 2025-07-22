@@ -1,5 +1,7 @@
 # GDQ Reminder Mobile App
 
+<a href="https://mahn.ke/gdqreminder-android"><img height="60" src="resources/Google_Play_Store_badge_EN.svg"></a>
+
 ## Local Development
 
 <img align="right" width="300" src="https://github.com/ViMaSter/gdqreminder-mobile/assets/1689033/bba6de50-4149-443e-9184-05c65dbfb636)">
