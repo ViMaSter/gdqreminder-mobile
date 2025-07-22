@@ -125,7 +125,6 @@ export default defineComponent({
 
     const snackbar = ref<typeof Snackbar>();
     const showSnackbar = (text: string) => {
-      debugger;
       if (snackbar.value!.actionButtonText == "Open settings" && 
           snackbar.value!.isOpen) {
         return;
