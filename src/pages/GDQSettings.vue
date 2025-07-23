@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { onBeforeMount, watch, computed, ref, inject } from 'vue';
+import { onBeforeMount, onMounted, watch, computed, ref, inject } from 'vue';
 import { AppLauncher } from "@capacitor/app-launcher";
 import { MdDialog } from "@material/web/dialog/dialog";
 import Version from "@/plugins/versionPlugin";
 import { MdSwitch } from '@material/web/switch/switch';
 import { useI18n } from 'vue-i18n';
-import { LanguageKey, languages, useSettingsStore } from '@/stores/settings';
+import { languages, useSettingsStore } from '@/stores/settings';
 const emit = defineEmits(['setVisibility']);
 const { t } = useI18n();
 
@@ -13,24 +13,37 @@ const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBac
 const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
 
 const closeSettings = () => {
-  emit('setVisibility', "settings", false);
-  emit('setVisibility', "main", true);
+  emit('setVisibility', "main");
   removeBackButtonHook("settings");
 };
-
 
 const languageDialog = ref<MdDialog>();
 const openLanguageDialog = () => {
   languageDialog.value!.open = true;
 };
-  const highlighted = ref<HTMLElement | null>(null);
-  const highlightedEnd = ref<HTMLElement | null>(null);
+
+const highlighted = ref<HTMLElement | null>(null);
+const highlightedEnd = ref<HTMLElement | null>(null);
+
+const props = defineProps<{ isVisible: boolean }>();
 
 const highlightElement = inject<(el: (HTMLElement | null)[] | HTMLElement | null) => void>("highlightElement")!;
-const highlightItem = () => {
-  highlightElement([highlighted.value, highlightedEnd.value]);
-};
+const requireOnboarding = inject<() => boolean>("requireOnboarding")!;
 
+onMounted(() => {
+  watch(
+    () => props.isVisible,
+    (visible) => {
+      if (visible) {
+        if (requireOnboarding()) {
+          setTimeout(() => {
+            highlightElement([highlighted.value, highlightedEnd.value]);
+          }, 250);
+        }
+      }
+    }
+  );
+});
 onBeforeMount(() => {
 
   watch(languageDialog, (dialog) => {
@@ -118,10 +131,6 @@ const { versionName, versionCode: versionCodeValue } = await Version.getCurrent(
 const versionCode = `${versionName}.${versionCodeValue}`;
 
 const selectedLanguage = computed(() => settingsStore.selectedLanguage);
-
-defineExpose({
-  highlightItem,
-});
 </script>
 <template>
   <div class="container">
@@ -131,12 +140,12 @@ defineExpose({
     </mwc-top-app-bar-fixed>
     <main class="mdc-top-app-bar--fixed-adjust">
       <md-list>
-        <md-list-item>
+        <md-list-item ref="highlighted">
           <div slot="supporting-text">{{ $t('settings.headline-generalNotifications') }}</div>
         </md-list-item>
         <md-divider></md-divider>
 
-        <md-list-item ref="highlighted" type="button" @click="toggleEventAnnouncements">
+        <md-list-item type="button" @click="toggleEventAnnouncements">
           <div slot="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
           <div slot="supporting-text">{{ $t('settings.description-eventAnnouncements') }}</div>
           <md-switch :selected="eventAnnouncements" @change="toggleEventAnnouncements" ref="eventAnnouncementsSwitch"

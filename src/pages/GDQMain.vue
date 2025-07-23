@@ -36,6 +36,7 @@ import {
   signInAnonymously,
 } from "firebase/auth";
 import { reflectColor } from "@/utilities/colorHelper";
+import { useSettingsStore } from "@/stores/settings";
 
 const getFirebaseAuth = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -137,7 +138,10 @@ export default defineComponent({
     provide<(text: string) => void>("showSnackbar", showSnackbar);
 
     onMounted(() => {
-      snackbar.value!.open();
+      if (!useSettingsStore().initalized)
+      {
+        snackbar.value!.open();
+      }
       const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
       const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
       addBackButtonHook(
@@ -679,13 +683,11 @@ export default defineComponent({
   ],
   methods: {
     showSettings() {
-      this.$emit('setVisibility', "settings", true);
-      this.$emit('setVisibility', "main", false);
+      this.$emit('setVisibility', "settings");
 
       const addBackButtonHook = this.addBackButtonHook! as ((id: string, hook: () => void) => void);
       addBackButtonHook("settings", () => {
-        this.$emit('setVisibility', "settings", false);
-        this.$emit('setVisibility', "main", true);
+        this.$emit('setVisibility', "main");
       });
     },
     snackbarAction (action: string) {
