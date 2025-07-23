@@ -41,7 +41,6 @@ export const useSettingsStore = defineStore(key, {
   },
   getters: {
     initalized: () => {
-      debugger;
       return localStorage.getItem(key) !== null;
     },
     eventAnnouncementsEnabled: (state) => state.subscribedToEventAnnouncements,

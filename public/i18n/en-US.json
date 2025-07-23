@@ -29,6 +29,12 @@
         "headline-information": "Information",
         "label-version": "Version"
     },
+    "onboarding": {
+        "settings": {
+            "label": "Only want run specific notifications?",
+            "callToAction": "Open settings"
+        }
+    },
     "note": "Note",
     "cancel": "Cancel",
     "apply": "Apply"
