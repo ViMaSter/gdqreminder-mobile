@@ -137,4 +137,7 @@ defineExpose({
 .mdc-snackbar {
   bottom: var(--safe-area-inset-bottom) !important;
 }
+.mdc-button {
+  font-size: var(--mdc-typography-body2-font-size, 0.875rem);
+}
 </style>
