@@ -37,6 +37,7 @@ import {
 } from "firebase/auth";
 import { reflectColor } from "@/utilities/colorHelper";
 import { useSettingsStore } from "@/stores/settings";
+import { ONBOARDING_DATA } from "@/utilities/onboardingConstants";
 
 const getFirebaseAuth = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -689,8 +690,8 @@ export default defineComponent({
     "removeBackButtonHook"
   ],
   methods: {
-    showSettings() {
-      this.$emit('setVisibility', "settings");
+    showSettings(data : string) {
+      this.$emit('setVisibility', "settings", data);
 
       const addBackButtonHook = this.addBackButtonHook! as ((id: string, hook: () => void) => void);
       addBackButtonHook("settings", () => {
@@ -699,7 +700,7 @@ export default defineComponent({
     },
     snackbarAction (action: string) {
       if (action == "action")  {
-        this.showSettings();
+        this.showSettings(ONBOARDING_DATA);
       }
     }
   }

@@ -15,6 +15,7 @@ import { useFriendRunReminderStore } from "./stores/friendRuns";
 import { SafeArea } from "capacitor-plugin-safe-area";
 import { App } from "@capacitor/app";
 import { useSettingsStore } from "./stores/settings";
+import { ONBOARDING_DATA } from "./utilities/onboardingConstants";
 
 if (useThemeStore().currentTheme === Theme.Dark) {
   document.body.classList.add("dark-mode");
@@ -218,18 +219,20 @@ const visibility = ref<Record<string, boolean>>({
 });
 const settings = ref<typeof GDQSettings>();
 
-const setVisibility = async (key : string) => {
+const setVisibility = async (key : string, data : string) => {
+  storeInitializationAtStartup = data != ONBOARDING_DATA;
   visibility.value = Object.fromEntries(Object.keys(visibility.value).map((k) => [k, false]));
   visibility.value[key] = true;
 };
 
-const storeInitializationAtStartup = useSettingsStore().initalized;
+let storeInitializationAtStartup = useSettingsStore().initalized;
 let onboardingCalledStacktraces = new Set<string>();
 
 function requireOnboarding(): boolean {
   if (storeInitializationAtStartup) {
     return false;
   }
+  storeInitializationAtStartup = true;
   const stack = new Error().stack || "";
   if (onboardingCalledStacktraces.has(stack)) {
     return false;
