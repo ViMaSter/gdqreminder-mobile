@@ -16,8 +16,8 @@ type SettingsState = {
 
 const key = "piniaState-settings";
 const defaultValue: SettingsState = {
-  subscribedToEventAnnouncements: false,
-  subscribedToEventUpdates: false,
+  subscribedToEventAnnouncements: true,
+  subscribedToEventUpdates: true,
   selectedLanguage: 'systemDefault',
 };
 
@@ -25,12 +25,25 @@ export const useSettingsStore = defineStore(key, {
   state: (): SettingsState => {
     const state = localStorage.getItem(key);
     if (!state) {
+      new Promise<void>(async (resolve) => {
+        try {
+          await PushNotificationHelper.eventAnnouncements.subscribe();
+          await PushNotificationHelper.eventUpdates.subscribe();
+        } catch (error) {
+          console.error(error);
+        }
+        resolve();
+      });
       return defaultValue;
     }
 
     return JSON.parse(state);
   },
   getters: {
+    initalized: () => {
+      debugger;
+      return localStorage.getItem(key) !== null;
+    },
     eventAnnouncementsEnabled: (state) => state.subscribedToEventAnnouncements,
     eventUpdatesEnabled: (state) => state.subscribedToEventUpdates,
     currentLanguage: (state) => {

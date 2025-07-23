@@ -38,6 +38,7 @@ async function fetchLocale(languageCode: string): Promise<any> {
 
   const i18n = createI18n({
     locale: settingsStore.currentLanguage,
+    legacy: false,
     fallbackLocale: 'en-US',
     messages
   });

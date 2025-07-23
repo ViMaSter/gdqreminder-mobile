@@ -14,6 +14,7 @@ import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
 import { SafeArea } from "capacitor-plugin-safe-area";
 import { App } from "@capacitor/app";
+import { useSettingsStore } from "./stores/settings";
 
 if (useThemeStore().currentTheme === Theme.Dark) {
   document.body.classList.add("dark-mode");
@@ -180,11 +181,16 @@ registerNotifications()
   });
 
 const loadingContent = ref<typeof LoadingIndicator>();
+const highlighter = ref<typeof Highlighter>();
+provide("highlightElement", (el: (HTMLElement | null)[] | HTMLElement | null) => {
+  highlighter.value!.highlightElement(el);
+});
 
 onMounted(() => {
   watch(mainContent, () => {
     loadingContent.value!.hide();
   });
+
 });
 
 SafeArea.getSafeAreaInsets().then(({ insets }) => {
@@ -210,32 +216,39 @@ const visibility = ref<Record<string, boolean>>({
   settings: false,
   main: true,
 });
-    const settings = ref<typeof GDQSettings>();
+const settings = ref<typeof GDQSettings>();
 
-const setVisibility = async (key : string, value: boolean) => {
-  visibility.value[key] = value;
-
-  setTimeout(() => {
-    settings.value!.highlightItem();
-  }, 400);
+const setVisibility = async (key : string) => {
+  visibility.value = Object.fromEntries(Object.keys(visibility.value).map((k) => [k, false]));
+  visibility.value[key] = true;
 };
 
-const highlighter = ref<typeof Highlighter>();
-// provide a method to highlight elements
-provide("highlightElement", (el: (HTMLElement | null)[] | HTMLElement | null) => {
-  highlighter.value!.highlightElement(el);
-});
+const storeInitializationAtStartup = useSettingsStore().initalized;
+let onboardingCalledStacktraces = new Set<string>();
+
+function requireOnboarding(): boolean {
+  if (storeInitializationAtStartup) {
+    return false;
+  }
+  const stack = new Error().stack || "";
+  if (onboardingCalledStacktraces.has(stack)) {
+    return false;
+  }
+  onboardingCalledStacktraces.add(stack);
+  return true;
+}
+provide("requireOnboarding", requireOnboarding);
 </script>
 
 <template>
-  <Highlighter data-test="snasen" ref="highlighter"></Highlighter>
+  <Highlighter ref="highlighter"></Highlighter>
   <LoadingIndicator class="loading" ref="loadingContent"></LoadingIndicator>
   <TransitionGroup name="list">
     <Suspense :key="'main'">
-      <GDQMain v-show="visibility['main']" @setVisibility="setVisibility" ref="mainContent" class="main"></GDQMain>
+      <GDQMain v-show="visibility['main']" :isVisible="visibility['main']" @setVisibility="setVisibility" ref="mainContent" class="main"></GDQMain>
     </Suspense>
     <Suspense :key="'settings'">
-      <GDQSettings ref="settings" v-show="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings"></GDQSettings>
+      <GDQSettings ref="settings" v-show="visibility['settings']" :isVisible="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings"></GDQSettings>
     </Suspense>
   </TransitionGroup>
   <link
@@ -296,6 +309,7 @@ body {
   font-family: Roboto;
   margin: 0;
   width: 100vw;
+  overflow-x: hidden;
 
   background: var(--md-sys-color-background);
   color: var(--md-sys-color-on-background);
