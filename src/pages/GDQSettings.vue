@@ -23,8 +23,16 @@ const languageDialog = ref<MdDialog>();
 const openLanguageDialog = () => {
   languageDialog.value!.open = true;
 };
+  const highlighted = ref<HTMLElement | null>(null);
+  const highlightedEnd = ref<HTMLElement | null>(null);
+
+const highlightElement = inject<(el: (HTMLElement | null)[] | HTMLElement | null) => void>("highlightElement")!;
+const highlightItem = () => {
+  highlightElement([highlighted.value, highlightedEnd.value]);
+};
 
 onBeforeMount(() => {
+
   watch(languageDialog, (dialog) => {
     if (!dialog) {
       return;
@@ -110,6 +118,10 @@ const { versionName, versionCode: versionCodeValue } = await Version.getCurrent(
 const versionCode = `${versionName}.${versionCodeValue}`;
 
 const selectedLanguage = computed(() => settingsStore.selectedLanguage);
+
+defineExpose({
+  highlightItem,
+});
 </script>
 <template>
   <div class="container">
@@ -124,13 +136,13 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         </md-list-item>
         <md-divider></md-divider>
 
-        <md-list-item type="button" @click="toggleEventAnnouncements">
+        <md-list-item ref="highlighted" type="button" @click="toggleEventAnnouncements">
           <div slot="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
           <div slot="supporting-text">{{ $t('settings.description-eventAnnouncements') }}</div>
           <md-switch :selected="eventAnnouncements" @change="toggleEventAnnouncements" ref="eventAnnouncementsSwitch"
             slot="end"></md-switch>
         </md-list-item>
-        <md-list-item><md-icon slot="start" @click="closeSettings">info</md-icon>
+        <md-list-item><md-icon slot="start">info</md-icon>
           <div slot="supporting-text">{{ $t('settings.info-eventAnnouncements') }}</div>
         </md-list-item>
         <md-divider></md-divider>
@@ -141,7 +153,7 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
           <md-switch :selected="eventUpdates" @change="toggleEventUpdates" ref="eventUpdatesSwitch"
             slot="end"></md-switch>
         </md-list-item>
-        <md-list-item><md-icon slot="start" @click="closeSettings">info</md-icon>
+        <md-list-item ref="highlightedEnd"><md-icon slot="start">info</md-icon>
           <div slot="supporting-text">{{ $t('settings.info-eventUpdates') }}</div>
         </md-list-item>
         <md-list-item>
@@ -157,7 +169,7 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
 
         <md-list-item type="button" @click="visitTranslationPage">
           <div slot="headline">{{ $t('settings.label-helpTranslate') }}</div>
-          <md-icon slot="end" @click="closeSettings">open_in_new</md-icon>
+          <md-icon slot="end">open_in_new</md-icon>
         </md-list-item>
         <md-list-item>
           <div slot="supporting-text">{{ $t('settings.headline-information') }}</div>

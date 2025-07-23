@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Highlighter from "./components/Highlighter.vue";
 import LoadingIndicator from "./components/LoadingIndicator.vue";
 import GDQSettings from "./pages/GDQSettings.vue";
 import GDQMain from "./pages/GDQMain.vue";
@@ -13,7 +14,6 @@ import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
 import { SafeArea } from "capacitor-plugin-safe-area";
 import { App } from "@capacitor/app";
-import Snackbar from "./components/Snackbar.vue";
 
 if (useThemeStore().currentTheme === Theme.Dark) {
   document.body.classList.add("dark-mode");
@@ -210,19 +210,32 @@ const visibility = ref<Record<string, boolean>>({
   settings: false,
   main: true,
 });
+    const settings = ref<typeof GDQSettings>();
+
 const setVisibility = async (key : string, value: boolean) => {
   visibility.value[key] = value;
+
+  setTimeout(() => {
+    settings.value!.highlightItem();
+  }, 400);
 };
+
+const highlighter = ref<typeof Highlighter>();
+// provide a method to highlight elements
+provide("highlightElement", (el: (HTMLElement | null)[] | HTMLElement | null) => {
+  highlighter.value!.highlightElement(el);
+});
 </script>
 
 <template>
+  <Highlighter data-test="snasen" ref="highlighter"></Highlighter>
   <LoadingIndicator class="loading" ref="loadingContent"></LoadingIndicator>
   <TransitionGroup name="list">
     <Suspense :key="'main'">
       <GDQMain v-show="visibility['main']" @setVisibility="setVisibility" ref="mainContent" class="main"></GDQMain>
     </Suspense>
     <Suspense :key="'settings'">
-      <GDQSettings v-show="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings"></GDQSettings>
+      <GDQSettings ref="settings" v-show="visibility['settings']" @setVisibility="setVisibility" class="gdq-settings"></GDQSettings>
     </Suspense>
   </TransitionGroup>
   <link
