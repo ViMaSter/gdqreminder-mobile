@@ -38,7 +38,7 @@ onMounted(() => {
         if (requireOnboarding()) {
           setTimeout(() => {
             highlightElement([highlighted.value, highlightedEnd.value]);
-          }, 250);
+          }, 300);
         }
       }
     }
@@ -214,6 +214,7 @@ mwc-top-app-bar-fixed {
 
   background: var(--md-sys-color-background);
   color: var(--md-sys-color-on-background);
+  min-height: 100vh;
   height: 100vh;
   width: 100vw;
 }

@@ -739,9 +739,9 @@ export default defineComponent({
     </md-dialog>
     <Snackbar
       ref="snackbar"
-      :labelText="'Open Settings?'"
-      :actionButtonText="'Open settings'"
-      :timeoutMs="4000"
+      :labelText="$t('onboarding.settings.label')"
+      :actionButtonText="$t('onboarding.settings.callToAction')"
+      :timeoutMs="-1"
       @onClosing="snackbarAction"
     />
     <mwc-drawer hasHeader type="dismissible" ref="drawer">

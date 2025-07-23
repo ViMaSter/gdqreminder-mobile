@@ -29,6 +29,12 @@
         "headline-information": "Informationen",
         "label-version": "Version"
     },
+    "onboarding": {
+        "settings": {
+            "label": "Nur Benachrichtigungen für Runs erhalten?",
+            "callToAction": "Einstellungen öffnen"
+        }
+    },
     "note": "Hinweis",
     "cancel": "Abbrechen",
     "apply": "OK"
