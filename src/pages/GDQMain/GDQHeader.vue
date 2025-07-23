@@ -15,14 +15,11 @@ export default defineComponent({
 <template>
   <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
   <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
-  <mwc-top-app-bar-fixed>
+  <mwc-top-app-bar-fixed data-test-selector="main">
     <md-icon-button slot="navigationIcon"
       ><md-icon>menu</md-icon></md-icon-button
     >
     <div slot="title">{{ currentEventName }}</div>
-    <md-icon-button slot="actionItems" @click="$emit('visitTranslationPage')"
-      ><md-icon>translate</md-icon></md-icon-button
-    >
     <md-icon-button slot="actionItems" @click="$emit('openFriendMenu')"
       data-test="open-friend-menu"
       ><md-icon>group</md-icon></md-icon-button
@@ -32,6 +29,10 @@ export default defineComponent({
     >
     <md-icon-button slot="actionItems" @click="$emit('toggleDarkMode')"
       ><md-icon>dark_mode</md-icon></md-icon-button
+    >
+    <md-icon-button slot="actionItems" @click="$emit('showSettings')"
+      data-test="settings"
+      ><md-icon>settings</md-icon></md-icon-button
     >
   </mwc-top-app-bar-fixed>
     <!-- eslint-enable vue/no-deprecated-slot-attribute false positive: -->
