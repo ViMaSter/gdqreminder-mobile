@@ -137,13 +137,13 @@ export default defineComponent({
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
 
+    const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
+    const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
     onMounted(() => {
       if (!useSettingsStore().initalized)
       {
         snackbar.value!.open();
       }
-      const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
-      const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
       addBackButtonHook(
         "drawer",
         () => {
@@ -166,6 +166,7 @@ export default defineComponent({
       setupSwipeLogic(drawer.value!);
 
       dialog.value?.addEventListener("close", async () => {
+        removeBackButtonHook("friendCode");
         if (dialog.value!.returnValue == "cancel") {
           return;
         }
@@ -510,6 +511,12 @@ export default defineComponent({
     };
 
     const openFriendMenu = () => {
+      addBackButtonHook(
+        "friendCode",
+        () => {
+          dialog.value!.open = false;
+        },
+      );
       dialog.value!.open = true;
     };
 
