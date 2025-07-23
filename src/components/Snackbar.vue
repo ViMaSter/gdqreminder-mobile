@@ -134,7 +134,7 @@ defineExpose({
 .mdc-snackbar__actions {
   margin-right: 16px;
 }
-mds-snackbar {
+.mdc-snackbar {
   bottom: var(--safe-area-inset-bottom) !important;
 }
 </style>
