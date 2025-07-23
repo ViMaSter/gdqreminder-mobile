@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const animationDuration = 500;
-
 const highlight = ref(null);
 const highlightStyle = ref({
     top: "0px",
@@ -12,7 +11,7 @@ const highlightStyle = ref({
 });
 const isOn = ref(false);
 
-function highlightElement(els: (HTMLElement | null)[] | HTMLElement | null) {
+const highlightElement = (els: (HTMLElement | null)[] | HTMLElement | null) => {
     let elements: HTMLElement[] = [];
     if (Array.isArray(els)) {
         elements = els.filter((el): el is HTMLElement => !!el);
@@ -43,10 +42,21 @@ function highlightElement(els: (HTMLElement | null)[] | HTMLElement | null) {
         height: `${maxBottom - minTop}px`,
     };
     isOn.value = true;
-    setTimeout(() => {
-        isOn.value = false;
-    }, animationDuration); // Duration of the highlight effect
-}
+};
+
+const removeHighlight = () => {
+    isOn.value = false;
+};
+
+onMounted(() => {
+    window.addEventListener('touchstart', removeHighlight, { passive: true });
+    window.addEventListener('mousedown', removeHighlight);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('touchstart', removeHighlight);
+    window.removeEventListener('mousedown', removeHighlight);
+});
 
 // Expose method to parent if needed
 defineExpose({ highlightElement });
@@ -70,16 +80,20 @@ defineExpose({ highlightElement });
     opacity: 0;
     mix-blend-mode: exclusion;
     pointer-events: none;
-    transition: none;
+    transition: opacity calc(v-bind('animationDuration') * 0.5ms) ease-out;
 }
 
 .on {
-    animation: pulse calc(v-bind('animationDuration') * 0.5ms) cubic-bezier(0.55, 0.01, 0.45, 1) 2;
+    animation: pulse calc(v-bind('animationDuration') * 1ms) cubic-bezier(0.55, 0.01, 0.45, 1);
+    opacity: 1;;
 }
 
 @keyframes pulse {
     0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
+    20% { opacity: 1; }
+    40% { opacity: 0; }
+    60% { opacity: 1; }
+    80% { opacity: 0; }
+    100% { opacity: 1; }
 }
 </style>
