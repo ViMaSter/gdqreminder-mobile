@@ -12,7 +12,7 @@ const plugins = [
   vue({
     template: {
       compilerOptions: {
-        isCustomElement: (tag) =>
+        isCustomElement: (tag: string) =>
           tag.startsWith("mwc-") || tag.startsWith("md-"),
       },
     },
@@ -57,7 +57,6 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        api: "modern-compiler",
         additionalData: `
           @use "@/styles/_variables.scss";
         `,
