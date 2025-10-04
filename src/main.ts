@@ -6,7 +6,7 @@ import App from "./App.vue";
 import { Capacitor } from "@capacitor/core";
 import { SafeArea } from "capacitor-plugin-safe-area";
 import { createI18n } from 'vue-i18n'
-import { Device } from '@capacitor/device';
+import { useSettingsStore } from "./stores/settings";
 
 async function fetchLocale(languageCode: string): Promise<any> {
   const response = await fetch(`/i18n/${languageCode}.json`);
@@ -20,27 +20,29 @@ async function fetchLocale(languageCode: string): Promise<any> {
   return locale;
 }
 (async () => {
+  const app = createApp(App);
+
+  const pinia = createPinia();
+  app.use(pinia);
+
+  const settingsStore = useSettingsStore();
+
   const messages: { [code: string]: any } = {
-    en: await fetchLocale("en"),
+    en: await fetchLocale("en-US"),
   };
-  let languageCode = "en";
   try {
-    languageCode = (await Device.getLanguageCode()).value;
-    messages[languageCode] = await fetchLocale(languageCode);
+    messages[settingsStore.currentLanguage] = await fetchLocale(settingsStore.currentLanguage);
   } catch (error) {
-    console.warn(`Using fallback locale 'en' due to error: ${error}`);
+    console.warn(`Using fallback locale 'en-US' instead of '${settingsStore.currentLanguage}' due to error: ${error}`);
   }
 
   const i18n = createI18n({
-    locale: languageCode,
-    fallbackLocale: 'en',
+    locale: settingsStore.currentLanguage,
+    legacy: false,
+    fallbackLocale: 'en-US',
     messages
   });
-  const app = createApp(App);
   app.use(i18n)
-
-  const pinia = createPinia();
-
   // disable sentry in dev mode
   if (Capacitor.getPlatform() !== "web") {
     Sentry.init({
@@ -63,7 +65,6 @@ async function fetchLocale(languageCode: string): Promise<any> {
     });
   }
 
-  app.use(pinia);
   app.mount("#app");
 
   SafeArea.setImmersiveNavigationBar();
