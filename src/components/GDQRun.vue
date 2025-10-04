@@ -119,6 +119,9 @@ export default defineComponent({
       if (props.runData.console == "GDQ Stage") {
         return "in-person";
       }
+      if (props.runData.console == "TwitchCon") {
+        return "in-person";
+      }
       if (props.runData.display_name.toLowerCase().includes("bonus game")) {
         return "bonus-game";
       }
