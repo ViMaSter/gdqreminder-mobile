@@ -1,6 +1,6 @@
 {
   "name": "gdq-reminder-mobile",
-  "version": "6.1.2",
+  "version": "7.0.0-internal.11",
   "author": "Vincent Mahnke (vincent@mahn.ke)",
   "type": "module",
   "private": true,
