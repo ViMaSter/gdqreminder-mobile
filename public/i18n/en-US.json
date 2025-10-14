@@ -26,6 +26,8 @@
         "option-english": "English",
         "option-german": "German",
         "label-helpTranslate": "Help translate",
+        "headline-donation": "Donation",
+        "info-donation": "While this app will always remain free to use, if you want to support its development, you can donate using Google Play!",
         "headline-information": "Information",
         "label-version": "Version"
     },

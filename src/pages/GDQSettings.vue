@@ -6,6 +6,8 @@ import Version from "@/plugins/versionPlugin";
 import { MdSwitch } from '@material/web/switch/switch';
 import { useI18n } from 'vue-i18n';
 import { languages, useSettingsStore } from '@/stores/settings';
+// Import CdvPurchase from its module
+import 'cordova-plugin-purchase';
 const emit = defineEmits(['setVisibility']);
 const { t } = useI18n();
 
@@ -20,6 +22,55 @@ const closeSettings = () => {
 const languageDialog = ref<MdDialog>();
 const openLanguageDialog = () => {
   languageDialog.value!.open = true;
+};
+
+
+const finishPurchase = (product: any) => {
+  if (product.transaction) {
+    product.finish();
+    alert(t('settings.message-thankYouForDonation'));
+  }
+};
+
+debugger;
+const {store, ProductType, Platform} = CdvPurchase;
+const refresh = (product: any) => {
+  console.log('Product updated', product);
+};
+store.register([{
+  type: ProductType.CONSUMABLE,
+  id: 'donation_1.00usd',
+  platform: Platform.TEST,
+}, {
+  type: ProductType.CONSUMABLE,
+  id: 'donation_2.00usd',
+  platform: Platform.TEST,
+}, {
+  type: ProductType.CONSUMABLE,
+  id: 'donation_5.00usd',
+  platform: Platform.TEST,
+}]);
+store.when()
+  .productUpdated(refresh)
+  .approved(finishPurchase);
+store.initialize([Platform.TEST]);
+
+const buy = (value: number) => {
+  const { store, Platform } = CdvPurchase;
+  const productId = `donation_${value}.00usd`;
+  const myProduct = store.get(productId, Platform.TEST);
+  if (!myProduct) {
+    alert('Product not found.');
+    return;
+  }
+
+  const offer = myProduct.getOffer();
+  if (!offer) {
+    alert('Unable to find a valid offer for this product.');
+    return;
+  }
+
+  offer.order();
 };
 
 const highlighted = ref<HTMLElement | null>(null);
@@ -180,6 +231,22 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
           <div slot="headline">{{ $t('settings.label-helpTranslate') }}</div>
           <md-icon slot="end">open_in_new</md-icon>
         </md-list-item>
+
+        <md-list-item>
+          <div slot="supporting-text">{{ $t('settings.headline-donation') }}</div>
+        </md-list-item>
+        <md-divider></md-divider>
+        
+        <md-list-item ref="highlightedEnd"><md-icon slot="start">info</md-icon>
+          <div slot="supporting-text">{{ $t('settings.info-donation') }}</div>
+        </md-list-item>
+
+        <div class="donationContainer">
+          <md-list-item @click="buy(1)" class="third" type="button">$1</md-list-item>
+          <md-list-item @click="buy(2)" class="third" type="button">$2</md-list-item>
+          <md-list-item @click="buy(5)" class="third" type="button">$5</md-list-item>
+        </div>
+
         <md-list-item>
           <div slot="supporting-text">{{ $t('settings.headline-information') }}</div>
         </md-list-item>
@@ -203,6 +270,15 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
   </div>
 </template>
 <style lang="scss" scoped>
+.donationContainer {
+  display: flex;
+  justify-content: space-around;
+}
+.third {
+  width: 33%;
+  text-align: center;
+}
+
 mwc-top-app-bar-fixed {
   background-color: var(--mdc-theme-primary);
   padding-top: var(--safe-area-inset-top);

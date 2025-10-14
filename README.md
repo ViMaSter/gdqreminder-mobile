@@ -1,4 +1,4 @@
-# GDQ Reminder Mobile App
+f# GDQ Reminder Mobile App
 
 <a href="https://mahn.ke/gdqreminder-android"><img height="60" src="resources/Google_Play_Store_badge_EN.svg"></a>
 
