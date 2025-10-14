@@ -74,6 +74,7 @@ dependencies {
     implementation('com.google.firebase:firebase-iid:21.1.0')
     implementation 'com.google.firebase:firebase-messaging:24.1.0'
     implementation("com.google.firebase:firebase-auth")
+    implementation "com.android.billingclient:billing:8.0.0"
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation project(':capacitor-android')
