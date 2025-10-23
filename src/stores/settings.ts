@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { Capacitor } from "@capacitor/core";
 import PushNotificationHelper from '@/utilities/pushNotificationHelper';
 
 export const languages = {
@@ -61,9 +62,11 @@ export const useSettingsStore = defineStore(key, {
           await PushNotificationHelper.eventAnnouncements.unsubscribe();
         }
       } catch (error) {
-        throw new Error(
-          `Cannot update event announcements subscription as Firebase is unavailable; try restarting the app and make sure you have an internet connection. Details: ${error}`,
-        );
+        if (Capacitor.getPlatform() !== "web") {
+          throw new Error(
+            `Cannot update event announcements subscription as Firebase is unavailable; try restarting the app and make sure you have an internet connection. Details: ${error}`,
+          );
+        }
       }
       this.$state.subscribedToEventAnnouncements = enabled;
       localStorage.setItem(key, JSON.stringify(this.$state));
@@ -76,9 +79,11 @@ export const useSettingsStore = defineStore(key, {
           await PushNotificationHelper.eventUpdates.unsubscribe();
         }
       } catch (error) {
-        throw new Error(
-          `Cannot update event updates subscription as Firebase is unavailable; try restarting the app and make sure you have an internet connection. Details: ${error}`,
-        );
+        if (Capacitor.getPlatform() !== "web") {
+          throw new Error(
+            `Cannot update event updates subscription as Firebase is unavailable; try restarting the app and make sure you have an internet connection. Details: ${error}`,
+          );
+        }
       }
       this.$state.subscribedToEventUpdates = enabled;
       localStorage.setItem(key, JSON.stringify(this.$state));
