@@ -63,7 +63,7 @@ test("adding your own friend code means clock and friend indicator are shown", a
   await expect(page.locator(".with-friend")).toHaveCount(1);
 });
 
-test.only("back button press can close opened friend menu", async ({ page }) => {
+test("back button press can close opened friend menu", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto(page.url());
 
