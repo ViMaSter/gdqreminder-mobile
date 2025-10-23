@@ -143,6 +143,7 @@ export default defineComponent({
     onMounted(() => {
       if (!useSettingsStore().initalized)
       {
+        useSettingsStore().setDefaults();
         snackbar.value!.open();
       }
       addBackButtonHook(
