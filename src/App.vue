@@ -225,7 +225,7 @@ const setVisibility = async (key : string, data : string) => {
   visibility.value[key] = true;
 };
 
-let storeInitializationAtStartup = useSettingsStore().initalized;
+let storeInitializationAtStartup = useSettingsStore().initialized;
 let onboardingCalledStacktraces = new Set<string>();
 
 function requireOnboarding(): boolean {

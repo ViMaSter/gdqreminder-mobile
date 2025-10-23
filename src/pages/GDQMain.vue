@@ -141,7 +141,7 @@ export default defineComponent({
     const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
     const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
     onMounted(() => {
-      if (!useSettingsStore().initalized)
+      if (!useSettingsStore().initialized)
       {
         useSettingsStore().setDefaults();
         snackbar.value!.open();
