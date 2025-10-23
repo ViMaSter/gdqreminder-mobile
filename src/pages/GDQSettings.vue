@@ -85,8 +85,8 @@ const toggleEventAnnouncements = async () => {
     } finally {
       eventAnnouncementsSwitch.value!.disabled = false;
       eventAnnouncementsSwitch.value!.selected = eventAnnouncements.value;
-      return;
     }
+    return;
   }
 
   eventAnnouncementsSwitch.value!.disabled = true;
@@ -148,7 +148,7 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         <md-list-item type="button" @click="toggleEventAnnouncements">
           <div slot="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
           <div slot="supporting-text">{{ $t('settings.description-eventAnnouncements') }}</div>
-          <md-switch :selected="eventAnnouncements" @change="toggleEventAnnouncements" ref="eventAnnouncementsSwitch"
+          <md-switch :selected="eventAnnouncements" ref="eventAnnouncementsSwitch"
             slot="end"></md-switch>
         </md-list-item>
         <md-list-item><md-icon slot="start">info</md-icon>
@@ -159,7 +159,7 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         <md-list-item type="button" @click="toggleEventUpdates">
           <div slot="headline">{{ $t('settings.label-eventUpdates') }}</div>
           <div slot="supporting-text">{{ $t('settings.description-eventUpdates') }}</div>
-          <md-switch :selected="eventUpdates" @change="toggleEventUpdates" ref="eventUpdatesSwitch"
+          <md-switch :selected="eventUpdates" ref="eventUpdatesSwitch"
             slot="end"></md-switch>
         </md-list-item>
         <md-list-item ref="highlightedEnd"><md-icon slot="start">info</md-icon>
