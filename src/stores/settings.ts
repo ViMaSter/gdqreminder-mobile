@@ -54,6 +54,10 @@ export const useSettingsStore = defineStore(key, {
     },
   },
   actions: {
+    async setDefaults(): Promise<void> {
+      this.setSubscriptionToEventAnnouncements(true);
+      this.setSubscriptionToEventUpdates(true);
+    },
     async setSubscriptionToEventAnnouncements(enabled: boolean): Promise<void> {
       try {
         if (enabled) {
