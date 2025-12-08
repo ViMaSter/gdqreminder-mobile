@@ -1,0 +1,41 @@
+{
+    "sidebar": {
+        "headline": "Available events"
+    },
+    "friendCodes": {
+        "headline": "Share your runs",
+        "content-yourCode": "Share your runs by exchanging friend codes! ",
+        "label-yourCode": "Your friend code",
+        "content-friendCode": "Enter a friend code to see which runs your friend has set up!",
+        "label-friendCode": "Enter friend code",
+        "error-friendCode": "Invalid friend code",
+        "note-friendCode": "Your friend's runs will be highlighted, but you'll continue to only receive notifications for runs you set up yourself."
+    },
+    "settings": {
+        "headline": "Settings",
+        "headline-generalNotifications": "General notifications",
+        "label-eventAnnouncements": "Schedule announcements",
+        "description-eventAnnouncements": "Receive a push notification when the initial schedule for a new GDQ event is announced",
+        "info-eventAnnouncements": "To also receive a push notification when the new event starts, you need to set a reminder for the pre-show in the schedule after it's announced.",
+        "label-eventUpdates": "Schedule updates",
+        "description-eventUpdates": "Receive a push notification when a new run is added to an existing event",
+        "info-eventUpdates": "To also receive a push notification when the new run starts, you need to set a reminder for it, after it's announced.",
+        "headline-language": "Language",
+        "label-appLanguage": "App language",
+        "option-systemDefault": "Use system default",
+        "option-english": "English",
+        "option-german": "German",
+        "label-helpTranslate": "Help translate",
+        "headline-information": "Information",
+        "label-version": "Version"
+    },
+    "onboarding": {
+        "settings": {
+            "label": "Only want run specific notifications?",
+            "callToAction": "Open settings"
+        }
+    },
+    "note": "Note",
+    "cancel": "Cancel",
+    "apply": "Apply"
+}

@@ -6,9 +6,9 @@ test("adding and removing friend code with pre-existing runs toggles friend indi
   test.setTimeout(60_000);
   await page.goto(page.url());
 
-  await page.waitForSelector('mwc-top-app-bar-fixed [slot="title"]');
+  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
 
-  await page.click('mwc-top-app-bar-fixed [slot="navigationIcon"]');
+  await page.click('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="navigationIcon"]');
 
   await page.waitForSelector(".mdc-drawer");
 
@@ -35,7 +35,7 @@ test("adding your own friend code means clock and friend indicator are shown", a
   test.setTimeout(60_000);
   await page.goto(page.url() + "#date=2025-01-04%2000:00:00");
 
-  await page.waitForSelector('mwc-top-app-bar-fixed [slot="title"]');
+  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
 
   await page.waitForSelector(".day-divider");
 
@@ -61,4 +61,22 @@ test("adding your own friend code means clock and friend indicator are shown", a
   await page.click(".run .runName", { timeout: 5000 });
   await expect(page.locator(".is-set")).toHaveCount(1); 
   await expect(page.locator(".with-friend")).toHaveCount(1);
+});
+
+test("back button press can close opened friend menu", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto(page.url());
+
+  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+
+  await page.click('[data-test="open-friend-menu"]');
+
+  await expect(page.locator('md-dialog[open]')).toHaveCount(1);
+
+  // emulates back button of phones
+  await page.keyboard.down("Control");
+  await page.keyboard.press("b");
+  await page.keyboard.up("Control");
+
+  await expect(page.locator('md-dialog[open]')).toHaveCount(0);
 });

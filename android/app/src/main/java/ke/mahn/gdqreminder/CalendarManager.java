@@ -259,6 +259,7 @@ public class CalendarManager {
         try {
             Instant aroundAMonthAgo = Instant.now().minus(35, ChronoUnit.DAYS);
             URL uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v2/events/");
+            System.setProperty("http.agent", "GDQReminderClient/" + BuildConfig.VERSION_NAME);
             HttpURLConnection connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
@@ -291,6 +292,7 @@ public class CalendarManager {
                 throw new Exception("No event with 'gdq' in short name found.");
             }
             uri = new URL("https://tracker.gamesdonequick.com/tracker/api/v2/events/" + currentEventID + "/runs/");
+            System.setProperty("http.agent", "GDQReminderClient/" + BuildConfig.VERSION_NAME);
             connection = (HttpURLConnection) uri.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();

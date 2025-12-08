@@ -1,0 +1,41 @@
+{
+    "sidebar": {
+        "headline": "Verfügbare Events"
+    },
+    "friendCodes": {
+        "headline": "Runs teilen",
+        "content-yourCode": "Teile deine Runs indem du Friend Codes austauschst!",
+        "label-yourCode": "Dein Friend Code",
+        "content-friendCode": "Trag einen Friend Code ein und sieh Runs von Befreundeten!",
+        "label-friendCode": "Friend Code eintragen",
+        "error-friendCode": "Ungültiger Friend Code",
+        "note-friendCode": "Runs von Befreundeten werden zwar hervorgehoben, aber erhältst weiterhin nur Benachrichtigungen für Runs, die du selbst aufgesetzt hast."
+    },
+    "settings": {
+        "headline": "Einstellungen",
+        "headline-generalNotifications": "Allgemeine Benachrichtigungen",
+        "label-eventAnnouncements": "Programmankündigungen",
+        "description-eventAnnouncements": "Benachrichtigt werden, wenn das Programm eines neuen GDQ Events angekündigt wurde",
+        "info-eventAnnouncements": "Um auch beim Start des neuen Events benachrichtigt zu werden, musst du hinterher eine Benachrichtigung für die Pre-Show aufsetzen.",
+        "label-eventUpdates": "Programmupdates",
+        "description-eventUpdates": "Benachrichtigt werden, wenn ein neuer Run einem Event hinzugefügt wurde",
+        "info-eventUpdates": "Um auch beim Start des neuen Runs benachrichtigt zu werden, musst du hinterher eine Benachrichtigung für ihn aufsetzen.",
+        "headline-language": "Sprache",
+        "label-appLanguage": "Sprache der App",
+        "option-systemDefault": "Systemstandard benutzen",
+        "option-english": "Englisch",
+        "option-german": "Deutsch",
+        "label-helpTranslate": "Mithelfen",
+        "headline-information": "Informationen",
+        "label-version": "Version"
+    },
+    "onboarding": {
+        "settings": {
+            "label": "Nur Benachrichtigungen für Runs erhalten?",
+            "callToAction": "Einstellungen öffnen"
+        }
+    },
+    "note": "Hinweis",
+    "cancel": "Abbrechen",
+    "apply": "OK"
+}
