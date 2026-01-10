@@ -191,8 +191,7 @@ onMounted(() => {
   watch(mainContent, () => {
     loadingContent.value!.hide();
     if (mainContent && mainContent.value) {
-      App.addEventListener('resume', mainContent.value.loadRuns(mainContent.value.currentEventID));
-      App.addEventListener('appRestoredResult', mainContent.value.loadRuns(mainContent.value.currentEventID));
+      App.addListener('resume', () => {mainContent.value!.loadRuns(mainContent.value!.currentEventID); });
     }
   });
 
