@@ -624,9 +624,10 @@ export default defineComponent({
     watch(userID, (newUserID) => {
         base16EncodedUserID.value = Base16.encode(newUserID);
     });
-    const auth = await getFirebaseAuth();
-    userID.value = (await signInAnonymously(auth)).user!.uid;
-    localStorage.setItem("firebaseUserID", userID.value);
+    getFirebaseAuth().then(async (auth) => {
+      userID.value = (await signInAnonymously(auth)).user!.uid;
+      localStorage.setItem("firebaseUserID", userID.value);
+    });
 
     const copyID = async () => {
       navigator.clipboard.writeText(base16EncodedUserID.value);
