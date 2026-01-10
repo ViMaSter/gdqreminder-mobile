@@ -190,6 +190,10 @@ provide("highlightElement", (el: (HTMLElement | null)[] | HTMLElement | null) =>
 onMounted(() => {
   watch(mainContent, () => {
     loadingContent.value!.hide();
+    if (mainContent && mainContent.value) {
+      App.addEventListener('resume', mainContent.value.loadRuns(mainContent.value.currentEventID));
+      App.addEventListener('appRestoredResult', mainContent.value.loadRuns(mainContent.value.currentEventID));
+    }
   });
 
 });

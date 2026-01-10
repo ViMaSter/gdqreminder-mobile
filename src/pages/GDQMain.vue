@@ -1,4 +1,5 @@
 <script lang="ts">
+import { App } from "@capacitor/app";
 import { onMounted, ref, Ref, provide, defineComponent, watch, inject } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
 import "@material/mwc-drawer";
@@ -654,6 +655,7 @@ export default defineComponent({
       orderedDays,
       currentEventName,
       currentEventID,
+      loadRuns,
       updateCurrentEvent,
       updateCurrentEventToNewest,
       runsByID,
