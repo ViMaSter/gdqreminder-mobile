@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)) && secrets.PAT || secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
       - run: | 
@@ -357,7 +357,7 @@ jobs:
           find . -name "*.aab" -exec mv {} ../gdqreminder-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}.aab \;
           cd ..
           echo "${{ needs.prepareCache.outputs.SENTRY_RELEASE }}"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
       - name: Add AAB and APK to GitHub Release
