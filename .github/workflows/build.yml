@@ -246,11 +246,11 @@ jobs:
           echo "github.event_name: ${{github.event_name}}"
           echo "github.ref: ${{github.ref}}"
           echo "github.event.inputs.forceProductionRelease: ${{github.event.inputs.forceProductionRelease}}"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: aab
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: apk
@@ -295,11 +295,11 @@ jobs:
           echo "github.event_name: ${{github.event_name}}"
           echo "github.ref: ${{github.ref}}"
           echo "github.event.inputs.forceInternalRelease: ${{github.event.inputs.forceInternalRelease}}"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: aab
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: apk
@@ -340,11 +340,11 @@ jobs:
           path: |
             ./*
           key: ${{ github.run_id }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: apk
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
           path: aab
