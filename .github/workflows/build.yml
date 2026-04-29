@@ -29,7 +29,7 @@ jobs:
     outputs:
       SENTRY_RELEASE: ${{ steps.version.outputs.SENTRY_RELEASE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)) && secrets.PAT || secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v4
