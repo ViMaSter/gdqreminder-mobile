@@ -268,7 +268,7 @@ jobs:
           track: production
           status: completed
           releaseFiles: ./aab/app-release.aab
-      - uses: getsentry/action-release@v1
+      - uses: getsentry/action-release@v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: vimaster
@@ -317,7 +317,7 @@ jobs:
           track: internal
           status: completed
           releaseFiles: ./aab/app-release.aab
-      - uses: getsentry/action-release@v1
+      - uses: getsentry/action-release@v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: vimaster
