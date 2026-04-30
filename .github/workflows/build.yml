@@ -41,7 +41,7 @@ jobs:
         run: npx playwright install --with-deps
       - name: Run Playwright tests
         run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
@@ -94,7 +94,7 @@ jobs:
       - run: cd android && ./gradlew :app:bundleRelease
         shell: bash
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           if-no-files-found: error
           name: aab-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
@@ -122,7 +122,7 @@ jobs:
       - run: cd android && ./gradlew assembleDebug
         shell: bash
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           if-no-files-found: error
           name: apk-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
@@ -212,7 +212,7 @@ jobs:
           xcodebuild PROVISIONING_PROFILE=${{ steps.profile.outputs.uuid }} -exportArchive -archivePath $RUNNER_TEMP/App.xcarchive -exportOptionsPlist $EXPORT_PLIST_PATH -exportPath ${{ runner.temp }}/export
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: error
           name: ios-${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
