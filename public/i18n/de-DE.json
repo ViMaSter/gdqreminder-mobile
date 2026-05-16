@@ -35,6 +35,10 @@
             "callToAction": "Einstellungen öffnen"
         }
     },
+    "filters": {
+        "yourRuns": "Deine Runs",
+        "friendsAndYourRuns": "Befreundete und deine Runs"
+    },
     "note": "Hinweis",
     "cancel": "Abbrechen",
     "apply": "OK"

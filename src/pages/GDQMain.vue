@@ -1,6 +1,6 @@
 <script lang="ts">
 import { App } from "@capacitor/app";
-import { onMounted, ref, Ref, provide, defineComponent, watch, inject } from "vue";
+import { onMounted, ref, Ref, provide, defineComponent, watch, inject, computed } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
 import "@material/mwc-drawer";
 import { MdDialog } from "@material/web/dialog/dialog";
@@ -537,8 +537,18 @@ export default defineComponent({
       );
     };
 
-    const filterTypes = ["", "friend+alert", "alert"];
-    let activeFilter = "";
+    const filterTypes = ["", "friend+alert", "alert"] as const;
+    type RunFilter = (typeof filterTypes)[number];
+    const activeFilter = ref<RunFilter>("");
+    const activeFilterLabel = computed(() => {
+      if (activeFilter.value == "friend+alert") {
+        return t("filters.friendsAndYourRuns");
+      }
+      if (activeFilter.value == "alert") {
+        return t("filters.yourRuns");
+      }
+      return "";
+    });
 
     const reminder = useRunReminderStore();
     const friendRunStore = useFriendRunReminderStore();
@@ -549,10 +559,10 @@ export default defineComponent({
         const hasAlert = reminder.allReminders.includes(runID);
         const inFriendRuns = friendRunStore.allReminders.includes(runID);
 
-        if (activeFilter == "friend+alert" && !inFriendRuns && !hasAlert) {
+        if (activeFilter.value == "friend+alert" && !inFriendRuns && !hasAlert) {
           return;
         }
-        if (activeFilter == "alert" && !hasAlert) {
+        if (activeFilter.value == "alert" && !hasAlert) {
           return;
         }
 
@@ -598,14 +608,14 @@ export default defineComponent({
     });
 
     const toggleFilter = () => {
-      activeFilter =
+      activeFilter.value =
         filterTypes[
-          (filterTypes.indexOf(activeFilter) + 1) % filterTypes.length
+          (filterTypes.indexOf(activeFilter.value) + 1) % filterTypes.length
         ];
-      if (activeFilter == "friend+alert" && !encodedFriendUserID.value) {
-        activeFilter =
+      if (activeFilter.value == "friend+alert" && !encodedFriendUserID.value) {
+        activeFilter.value =
           filterTypes[
-            (filterTypes.indexOf(activeFilter) + 1) % filterTypes.length
+            (filterTypes.indexOf(activeFilter.value) + 1) % filterTypes.length
           ];
       }
       refreshRuns();
@@ -655,6 +665,8 @@ export default defineComponent({
       orderedDays,
       currentEventName,
       currentEventID,
+      activeFilter,
+      activeFilterLabel,
       loadRuns,
       updateCurrentEvent,
       updateCurrentEventToNewest,
@@ -773,6 +785,9 @@ export default defineComponent({
         ></GDQHeader>
 
         <div class="mdc-top-app-bar--fixed-adjust" id="runs">
+          <div :class="['activeFilterBar', { hidden: activeFilter === '' }]">
+            <span class="activeFilterBarContent">{{ activeFilterLabel }}</span>
+          </div>
           <div class="transition"></div>
           <template
             v-for="(runs, day, index) in runsByDay"
@@ -855,6 +870,38 @@ md-dialog {
   width: 100vw;
   background: linear-gradient(180deg, var(--from) 0%, var(--to) 100%);
   z-index: 1000;
+}
+
+.activeFilterBar {
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+  width: 100%;
+  height: 2.25em;
+  font-size: 0.9em;
+  margin-bottom: -1.75em;
+  overflow: hidden;
+
+  .activeFilterBarContent {
+    width: 100%;
+    height: 100%;
+    padding: 0 1em;
+    background-color: rgba(128, 128, 128, 0.25);
+    color: var(--mdc-theme-on-surface);
+    display: flex;
+    align-items: center;
+    opacity: 1;
+    justify-content: center;
+    transform: translateY(0);
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+
+  &.hidden {
+    .activeFilterBarContent {
+      opacity: 0;
+      transform: translateY(-100%);
+    }
+  }
 }
 
 #appContent {

@@ -1,1 +1,6 @@
-{}
+{
+	"filters": {
+		"yourRuns": "Le tue run",
+		"friendsAndYourRuns": "Le run dei tuoi amici e le tue run"
+	}
+}

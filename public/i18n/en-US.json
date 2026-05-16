@@ -35,6 +35,10 @@
             "callToAction": "Open settings"
         }
     },
+    "filters": {
+        "yourRuns": "Your runs",
+        "friendsAndYourRuns": "Friends' and your runs"
+    },
     "note": "Note",
     "cancel": "Cancel",
     "apply": "Apply"
