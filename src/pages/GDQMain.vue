@@ -828,7 +828,7 @@ md-dialog {
 }
 
 .padding {
-  height: 8em;
+  height: 16em;
 }
 .dark-mode {
   .transition {
