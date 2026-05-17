@@ -45,6 +45,34 @@ const switchToEvent = async (
 };
 
 test.describe("filtering", () => {
+  test("filter label respects language setting", async ({ page }) => {
+    test.setTimeout(60_000);
+
+    await gotoStableRunsList(page);
+
+    await page.click('[data-test="settings"]');
+    await expect(page.locator(".gdq-settings mwc-top-app-bar-fixed")).toBeVisible();
+
+    await page.locator("[data-test=open-language-dialog]").click();
+    await expect(page.locator("[data-test=language-dialog]")).toBeVisible();
+    await page.locator("[data-test=language-option-english]").click();
+    await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+
+    await clickFilter(page);
+    await expect(page.locator('[data-test="active-filter-label"]')).toHaveText("Your runs");
+
+    await page.click('[data-test="settings"]');
+    await expect(page.locator(".gdq-settings mwc-top-app-bar-fixed")).toBeVisible();
+
+    await page.locator("[data-test=open-language-dialog]").click();
+    await expect(page.locator("[data-test=language-dialog]")).toBeVisible();
+    await page.locator("[data-test=language-option-german]").click();
+    await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+
+    await clickFilter(page);
+    await expect(page.locator('[data-test="active-filter-label"]')).toHaveText("Deine Runs");
+  });
+
   test.describe("with no runs enabled", () => {
     test("toggles between empty and full list", async ({ page }) => {
       test.setTimeout(60_000);

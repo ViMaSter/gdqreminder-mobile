@@ -786,7 +786,7 @@ export default defineComponent({
 
         <div class="mdc-top-app-bar--fixed-adjust" id="runs">
           <div :class="['activeFilterBar', { hidden: activeFilter === '' }]">
-            <span class="activeFilterBarContent">{{ activeFilterLabel }}</span>
+            <span class="activeFilterBarContent" data-test="active-filter-label">{{ activeFilterLabel }}</span>
           </div>
           <div class="transition"></div>
           <template

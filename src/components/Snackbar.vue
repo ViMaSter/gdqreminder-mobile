@@ -120,10 +120,10 @@ defineExpose({
       <div class="mdc-snackbar__label" aria-atomic="false">
       </div>
       <div class="mdc-snackbar__actions" aria-atomic="true">
-        <div type="button" class="mdc-button mdc-snackbar__action">
+        <button class="mdc-button mdc-snackbar__action">
           <div class="mdc-button__ripple"></div>
           <span class="mdc-button__label"></span>
-        </div>
+        </button>
       </div>
     </div>
   </aside>
