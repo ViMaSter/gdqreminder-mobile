@@ -128,7 +128,7 @@ export default defineComponent({
 
     const snackbar = ref<typeof Snackbar>();
     const showSnackbar = (text: string) => {
-      if (snackbar.value!.actionButtonText == "Open settings" && 
+      if (snackbar.value!.actionButtonText == t("onboarding.settings.callToAction") && 
           snackbar.value!.isOpen) {
         return;
       }
