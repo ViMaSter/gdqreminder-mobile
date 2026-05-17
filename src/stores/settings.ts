@@ -95,7 +95,7 @@ export const useSettingsStore = defineStore(key, {
     setLanguage(language: LanguageKey): void {
       this.$state.selectedLanguage = language;
       localStorage.setItem(key, JSON.stringify(this.$state));
-      location = location;
+      window.location.reload();
     }
   },
 });
