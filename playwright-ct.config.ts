@@ -3,6 +3,8 @@ import { dirname, resolve } from "path";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
 
+const isCI = !!process.env.CI;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -31,7 +33,7 @@ export default defineConfig({
     /* Port to use for Playwright component endpoint. */
     ctPort: 3100,
 
-    video: "retain-on-failure",
+    video: isCI ? "retain-on-failure" : "on",
 
     ctViteConfig: {
       plugins: [
@@ -68,6 +70,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         launchOptions: {
           args: ["--disable-web-security"],
+          slowMo: isCI ? 0 : 1000,
         },
       },
     },
@@ -77,6 +80,7 @@ export default defineConfig({
         ...devices["Pixel 5"],
         launchOptions: {
           args: ["--disable-web-security"],
+           slowMo: isCI ? 0 : 1000,
         },
       },
     }
