@@ -1,4 +1,5 @@
 import { test, expect } from "./test-utils/ct";
+import type { Page } from "playwright/test";
 
 test.use({ viewport: { width: 360, height: 800 } });
 
@@ -7,17 +8,17 @@ const friendCodeWithRuns = "59447256-69364948-37585178-50563968-306c634d-53464e7
 const normalizeTexts = (texts: string[]) =>
   texts.map((text) => text.replace(/\s+/g, " ").trim()).filter(Boolean);
 
-const getVisibleRunNames = async (page: Parameters<typeof test>[0]["page"]) =>
+const getVisibleRunNames = async (page: Page) =>
   normalizeTexts(await page.locator(".run .runName").allTextContents());
 
-const clickFilter = async (page: Parameters<typeof test>[0]["page"]) => {
+const clickFilter = async (page: Page) => {
   await page
     .locator('mwc-top-app-bar-fixed[data-test-selector="main"] md-icon-button:has(md-icon:has-text("filter_list"))')
     .click();
 };
 
 const applyFriendCode = async (
-  page: Parameters<typeof test>[0]["page"],
+  page: Page,
   friendCode: string,
 ) => {
   await page.click('[data-test="open-friend-menu"]');
@@ -25,7 +26,7 @@ const applyFriendCode = async (
   await page.click('md-text-button[value="apply"]');
 };
 
-const gotoStableRunsList = async (page: Parameters<typeof test>[0]["page"]) => {
+const gotoStableRunsList = async (page: Page) => {
   await page.goto(page.url() + "#date=2025-01-04%2000:00:00");
   await page.evaluate(() => {
     location.reload();
@@ -35,7 +36,7 @@ const gotoStableRunsList = async (page: Parameters<typeof test>[0]["page"]) => {
 };
 
 const switchToEvent = async (
-  page: Parameters<typeof test>[0]["page"],
+  page: Page,
   eventTitle: string,
 ) => {
   await page.click('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="navigationIcon"]');
