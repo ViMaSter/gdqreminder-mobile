@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/experimental-ct-vue";
+import { test, expect } from "../test-utils/ct";
 import Base16 from "./base16";
 
 test("encoding a string should yield the same string when decoding", async () => {

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/experimental-ct-vue";
+import { test, expect } from "./test-utils/ct";
 
 test.use({ viewport: { width: 360, height: 800 } });
 

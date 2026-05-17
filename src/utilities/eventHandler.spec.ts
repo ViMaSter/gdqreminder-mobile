@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/experimental-ct-vue";
+import { test, expect } from "../test-utils/ct";
 import { EventHandler, NestedEventCallbacks } from "./eventHandler";
 
 test("should call the correct nested function with remaining event path", async () => {
