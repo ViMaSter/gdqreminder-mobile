@@ -1,28 +1,21 @@
 <script lang="ts">
-import {
-  onMounted,
-  ref,
-  Ref,
-  provide,
-  defineComponent,
-  watch,
-  onBeforeMount,
-} from "vue";
+import { App } from "@capacitor/app";
+import { onMounted, ref, Ref, provide, defineComponent, watch, inject, computed } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
-import { Snackbar } from "@material/mwc-snackbar";
 import "@material/mwc-drawer";
 import { MdDialog } from "@material/web/dialog/dialog";
 import { MdFilledTextField } from "@material/web/textfield/filled-text-field";
 import { MdTextButton } from "@material/web/button/text-button";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
+import Snackbar from "../components/Snackbar.vue";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { GDQRunData } from "../interfaces/GDQRun";
 import Version from "@/plugins/versionPlugin";
-import GDQDay from "./GDQDay.vue";
-import GDQHeader from "./GDQHeader.vue";
-import GDQSidebar from "./GDQSidebar.vue";
-import GDQTimeIndicator from "./GDQTimeIndicator.vue";
+import GDQDay from "./GDQMain/GDQDay.vue";
+import GDQHeader from "./GDQMain/GDQHeader.vue";
+import GDQSidebar from "./GDQMain/GDQSidebar.vue";
+import GDQTimeIndicator from "./GDQMain/GDQTimeIndicator.vue";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { RealDateProvider } from "@/services/RealDateProvider";
 import { FakeDateProvider } from "@/services/FakeDateProvider";
@@ -44,7 +37,8 @@ import {
   signInAnonymously,
 } from "firebase/auth";
 import { reflectColor } from "@/utilities/colorHelper";
-import { App } from "@capacitor/app";
+import { useSettingsStore } from "@/stores/settings";
+import { ONBOARDING_DATA } from "@/utilities/onboardingConstants";
 
 const getFirebaseAuth = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -132,24 +126,42 @@ export default defineComponent({
     };
     provide("jumpToYouTube", jumpToYouTube);
 
+    const snackbar = ref<typeof Snackbar>();
     const showSnackbar = (text: string) => {
-      snackbar.value!.stacked = false;
-      snackbar.value!.leading = false;
-      snackbar.value!.open = true;
+      if (snackbar.value!.actionButtonText == t("onboarding.settings.callToAction") && 
+          snackbar.value!.isOpen) {
+        return;
+      }
       snackbar.value!.labelText = text;
+      snackbar.value!.actionButtonText = null;
+      snackbar.value!.timeoutMs = 10000;
+      snackbar.value!.open();
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
 
-    onBeforeMount(() => {
-      App.addListener("backButton", async () => {
-        drawer.value!.open = !drawer.value!.open;
-        if (!drawer.value!.open) {
-          await App.minimizeApp();
-        }
-      });
-    });
-
+    const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
+    const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
     onMounted(() => {
+      if (!useSettingsStore().initialized)
+      {
+        useSettingsStore().setDefaults();
+        snackbar.value!.open();
+      }
+      addBackButtonHook(
+        "drawer",
+        () => {
+          drawer.value!.open = true;
+        },
+      );
+      drawer.value!.addEventListener("MDCDrawer:closed", () => {
+        addBackButtonHook("drawer", () => {
+          drawer.value!.open = true;
+        });
+      });
+      drawer.value!.addEventListener("MDCDrawer:opened", () => {
+        removeBackButtonHook("drawer");
+      });
+
       const container = drawer.value!.parentNode;
       container!.addEventListener("MDCTopAppBar:nav", () => {
         drawer.value!.open = !drawer.value!.open;
@@ -157,6 +169,7 @@ export default defineComponent({
       setupSwipeLogic(drawer.value!);
 
       dialog.value?.addEventListener("close", async () => {
+        removeBackButtonHook("friendCode");
         if (dialog.value!.returnValue == "cancel") {
           return;
         }
@@ -311,7 +324,10 @@ export default defineComponent({
       const fetchAndProcessRuns = async () => {
         try {
           const response = await CapacitorHttp.get({
-        url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
+            url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
+            headers: {
+              'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
+            },
           });
           if (response.status === 200 && response.data?.results) {
             const freshRuns = response.data.results as GDQRunData[];
@@ -497,9 +513,13 @@ export default defineComponent({
       await updateCurrentEvent(newestEvent);
     };
 
-    const snackbar = ref<Snackbar>();
-
     const openFriendMenu = () => {
+      addBackButtonHook(
+        "friendCode",
+        () => {
+          dialog.value!.open = false;
+        },
+      );
       dialog.value!.open = true;
     };
 
@@ -517,8 +537,18 @@ export default defineComponent({
       );
     };
 
-    const filterTypes = ["", "friend+alert", "alert"];
-    let activeFilter = "";
+    const filterTypes = ["", "friend+alert", "alert"] as const;
+    type RunFilter = (typeof filterTypes)[number];
+    const activeFilter = ref<RunFilter>("");
+    const activeFilterLabel = computed(() => {
+      if (activeFilter.value == "friend+alert") {
+        return t("filters.friendsAndYourRuns");
+      }
+      if (activeFilter.value == "alert") {
+        return t("filters.yourRuns");
+      }
+      return "";
+    });
 
     const reminder = useRunReminderStore();
     const friendRunStore = useFriendRunReminderStore();
@@ -529,10 +559,10 @@ export default defineComponent({
         const hasAlert = reminder.allReminders.includes(runID);
         const inFriendRuns = friendRunStore.allReminders.includes(runID);
 
-        if (activeFilter == "friend+alert" && !inFriendRuns && !hasAlert) {
+        if (activeFilter.value == "friend+alert" && !inFriendRuns && !hasAlert) {
           return;
         }
-        if (activeFilter == "alert" && !hasAlert) {
+        if (activeFilter.value == "alert" && !hasAlert) {
           return;
         }
 
@@ -578,14 +608,14 @@ export default defineComponent({
     });
 
     const toggleFilter = () => {
-      activeFilter =
+      activeFilter.value =
         filterTypes[
-          (filterTypes.indexOf(activeFilter) + 1) % filterTypes.length
+          (filterTypes.indexOf(activeFilter.value) + 1) % filterTypes.length
         ];
-      if (activeFilter == "friend+alert" && !encodedFriendUserID.value) {
-        activeFilter =
+      if (activeFilter.value == "friend+alert" && !encodedFriendUserID.value) {
+        activeFilter.value =
           filterTypes[
-            (filterTypes.indexOf(activeFilter) + 1) % filterTypes.length
+            (filterTypes.indexOf(activeFilter.value) + 1) % filterTypes.length
           ];
       }
       refreshRuns();
@@ -605,9 +635,10 @@ export default defineComponent({
     watch(userID, (newUserID) => {
         base16EncodedUserID.value = Base16.encode(newUserID);
     });
-    const auth = await getFirebaseAuth();
-    userID.value = (await signInAnonymously(auth)).user!.uid;
-    localStorage.setItem("firebaseUserID", userID.value);
+    getFirebaseAuth().then(async (auth) => {
+      userID.value = (await signInAnonymously(auth)).user!.uid;
+      localStorage.setItem("firebaseUserID", userID.value);
+    });
 
     const copyID = async () => {
       navigator.clipboard.writeText(base16EncodedUserID.value);
@@ -634,6 +665,9 @@ export default defineComponent({
       orderedDays,
       currentEventName,
       currentEventID,
+      activeFilter,
+      activeFilterLabel,
+      loadRuns,
       updateCurrentEvent,
       updateCurrentEventToNewest,
       runsByID,
@@ -643,11 +677,6 @@ export default defineComponent({
       scrollable,
       updateFriendID,
       wrapper,
-      visitTranslationPage: () => {
-        AppLauncher.openUrl({
-          url: "https://crowdin.com/project/gdqreminder",
-        });
-      },
       openFriendMenu,
       toggleFilter,
       toggleDarkMode,
@@ -664,12 +693,33 @@ export default defineComponent({
       },
     };
   },
+  emits: ['setVisibility'],
   components: {
     GDQDay,
     GDQHeader,
     GDQSidebar,
     GDQTimeIndicator,
+    Snackbar
   },
+  inject: [
+    "addBackButtonHook",
+    "removeBackButtonHook"
+  ],
+  methods: {
+    showSettings(data : string) {
+      this.$emit('setVisibility', "settings", data);
+
+      const addBackButtonHook = this.addBackButtonHook! as ((id: string, hook: () => void) => void);
+      addBackButtonHook("settings", () => {
+        this.$emit('setVisibility', "main");
+      });
+    },
+    snackbarAction (action: string) {
+      if (action == "action")  {
+        this.showSettings(ONBOARDING_DATA);
+      }
+    }
+  }
 });
 </script>
 
@@ -711,7 +761,13 @@ export default defineComponent({
         <md-text-button form="form" ref="apply" value="apply">{{$t("apply")}}</md-text-button>
       </div>
     </md-dialog>
-    <mwc-snackbar ref="snackbar" timeoutMs="10000"> </mwc-snackbar>
+    <Snackbar
+      ref="snackbar"
+      :labelText="$t('onboarding.settings.label')"
+      :actionButtonText="$t('onboarding.settings.callToAction')"
+      :timeoutMs="-1"
+      @onClosing="snackbarAction"
+    />
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
       <span ref="eventHeader" slot="title">{{ $t('sidebar.headline') }}</span>
       <GDQSidebar
@@ -721,18 +777,21 @@ export default defineComponent({
       ></GDQSidebar>
       <div id="appContent" slot="appContent" ref="scrollable">
         <GDQHeader
-          @visitTranslationPage="visitTranslationPage"
           @openFriendMenu="openFriendMenu"
           @toggleDarkMode="toggleDarkMode"
           @toggleFilter="toggleFilter"
+          @showSettings="showSettings"
           :currentEventName="currentEventName"
         ></GDQHeader>
 
         <div class="mdc-top-app-bar--fixed-adjust" id="runs">
+          <div :class="['activeFilterBar', { hidden: activeFilter === '' }]">
+            <span class="activeFilterBarContent" data-test="active-filter-label">{{ activeFilterLabel }}</span>
+          </div>
           <div class="transition"></div>
           <template
             v-for="(runs, day, index) in runsByDay"
-            :key="runs.map((run) => run).join('')"
+            :key="runs.join('')"
           >
             <GDQDay
               class="gdqday"
@@ -761,6 +820,7 @@ mwc-drawer {
 mwc-drawer > * {
   color: var(--mdc-theme-on-surface);
 }
+
 md-dialog {
   --md-dialog-container-color: var(--mdc-theme-surface);
   --md-dialog-headline-color: var(--mdc-theme-on-surface);
@@ -781,8 +841,9 @@ md-dialog {
   }
   width: 80%;
 }
+
 .padding {
-  height: 8em;
+  height: 16em;
 }
 .dark-mode {
   .transition {
@@ -809,6 +870,38 @@ md-dialog {
   width: 100vw;
   background: linear-gradient(180deg, var(--from) 0%, var(--to) 100%);
   z-index: 1000;
+}
+
+.activeFilterBar {
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+  width: 100%;
+  height: 2.25em;
+  font-size: 0.9em;
+  margin-bottom: -1.75em;
+  overflow: hidden;
+
+  .activeFilterBarContent {
+    width: 100%;
+    height: 100%;
+    padding: 0 1em;
+    background-color: rgba(128, 128, 128, 0.25);
+    color: var(--mdc-theme-on-surface);
+    display: flex;
+    align-items: center;
+    opacity: 1;
+    justify-content: center;
+    transform: translateY(0);
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+
+  &.hidden {
+    .activeFilterBarContent {
+      opacity: 0;
+      transform: translateY(-100%);
+    }
+  }
 }
 
 #appContent {
