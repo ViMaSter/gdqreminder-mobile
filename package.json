@@ -60,7 +60,7 @@
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.7.0",
     "@vue/test-utils": "^2.4.10",
-    "eslint": "^9.28.0",
+    "eslint": "^10.4.0",
     "eslint-plugin-vue": "*",
     "jsdom": "^29.1.1",
     "prettier": "^3.8.3",
