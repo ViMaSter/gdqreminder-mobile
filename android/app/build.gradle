@@ -69,6 +69,18 @@ android {
             java.srcDirs = ['src/main/java', 'capacitor-cordova-android-plugins/src/main/java']
         }
     }
+
+    testOptions {
+        managedDevices {
+            localDevices {
+                register("pixel8Api35") {
+                    device = "Pixel 8"
+                    apiLevel = 35
+                    systemImageSource = "google"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -85,6 +97,7 @@ dependencies {
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    androidTestImplementation "androidx.test:core:$androidxTestCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
 }
 
