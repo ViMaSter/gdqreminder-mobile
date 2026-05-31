@@ -139,19 +139,25 @@ install_with_peer_retries() {
     return 1
 }
 
-# Get direct dependencies only
-deps=$(node -e '
+# Get direct dependencies and devDependencies
+targets=$(node -e '
 const pkg=require("./package.json");
-console.log(Object.keys(pkg.dependencies || {}).join("\n"));
+for (const section of ["dependencies", "devDependencies"]) {
+    for (const dep of Object.keys(pkg[section] || {})) {
+        console.log(`${section}\t${dep}`);
+    }
+}
 ')
 
-for dep in $deps; do
+while IFS=$'\t' read -r dep_section dep; do
+    [ -z "$dep" ] && continue
+
     echo
     echo "=================================================="
-    echo "Testing upgrade of $dep"
+    echo "Testing upgrade of $dep ($dep_section)"
     echo "=================================================="
 
-    current=$(node -p "require('./package.json').dependencies['$dep']")
+    current=$(node -p "require('./package.json')['$dep_section']['$dep']")
     latest=$(npm view "$dep" version 2>/dev/null)
 
     if [ -z "$latest" ]; then
@@ -170,7 +176,7 @@ for dep in $deps; do
     cp package.json package.json.bak
 
     echo "Upgrading $dep -> ^$latest"
-    npm pkg set "dependencies.$dep=^$latest"
+    npm pkg set "$dep_section.$dep=^$latest"
 
     rm -rf node_modules package-lock.json
 
@@ -196,17 +202,17 @@ for dep in $deps; do
     done
 
     if [ "$pass" = true ]; then
-        echo "✅ PASS: keeping $dep@$latest"
+        echo "✅ PASS: keeping $dep@$latest ($dep_section)"
         rm -f package.json.bak
     else
-        echo "❌ FAIL: reverting $dep"
+        echo "❌ FAIL: reverting $dep ($dep_section)"
 
         mv package.json.bak package.json
 
         rm -rf node_modules package-lock.json
         npm install
     fi
-done
+done <<< "$targets"
 
 echo
 echo "Finished."
