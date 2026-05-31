@@ -5,12 +5,14 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import com.getcapacitor.BridgeActivity;
+import com.capacitor.safearea.SafeAreaPlugin;
 
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(VersionPlugin.class);
         registerPlugin(CalendarPlugin.class);
+        registerPlugin(SafeAreaPlugin.class);
         super.onCreate(savedInstanceState);
     }
 
