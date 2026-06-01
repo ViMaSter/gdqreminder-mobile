@@ -74,6 +74,11 @@ npx playwright install
 npm run test:e2e
 ```
 
+### Run Android native tests
+```sh
+npm run test:native
+```
+
 ### Lint with [ESLint](https://eslint.org/)
 ```sh
 npm run lint
