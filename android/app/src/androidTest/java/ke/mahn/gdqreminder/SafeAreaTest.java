@@ -11,10 +11,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginHandle;
 
 import org.json.JSONObject;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -22,9 +25,66 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Regression tests for commit e6a97d2 ("fix: Resolves regression with safearea").
+ *
+ * All tests share a single ActivityScenario so the activity is only created and
+ * destroyed once. This avoids a Keyboard-plugin NPE crash on API 35 during
+ * activity teardown, which would abort the test runner mid-suite.
  */
 @RunWith(AndroidJUnit4.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class SafeAreaTest {
+
+    private static ActivityScenario<MainActivity> scenario;
+    private static WebView sharedWebView;
+
+    /**
+     * Lazy initializer — runs inside the first test method so it is guaranteed to
+     * execute in the proper instrumentation context. The scenario is intentionally
+     * never closed: explicit close() triggers a Keyboard-plugin crash on API 35
+     * during activity teardown. The process is cleaned up by the test runner after
+     * all results are recorded.
+     */
+    private static synchronized void ensureInitialized() {
+        if (isScenarioUsable() && isWebViewUsable()) {
+            return;
+        }
+
+        scenario = ActivityScenario.launch(MainActivity.class);
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        sharedWebView = requireWebViewStatic(scenario);
+        waitForAppReadyStatic(sharedWebView);
+    }
+
+    private static boolean isScenarioUsable() {
+        if (scenario == null) {
+            return false;
+        }
+
+        try {
+            scenario.onActivity(activity -> {
+                // No-op: this throws if the activity is already destroyed.
+            });
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isWebViewUsable() {
+        if (sharedWebView == null) {
+            return false;
+        }
+
+        CountDownLatch latch = new CountDownLatch(1);
+        try {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+                sharedWebView.evaluateJavascript("true", value -> latch.countDown())
+            );
+            return latch.await(2, TimeUnit.SECONDS);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
 
     /**
      * Validates runtime geometry in the WebView.
@@ -33,12 +93,9 @@ public class SafeAreaTest {
      * static source strings.
      */
     @Test
-    public void webContentStartsAtTopAndFillsViewport() {
-        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
-            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-
-            WebView androidWebView = requireWebView(scenario);
-            waitForAppReady(androidWebView);
+    public void test2_webContentStartsAtTopAndFillsViewport() {
+        ensureInitialized();
+        WebView androidWebView = sharedWebView;
 
             JSONObject metrics = evaluateJsObject(
                 androidWebView,
@@ -76,22 +133,16 @@ public class SafeAreaTest {
                 "documentElement height should match innerHeight (innerHeight=" + innerHeight + ", clientHeight=" + clientHeight + ")",
                 Math.abs(innerHeight - clientHeight) <= 1
             );
-        }
     }
 
     /**
      * Verifies viewport meta at runtime in the loaded document.
      */
     @Test
-    public void viewportMetaContainsViewportFitCover() {
-        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
-            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-
-            WebView androidWebView = requireWebView(scenario);
-            waitForAppReady(androidWebView);
-
+    public void test1_viewportMetaContainsViewportFitCover() {
+            ensureInitialized();
             String viewportContent = evaluateJsRaw(
-                androidWebView,
+                sharedWebView,
                 "(() => {"
                     + "  const viewport = document.querySelector('meta[name=\\\"viewport\\\"]');"
                     + "  return viewport ? viewport.getAttribute('content') : '';"
@@ -102,24 +153,22 @@ public class SafeAreaTest {
                 "Viewport meta content must include viewport-fit=cover, got: " + viewportContent,
                 viewportContent.contains("viewport-fit=cover")
             );
-        }
     }
 
     /**
      * SafeAreaPlugin must be registered with the Capacitor bridge.
      */
     @Test
-    public void safeAreaPluginIsRegisteredWithBridge() {
-        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
-            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
-
+    public void test3_safeAreaPluginIsRegisteredWithBridge() {
+            ensureInitialized();
             scenario.onActivity(activity -> {
                 assertNotNull(
                     "BridgeActivity.getBridge() must not be null after onCreate()",
                     activity.getBridge()
                 );
 
-                Plugin plugin = activity.getBridge().getPlugin("SafeArea").getInstance();
+                PluginHandle handle = activity.getBridge().getPlugin("SafeArea");
+                Plugin plugin = handle != null ? handle.getInstance() : null;
 
                 assertNotNull(
                     "SafeAreaPlugin must be registered via registerPlugin(SafeAreaPlugin.class) in MainActivity.onCreate().",
@@ -131,10 +180,87 @@ public class SafeAreaTest {
                     plugin instanceof com.capacitor.safearea.SafeAreaPlugin
                 );
             });
+    }
+
+    /**
+     * Validates that safe area insets are applied as CSS custom properties.
+     *
+     * The SafeArea plugin should set --safe-area-inset-{top,bottom,left,right}
+     * on the document root so content can be positioned around notches/safe areas.
+     */
+    @Test
+    public void test4_safeAreaInsetsCssCustomPropertiesAreSet() {
+            ensureInitialized();
+            waitForUiSettled(sharedWebView);
+            JSONObject insets = evaluateJsObject(
+                sharedWebView,
+                "(() => {"
+                    + "  const root = document.documentElement;"
+                    + "  const style = getComputedStyle(root);"
+                    + "  return {"
+                    + "    top: style.getPropertyValue('--safe-area-inset-top').trim(),"
+                    + "    bottom: style.getPropertyValue('--safe-area-inset-bottom').trim(),"
+                    + "    left: style.getPropertyValue('--safe-area-inset-left').trim(),"
+                    + "    right: style.getPropertyValue('--safe-area-inset-right').trim()"
+                    + "  };"
+                    + "})()"
+            );
+
+            assertTrue(
+                "Safe area inset CSS custom properties must be defined",
+                !insets.isNull("top") && !insets.isNull("bottom") && 
+                !insets.isNull("left") && !insets.isNull("right")
+            );
+
+            String top = insets.optString("top", "");
+            String bottom = insets.optString("bottom", "");
+            String left = insets.optString("left", "");
+            String right = insets.optString("right", "");
+
+            assertTrue("--safe-area-inset-top should be set (got: '" + top + "')", !top.isEmpty());
+            assertTrue("--safe-area-inset-bottom should be set (got: '" + bottom + "')", !bottom.isEmpty());
+            assertTrue("--safe-area-inset-left should be set (got: '" + left + "')", !left.isEmpty());
+            assertTrue("--safe-area-inset-right should be set (got: '" + right + "')", !right.isEmpty());
+    }
+
+    private static void waitForUiSettled(WebView webView) {
+        // Avoid transient Android 15 timing where IME/window inset callbacks are still
+        // settling while assertions start.
+        final int maxAttempts = 20;
+        String previousSnapshot = null;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            String snapshot = evaluateJsRaw(
+                webView,
+                "(() => {"
+                    + "  const style = getComputedStyle(document.documentElement);"
+                    + "  const active = document.activeElement;"
+                    + "  return JSON.stringify({"
+                    + "    top: style.getPropertyValue('--safe-area-inset-top').trim(),"
+                    + "    bottom: style.getPropertyValue('--safe-area-inset-bottom').trim(),"
+                    + "    left: style.getPropertyValue('--safe-area-inset-left').trim(),"
+                    + "    right: style.getPropertyValue('--safe-area-inset-right').trim(),"
+                    + "    viewportHeight: window.visualViewport ? Math.round(window.visualViewport.height) : window.innerHeight,"
+                    + "    activeTag: active ? active.tagName : ''"
+                    + "  });"
+                    + "})()"
+            );
+
+            if (snapshot != null && snapshot.equals(previousSnapshot)) {
+                return;
+            }
+
+            previousSnapshot = snapshot;
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new AssertionError("Interrupted while waiting for UI to settle", e);
+            }
         }
     }
 
-    private void waitForAppReady(WebView webView) {
+    private static void waitForAppReadyStatic(WebView webView) {
         final int maxAttempts = 40;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             String ready = evaluateJsRaw(
@@ -156,7 +282,7 @@ public class SafeAreaTest {
         throw new AssertionError("Timed out waiting for app to render top app bar");
     }
 
-    private WebView requireWebView(ActivityScenario<MainActivity> scenario) {
+    private static WebView requireWebViewStatic(ActivityScenario<MainActivity> scenario) {
         AtomicReference<WebView> webViewRef = new AtomicReference<>();
 
         scenario.onActivity(activity -> {
@@ -171,7 +297,7 @@ public class SafeAreaTest {
         return webView;
     }
 
-    private JSONObject evaluateJsObject(WebView webView, String script) {
+    private static JSONObject evaluateJsObject(WebView webView, String script) {
         String raw = evaluateJsRaw(webView, script);
         try {
             return new JSONObject(raw);
@@ -180,14 +306,16 @@ public class SafeAreaTest {
         }
     }
 
-    private String evaluateJsRaw(WebView webView, String script) {
+    private static String evaluateJsRaw(WebView webView, String script) {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<String> valueRef = new AtomicReference<>();
 
-        webView.post(() -> webView.evaluateJavascript(script, value -> {
-            valueRef.set(value);
-            latch.countDown();
-        }));
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
+            webView.evaluateJavascript(script, value -> {
+                valueRef.set(value);
+                latch.countDown();
+            })
+        );
 
         try {
             assertTrue("Timed out waiting for evaluateJavascript", latch.await(15, TimeUnit.SECONDS));
