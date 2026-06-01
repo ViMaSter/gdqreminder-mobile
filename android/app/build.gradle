@@ -26,19 +26,19 @@ def getVersionFromPackageJson() {
 
 android {
 
-    namespace 'ke.mahn.gdqreminder'
+    namespace = 'ke.mahn.gdqreminder'
     defaultConfig {
-        applicationId "ke.mahn.gdqreminder"
-        compileSdk rootProject.ext.compileSdkVersion
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode getVersionFromPackageJson().versionCode
-        versionName getVersionFromPackageJson().versionName
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        applicationId = "ke.mahn.gdqreminder"
+        compileSdk = rootProject.ext.compileSdkVersion
+        minSdkVersion = rootProject.ext.minSdkVersion
+        targetSdkVersion = rootProject.ext.targetSdkVersion
+        versionCode = getVersionFromPackageJson().versionCode
+        versionName = getVersionFromPackageJson().versionName
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
         vectorDrawables.useSupportLibrary = true
     }
@@ -46,16 +46,19 @@ android {
         release {
             // You need to specify either an absolute path or include the
             // keystore file in the same directory as the build.gradle file.
-            storeFile file("my-release-key.jks")
-            storePassword "password"
-            keyAlias "my-alias"
-            keyPassword "password"
+            storeFile = file("my-release-key.jks")
+            storePassword = "password"
+            keyAlias = "my-alias"
+            keyPassword = "password"
         }
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled = false
+            proguardFiles(
+                    getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+            )
         }
     }
     buildFeatures {
@@ -64,6 +67,18 @@ android {
     sourceSets {
         main {
             java.srcDirs = ['src/main/java', 'capacitor-cordova-android-plugins/src/main/java']
+        }
+    }
+
+    testOptions {
+        managedDevices {
+            localDevices {
+                register("pixel8Api35") {
+                    device = "Pixel 8"
+                    apiLevel = 35
+                    systemImageSource = "google"
+                }
+            }
         }
     }
 }
@@ -82,6 +97,7 @@ dependencies {
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    androidTestImplementation "androidx.test:core:$androidxTestCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
 }
 
