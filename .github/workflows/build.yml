@@ -66,7 +66,7 @@ jobs:
       - run: npx cap sync android
       - run: npx cap sync ios
 
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ./*
@@ -79,7 +79,7 @@ jobs:
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ./*
@@ -107,7 +107,7 @@ jobs:
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ./*
@@ -136,7 +136,7 @@ jobs:
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ./*
@@ -237,7 +237,7 @@ jobs:
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ./*
@@ -286,7 +286,7 @@ jobs:
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ./*
@@ -335,7 +335,7 @@ jobs:
     env:
       SENTRY_RELEASE: ${{ needs.prepareCache.outputs.SENTRY_RELEASE }}
     steps:
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ./*
