@@ -26,7 +26,7 @@
     "@capacitor/device": "^7.0.1",
     "@capacitor/ios": "^7.2.0",
     "@capacitor/keyboard": "^7.0.1",
-    "@capacitor/push-notifications": "^7.0.1",
+    "@capacitor/push-notifications": "^8.1.1",
     "@material/material-color-utilities": "^0.4.0",
     "@material/mwc-dialog": "^0.27.0",
     "@material/mwc-drawer": "^0.27.0",
