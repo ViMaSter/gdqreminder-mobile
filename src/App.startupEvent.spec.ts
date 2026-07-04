@@ -4,14 +4,24 @@ test.use({ viewport: { width: 360, height: 800 } });
 
 const timings = [
   [
-    "after AGDQ2024, shows no runs, can show upcoming event",
+    "after AGDQ2024, defaults to the closest upcoming event",
     "2024-03-15%2000:00:00",
-    "WEB",
+    "SGDQ",
   ],
   [
     "during AGDQ2024, shows current runs, can show upcoming event",
     "2024-01-15%2000:00:00",
     "AGDQ",
+  ],
+  [
+    "during SGDQ2026 with GamescomDQ upcoming, defaults to SGDQ",
+    "2026-07-04%2000:00:00",
+    "SGDQ",
+  ],
+  [
+    "after SGDQ2026 ends with GamescomDQ upcoming, defaults to GamescomDQ",
+    "2026-07-20%2000:00:00",
+    "GAMESCOMGDQ",
   ],
 ];
 

@@ -29,6 +29,7 @@ import { useFriendRunReminderStore } from "@/stores/friendRuns";
 import { useRunReminderStore } from "@/stores/runReminders";
 import Base16 from "@/utilities/base16";
 import { useI18n } from 'vue-i18n'
+import { selectDefaultEvent } from "@/utilities/eventSelection";
 
 import {
   getAuth,
@@ -426,7 +427,6 @@ export default defineComponent({
         ...eventsByIDs.value,
         ...newEventsByID,
       });
-      await loadRuns(parseInt(Object.keys(eventsByIDs.value)[0]));
     };
 
     const doneLoading = ref(false);
@@ -463,39 +463,27 @@ export default defineComponent({
       }, 2000);
     }
 
-    const descendingEventList = Object.values(eventsByIDs.value).sort(
-      (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
-    );
-
-    const determineLatestEventWithRuns = (eventList: GDQEventData[]) => {
-      // return if true if shorthand is not part of eventsWithoutRuns
-      const eventWithRuns = eventList.find(
-        (event) => !eventsWithoutRuns.includes(event.short),
-      );
-      if (eventWithRuns) {
-        return eventWithRuns;
-      }
-
-      throw new Error("No event with runs found");
+    const eventsWithRuns = () => {
+      return Object.values(eventsByIDs.value)
+        .map((event) => ({
+          event,
+          runs:
+            runsByEventID.value[event.id]?.map(([, run]) => run) ?? [],
+        }))
+        .filter(({ runs }) => runs.length > 0);
     };
 
     const drawer = ref<TopAppBarFixedWithOpen>()!;
 
-    const eventRunningNow = descendingEventList.find((event) => {
-      const eventStart = new Date(event.datetime);
-      const eventEnd = new Date(event.datetime);
-      eventStart.setTime(eventStart.getTime() - 1000 * 60 * 60 * 24 * 60);
-      eventEnd.setTime(eventEnd.getTime() + 1000 * 60 * 60 * 24 * 60);
-      return eventStart < now && now < eventEnd;
-    });
-    if (eventRunningNow) {
-      await updateCurrentEvent(eventRunningNow);
+    const startupEvent = selectDefaultEvent(eventsWithRuns(), now);
+    if (startupEvent) {
+      await updateCurrentEvent(startupEvent);
     } else {
       runsByDay.value = {};
     }
 
     const updateCurrentEventToNewest = async () => {
-      if (descendingEventList.length <= 0) {
+      if (eventsWithRuns().length <= 0) {
         await new Promise((resolve) => {
           const interval = setInterval(() => {
             if (doneLoading.value) {
@@ -506,11 +494,18 @@ export default defineComponent({
         });
       }
 
-      const newestEvent = determineLatestEventWithRuns(descendingEventList);
-      if (newestEvent.short.toUpperCase() == currentEventName.value) {
+      const defaultEvent = selectDefaultEvent(
+        eventsWithRuns(),
+        dateProvider.getCurrent(),
+      );
+      if (!defaultEvent) {
+        throw new Error("No event with runs found");
+      }
+
+      if (defaultEvent.short.toUpperCase() == currentEventName.value) {
         return;
       }
-      await updateCurrentEvent(newestEvent);
+      await updateCurrentEvent(defaultEvent);
     };
 
     const openFriendMenu = () => {
