@@ -31,7 +31,7 @@ test(`toast with settings hint is shown only initially`, async ({ page }) => {
 
   await expect(page.locator('.mdc-snackbar--open')).toHaveCount(1);
 
-  await expect(page.locator('.mdc-snackbar__label')).toContainText('run by');
+  await expect(page.locator('.mdc-snackbar__label')).toContainText(' by ');
 
   await expect(page.locator('.mdc-snackbar__action')).toBeHidden();
 

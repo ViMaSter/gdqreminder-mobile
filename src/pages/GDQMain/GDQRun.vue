@@ -34,12 +34,16 @@ export default defineComponent({
   setup(props) {
     const reminder = useRunReminderStore();
 
-    const showSnackbar = inject<(text: string) => void>("showSnackbar")!;
+    const showSnackbarHtml = inject<(html: string) => void>("showSnackbarHtml")!;
     const onFocus = () => {
-      showSnackbar(
-        `"${runName} (${
-          props.runData.category
-        })" run by "${props.runnerNames.join(", ")}"`,
+      const encodedRunName = encodeURIComponent(runName);
+      const encodedCategory = encodeURIComponent(props.runData.category);
+      const encodedRunnerNames = props.runnerNames
+        .map((runnerName) => `<b>${encodeURIComponent(runnerName)}</b>`)
+        .join(", ");
+
+      showSnackbarHtml(
+        `<b>${encodedRunName}</b> - ${encodedCategory} by ${encodedRunnerNames}`,
       );
     };
 

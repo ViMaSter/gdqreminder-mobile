@@ -32,6 +32,7 @@ const isOpen = ref(false);
 const timeoutMs = ref(props.timeoutMs);
 const closeOnEscape = ref(props.closeOnEscape);
 const labelText = ref(props.labelText);
+const labelHtml = ref<string | null>(null);
 const action = ref<SnackbarAction | null>(props.action);
 const hasAction = computed(() => {
   return !!action.value?.label;
@@ -47,6 +48,13 @@ const syncActionLabel = () => {
 
 const setAction = (newAction: SnackbarAction | null) => {
   action.value = newAction;
+};
+const setLabelText = (newLabelText: string) => {
+  labelHtml.value = null;
+  labelText.value = newLabelText;
+};
+const setLabelHtml = (newLabelHtml: string | null) => {
+  labelHtml.value = newLabelHtml;
 };
 
 const open = () => {
@@ -146,8 +154,11 @@ defineExpose({
   timeoutMs,
   closeOnEscape,
   labelText,
+  labelHtml,
   action,
   setAction,
+  setLabelText,
+  setLabelHtml,
   open,
   close,
 });
@@ -155,8 +166,8 @@ defineExpose({
 <template>
   <aside class="mdc-snackbar">
     <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
-      <div class="mdc-snackbar__label" aria-atomic="false">
-      </div>
+      <div v-if="labelHtml != null" class="mdc-snackbar__label" aria-atomic="false" v-html="labelHtml"></div>
+      <div v-else class="mdc-snackbar__label" aria-atomic="false">{{ labelText }}</div>
       <div class="mdc-snackbar__actions" aria-atomic="true" v-show="hasAction">
         <button class="mdc-button mdc-snackbar__action" :disabled="!hasAction">
           <div class="mdc-button__ripple"></div>

@@ -146,12 +146,23 @@ export default defineComponent({
           snackbar.value!.isOpen) {
         return;
       }
-      snackbar.value!.labelText = text;
+      snackbar.value!.setLabelText(text);
       snackbar.value!.setAction(null);
       snackbar.value!.timeoutMs = 10000;
       snackbar.value!.open();
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
+    const showSnackbarHtml = (html: string) => {
+      if (snackbar.value!.hasAction &&
+          snackbar.value!.isOpen) {
+        return;
+      }
+      snackbar.value!.setLabelHtml(html);
+      snackbar.value!.setAction(null);
+      snackbar.value!.timeoutMs = 10000;
+      snackbar.value!.open();
+    };
+    provide<(html: string) => void>("showSnackbarHtml", showSnackbarHtml);
 
     const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
     const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
@@ -159,6 +170,7 @@ export default defineComponent({
       if (!useSettingsStore().initialized)
       {
         useSettingsStore().setDefaults();
+        snackbar.value!.setLabelText(t('onboarding.settings.label'));
         snackbar.value!.open();
       }
       addBackButtonHook(
