@@ -56,7 +56,7 @@ interface TopAppBarFixedWithOpen extends TopAppBarFixed {
 }
 
 export default defineComponent({
-  async setup() {
+  async setup(_, { emit }) {
     const { t } = useI18n()
 
     const scrollable = ref<HTMLDivElement>();
@@ -128,13 +128,26 @@ export default defineComponent({
     provide("jumpToYouTube", jumpToYouTube);
 
     const snackbar = ref<typeof Snackbar>();
+    const showSettings = (data?: string) => {
+      emit('setVisibility', "settings", data);
+
+      addBackButtonHook("settings", () => {
+        emit('setVisibility', "main");
+      });
+    };
+    const onboardingSnackbarAction = computed(() => ({
+      label: t("onboarding.settings.callToAction"),
+      callback: () => {
+        showSettings(ONBOARDING_DATA);
+      },
+    }));
     const showSnackbar = (text: string) => {
-      if (snackbar.value!.actionButtonText == t("onboarding.settings.callToAction") && 
+      if (snackbar.value!.hasAction &&
           snackbar.value!.isOpen) {
         return;
       }
       snackbar.value!.labelText = text;
-      snackbar.value!.actionButtonText = null;
+      snackbar.value!.setAction(null);
       snackbar.value!.timeoutMs = 10000;
       snackbar.value!.open();
     };
@@ -675,6 +688,8 @@ export default defineComponent({
       openFriendMenu,
       toggleFilter,
       toggleDarkMode,
+      showSettings,
+      onboardingSnackbarAction,
       userID,
       generateContainerClassNames: () => {
         const classNames = ["container"];
@@ -699,22 +714,7 @@ export default defineComponent({
   inject: [
     "addBackButtonHook",
     "removeBackButtonHook"
-  ],
-  methods: {
-    showSettings(data : string) {
-      this.$emit('setVisibility', "settings", data);
-
-      const addBackButtonHook = this.addBackButtonHook! as ((id: string, hook: () => void) => void);
-      addBackButtonHook("settings", () => {
-        this.$emit('setVisibility', "main");
-      });
-    },
-    snackbarAction (action: string) {
-      if (action == "action")  {
-        this.showSettings(ONBOARDING_DATA);
-      }
-    }
-  }
+  ]
 });
 </script>
 
@@ -759,9 +759,8 @@ export default defineComponent({
     <Snackbar
       ref="snackbar"
       :labelText="$t('onboarding.settings.label')"
-      :actionButtonText="$t('onboarding.settings.callToAction')"
+      :action="onboardingSnackbarAction"
       :timeoutMs="-1"
-      @onClosing="snackbarAction"
     />
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
       <span ref="eventHeader" slot="title">{{ $t('sidebar.headline') }}</span>

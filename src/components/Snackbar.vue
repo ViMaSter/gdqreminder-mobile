@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { MDCSnackbar, MDCSnackbarCloseEvent } from "@material/snackbar";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { PropType, computed, onMounted, onUnmounted, ref, watch } from "vue";
+
+type SnackbarAction = {
+  label: string;
+  callback: () => void;
+};
 
 let snackbar: MDCSnackbar | null = null;
 
@@ -17,9 +22,9 @@ const props = defineProps({
     type: String,
     default: "Can't send photo. Retry in 5 seconds.",
   },
-  actionButtonText: {
-    type: String,
-    default: "Retry",
+  action: {
+    type: Object as PropType<SnackbarAction | null>,
+    default: null,
   },
 });
 
@@ -27,7 +32,22 @@ const isOpen = ref(false);
 const timeoutMs = ref(props.timeoutMs);
 const closeOnEscape = ref(props.closeOnEscape);
 const labelText = ref(props.labelText);
-const actionButtonText = ref(props.actionButtonText);
+const action = ref<SnackbarAction | null>(props.action);
+const hasAction = computed(() => {
+  return !!action.value?.label;
+});
+
+const syncActionLabel = () => {
+  if (!snackbar) {
+    return;
+  }
+
+  snackbar.actionButtonText = hasAction.value ? action.value!.label : "";
+};
+
+const setAction = (newAction: SnackbarAction | null) => {
+  action.value = newAction;
+};
 
 const open = () => {
   if (!snackbar) {
@@ -61,7 +81,11 @@ const handleOpened = () => {
 };
 const handleClosing = (e: MDCSnackbarCloseEvent) => {
   isOpen.value = false;
-  emit("onClosing", e.detail.reason || "");
+  const reason = e.detail.reason || "";
+  if (reason == "action" && action.value?.callback) {
+    action.value.callback();
+  }
+  emit("onClosing", reason);
 };
 const handleClosed = (e: MDCSnackbarCloseEvent) => {
   isOpen.value = false;
@@ -73,7 +97,7 @@ onMounted(() => {
   snackbar.timeoutMs = timeoutMs.value;
   snackbar.closeOnEscape = closeOnEscape.value;
   snackbar.labelText = labelText.value;
-  snackbar.actionButtonText = actionButtonText.value;
+  syncActionLabel();
 
   snackbar.listen("MDCSnackbar:opening", handleOpening);
   snackbar.listen("MDCSnackbar:opened", handleOpened);
@@ -100,16 +124,30 @@ watch(closeOnEscape, (val) => {
 watch(labelText, (val) => {
   if (snackbar) snackbar.labelText = val;
 });
-watch(actionButtonText, (val) => {
-  if (snackbar) snackbar.actionButtonText = val;
+watch(action, () => {
+  syncActionLabel();
+}, { deep: true });
+watch(() => props.action, (val) => {
+  setAction(val);
+}, { deep: true });
+watch(() => props.labelText, (val) => {
+  labelText.value = val;
+});
+watch(() => props.timeoutMs, (val) => {
+  timeoutMs.value = val;
+});
+watch(() => props.closeOnEscape, (val) => {
+  closeOnEscape.value = val;
 });
 
 defineExpose({
   isOpen,
+  hasAction,
   timeoutMs,
   closeOnEscape,
   labelText,
-  actionButtonText,
+  action,
+  setAction,
   open,
   close,
 });
@@ -119,8 +157,8 @@ defineExpose({
     <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
       <div class="mdc-snackbar__label" aria-atomic="false">
       </div>
-      <div class="mdc-snackbar__actions" aria-atomic="true">
-        <button class="mdc-button mdc-snackbar__action">
+      <div class="mdc-snackbar__actions" aria-atomic="true" v-show="hasAction">
+        <button class="mdc-button mdc-snackbar__action" :disabled="!hasAction">
           <div class="mdc-button__ripple"></div>
           <span class="mdc-button__label"></span>
         </button>
