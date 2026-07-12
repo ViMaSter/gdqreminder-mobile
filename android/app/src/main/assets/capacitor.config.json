@@ -16,6 +16,11 @@
 				"sound",
 				"alert"
 			]
+		},
+		"Keyboard": {
+			"resize": "body",
+			"style": "DEFAULT",
+			"resizeOnFullScreen": true
 		}
 	},
 	"server": {

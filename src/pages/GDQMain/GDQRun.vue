@@ -29,6 +29,11 @@ export default defineComponent({
     runnerNames: {
       type: Array as () => string[],
       required: true,
+    },
+    matchingRunnerIndexes: {
+      type: Array as () => number[],
+      required: false,
+      default: () => [],
     }
   },
   setup(props) {
@@ -92,7 +97,22 @@ export default defineComponent({
       .getUTCSeconds()
       .toString()
       .padStart(2, "0")}`;
-    const runners = ref(`${props.runnerNames.join(", ")}`);
+    const runnerMatchSet = computed(() => new Set(props.matchingRunnerIndexes));
+    const runnersWithHighlight = computed(() => {
+      const runners = props.runnerNames.map((runnerName, index) => ({
+        name: runnerName,
+        isMatched: runnerMatchSet.value.has(index),
+        index,
+      }));
+
+      // Keep stable order inside each group while showing matched runners first.
+      return runners.sort((a, b) => {
+        if (a.isMatched === b.isMatched) {
+          return a.index - b.index;
+        }
+        return a.isMatched ? -1 : 1;
+      });
+    });
 
     const reminderClasses = ref("");
     const savedByFriend = ref(false);
@@ -204,7 +224,7 @@ export default defineComponent({
       time,
       startString,
       durationHMMSS,
-      runners,
+      runnersWithHighlight,
       runName,
       hasActiveReminder,
       run,
@@ -275,7 +295,11 @@ export default defineComponent({
           ><md-icon filled>timer</md-icon>{{ durationHMMSS }}</span
         >
         <span class="meta-entry person"
-          ><md-icon filled>person</md-icon> {{ runners }}</span
+          ><md-icon filled>person</md-icon>
+          <template v-for="(runner, index) in runnersWithHighlight" :key="runner.name + index">
+            <span :class="['runnerName', { matched: runner.isMatched }]">{{ runner.name }}</span><template v-if="index < runnersWithHighlight.length - 1">, </template>
+          </template>
+        </span
         >
       </span>
     </div>
@@ -371,6 +395,17 @@ export default defineComponent({
         text-overflow: ellipsis;
         overflow-x: hidden;
         white-space: nowrap;
+
+        .runnerName {
+          display: inline;
+          white-space: nowrap;
+
+          &.matched {
+            text-decoration: underline;
+            text-decoration-thickness: 0.12em;
+            text-underline-offset: 0.08em;
+          }
+        }
       }
     }
 

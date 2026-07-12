@@ -20,6 +20,11 @@ export default defineComponent({
       type: Object as () => { [pk: string]: GDQRunData },
       required: true,
     },
+    matchingRunnerIndexesByRunID: {
+      type: Object as () => { [runID: string]: number[] },
+      required: false,
+      default: () => ({}),
+    },
   },
   async setup(props) {
     const now = inject<DateProvider>("dateProvider")!.getCurrent();
@@ -58,6 +63,7 @@ export default defineComponent({
             :pk="run.pk"
             :runData="run"
             :runner-names="run.runners.map((runner) => runner.name)"
+            :matching-runner-indexes="matchingRunnerIndexesByRunID[run.pk] ?? []"
           ></GDQRun>
       </template>
     <span></span>

@@ -292,6 +292,57 @@ export default defineComponent({
     const orderedDays = ref<string[]>([]);
     const runIDsInOrder = ref<string[]>([]);
     const runsByDay = ref<{ [day: string]: string[] }>({});
+    const matchingRunnerIndexesByRunID = ref<{ [runID: string]: number[] }>({});
+
+    const filterTypes = ["", "friend+alert", "alert"] as const;
+    type RunFilter = (typeof filterTypes)[number];
+    const activeFilter = ref<RunFilter>("");
+    const searchActive = ref(false);
+    const searchQuery = ref("");
+
+    const parseSearchKeywords = (query: string): string[] => {
+      const matches = query.match(/"([^"]+)"|(\S+)/g) ?? [];
+      return matches
+        .map((part) => part.replace(/^"|"$/g, "").trim().toLowerCase())
+        .filter((part) => part.length > 0);
+    };
+
+    const getSearchMatchForRun = (run: GDQRunData) => {
+      const terms = parseSearchKeywords(searchQuery.value);
+      if (terms.length === 0) {
+        return {
+          matches: true,
+          matchingRunnerIndexes: [],
+        };
+      }
+
+      const runName = (run.display_name.length == 0 ? run.name : run.display_name)
+        .replaceAll("\\n", " ")
+        .toLowerCase();
+      const runnerNames = run.runners.map((runner) => runner.name.toLowerCase());
+
+      const matchingRunnerIndexes = new Set<number>();
+      for (const term of terms) {
+        const inRunName = runName.includes(term);
+        const runnerIndex = runnerNames.findIndex((runnerName) => runnerName.includes(term));
+
+        if (!inRunName && runnerIndex === -1) {
+          return {
+            matches: false,
+            matchingRunnerIndexes: [],
+          };
+        }
+
+        if (runnerIndex !== -1) {
+          matchingRunnerIndexes.add(runnerIndex);
+        }
+      }
+
+      return {
+        matches: true,
+        matchingRunnerIndexes: Array.from(matchingRunnerIndexes).sort((a, b) => a - b),
+      };
+    };
   
     // returns true if there are runs for this event already
     // returns false if there are no runs for this event yet
@@ -397,14 +448,25 @@ export default defineComponent({
 
       const orderedRuns = runsByEventID.value[newEvent.id];
       runsByDay.value = {};
+      matchingRunnerIndexesByRunID.value = {};
       orderedRuns.forEach(([runID]) => {
-        const timeOfRun = new Date(runsByID.value[runID].starttime);
+        const runData = runsByID.value[runID];
+        const { matches, matchingRunnerIndexes } = getSearchMatchForRun(runData);
+        if (!matches) {
+          return;
+        }
+
+        const timeOfRun = new Date(runData.starttime);
         timeOfRun.setHours(0, 0, 0, 0);
         const dayOfRun = timeOfRun.getTime();
         if (!Object.keys(runsByDay.value).includes(dayOfRun.toString())) {
           runsByDay.value[dayOfRun] = [];
         }
         runsByDay.value[dayOfRun].push(runID);
+        matchingRunnerIndexesByRunID.value[runID] = matchingRunnerIndexes;
+      });
+      queueMicrotask(() => {
+        refreshRuns();
       });
     };
     const now = dateProvider.getCurrent();
@@ -557,9 +619,6 @@ export default defineComponent({
       );
     };
 
-    const filterTypes = ["", "friend+alert", "alert"] as const;
-    type RunFilter = (typeof filterTypes)[number];
-    const activeFilter = ref<RunFilter>("");
     const activeFilterLabel = computed(() => {
       if (activeFilter.value == "friend+alert") {
         return t("filters.friendsAndYourRuns");
@@ -572,12 +631,39 @@ export default defineComponent({
 
     const reminder = useRunReminderStore();
     const friendRunStore = useFriendRunReminderStore();
+
+    const activeSearchLabel = computed(() => {
+      if (!searchQuery.value.trim()) {
+        return "";
+      }
+      return t("search.active", {
+        query: searchQuery.value.trim(),
+      });
+    });
+
+    const activeFilterAndSearchLabel = computed(() => {
+      const labels = [activeFilterLabel.value, activeSearchLabel.value].filter(
+        (label) => label.length > 0,
+      );
+      return labels.join(" • ");
+    });
+
     const refreshRuns = () => {
       const orderedRuns = runsByEventID.value[currentEventID.value];
       const runs: { [day: string]: string[] } = {};
+      const matchingRunnerIndexes: { [runID: string]: number[] } = {};
+
+      if (!orderedRuns) {
+        runsByDay.value = {};
+        matchingRunnerIndexesByRunID.value = {};
+        return;
+      }
+
       orderedRuns.forEach(([runID]) => {
         const hasAlert = reminder.allReminders.includes(runID);
         const inFriendRuns = friendRunStore.allReminders.includes(runID);
+        const runData = runsByID.value[runID];
+        const { matches, matchingRunnerIndexes: matchedRunnerIndexes } = getSearchMatchForRun(runData);
 
         if (activeFilter.value == "friend+alert" && !inFriendRuns && !hasAlert) {
           return;
@@ -585,16 +671,21 @@ export default defineComponent({
         if (activeFilter.value == "alert" && !hasAlert) {
           return;
         }
+        if (!matches) {
+          return;
+        }
 
-        const timeOfRun = new Date(runsByID.value[runID].starttime);
+        const timeOfRun = new Date(runData.starttime);
         timeOfRun.setHours(0, 0, 0, 0);
         const dayOfRun = timeOfRun.getTime();
         if (!Object.keys(runs).includes(dayOfRun.toString())) {
           runs[dayOfRun] = [];
         }
         runs[dayOfRun].push(runID);
+        matchingRunnerIndexes[runID] = matchedRunnerIndexes;
       });
       runsByDay.value = runs;
+      matchingRunnerIndexesByRunID.value = matchingRunnerIndexes;
       console.log(
         Object.entries(runsByDay.value)
           .map(
@@ -612,6 +703,57 @@ export default defineComponent({
 
     const updateFriendID = () => {
       encodedFriendUserID.value = friendUserIDInput.value!.value.trim();
+    };
+
+    const updateSearchQuery = (newQuery: string) => {
+      searchQuery.value = newQuery;
+      refreshRuns();
+    };
+
+    let ignoreNextSearchBlur = false;
+    let enableSearchBlockedUntil = 0;
+    const searchReenableDelayMs = 100;
+
+    const onSearchInputBlurred = (queryOnBlur: string) => {
+      if (ignoreNextSearchBlur) {
+        ignoreNextSearchBlur = false;
+        return;
+      }
+      searchQuery.value = queryOnBlur;
+      if (queryOnBlur.trim().length > 0 || !searchActive.value) {
+        return;
+      }
+      toggleSearch();
+    };
+
+    const closeSearch = () => {
+      searchActive.value = false;
+      enableSearchBlockedUntil = Date.now() + searchReenableDelayMs;
+
+      const hasActiveQuery = searchQuery.value.trim().length > 0;
+      searchQuery.value = "";
+      if (hasActiveQuery) {
+        refreshRuns();
+      }
+
+      // Ensure focus does not remain on the close button after search is dismissed.
+      queueMicrotask(() => {
+        (document.activeElement as HTMLElement | null)?.blur();
+      });
+    };
+
+    const toggleSearch = () => {
+      const now = Date.now();
+      if (!searchActive.value && now < enableSearchBlockedUntil) {
+        return;
+      }
+
+      if (searchActive.value) {
+        ignoreNextSearchBlur = true;
+        closeSearch();
+        return;
+      }
+      searchActive.value = true;
     };
 
     watch(encodedFriendUserID, (newValue) => {
@@ -686,18 +828,24 @@ export default defineComponent({
       currentEventName,
       currentEventID,
       activeFilter,
-      activeFilterLabel,
+      activeFilterAndSearchLabel,
       loadRuns,
       updateCurrentEvent,
       updateCurrentEventToNewest,
       runsByID,
       runIDsInOrder,
       runsByDay,
+      matchingRunnerIndexesByRunID,
       reminder,
       scrollable,
       updateFriendID,
       wrapper,
       openFriendMenu,
+      updateSearchQuery,
+      onSearchInputBlurred,
+      toggleSearch,
+      searchActive,
+      searchQuery,
       toggleFilter,
       toggleDarkMode,
       showSettings,
@@ -786,13 +934,19 @@ export default defineComponent({
           @openFriendMenu="openFriendMenu"
           @toggleDarkMode="toggleDarkMode"
           @toggleFilter="toggleFilter"
+          @toggleSearch="toggleSearch"
+          @updateSearchQuery="updateSearchQuery"
+          @searchInputBlurred="onSearchInputBlurred"
           @showSettings="showSettings"
           :currentEventName="currentEventName"
+          :searchQuery="searchQuery"
+          :searchActive="searchActive"
+          :searchPlaceholder="$t('search.placeholder')"
         ></GDQHeader>
 
         <div class="mdc-top-app-bar--fixed-adjust" id="runs">
-          <div :class="['activeFilterBar', { hidden: activeFilter === '' }]">
-            <span class="activeFilterBarContent" data-test="active-filter-label">{{ activeFilterLabel }}</span>
+          <div :class="['activeFilterBar', { hidden: activeFilterAndSearchLabel === '' }]">
+            <span class="activeFilterBarContent" data-test="active-filter-label">{{ activeFilterAndSearchLabel }}</span>
           </div>
           <div class="transition"></div>
           <template
@@ -803,6 +957,7 @@ export default defineComponent({
               class="gdqday"
               :runsByID="runsByID"
               :runsIDsInOrder="runs"
+              :matchingRunnerIndexesByRunID="matchingRunnerIndexesByRunID"
               :day="day as string"
             ></GDQDay>
             <div
