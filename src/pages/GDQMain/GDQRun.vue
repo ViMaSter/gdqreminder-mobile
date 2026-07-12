@@ -50,15 +50,21 @@ export default defineComponent({
     const reminder = useRunReminderStore();
 
     const showSnackbarHtml = inject<(html: string) => void>("showSnackbarHtml")!;
+    const htmlEscapeElement = document.createElement("span");
+    const escapeHtml = (text: string) => {
+      htmlEscapeElement.textContent = text;
+      return htmlEscapeElement.innerHTML;
+    };
+
     const onFocus = () => {
-      const encodedRunName = encodeURIComponent(runName);
-      const encodedCategory = encodeURIComponent(props.runData.category);
-      const encodedRunnerNames = props.runnerNames
-        .map((runnerName) => `<b>${encodeURIComponent(runnerName)}</b>`)
+      const safeRunName = escapeHtml(runName);
+      const safeCategory = escapeHtml(props.runData.category);
+      const safeRunnerNames = props.runnerNames
+        .map((runnerName) => `<b>${escapeHtml(runnerName)}</b>`)
         .join(", ");
 
       showSnackbarHtml(
-        `<b>${encodedRunName}</b> - ${encodedCategory} by ${encodedRunnerNames}`,
+        `<b>${safeRunName}</b> - ${safeCategory} by ${safeRunnerNames}`,
       );
     };
 
