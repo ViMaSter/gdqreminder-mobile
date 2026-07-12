@@ -17,6 +17,12 @@ const clickFilter = async (page: Page) => {
     .click();
 };
 
+const clickSearchToggle = async (page: Page, icon: "search" | "close") => {
+  await page
+    .locator(`mwc-top-app-bar-fixed[data-test-selector="main"] md-icon-button:has(md-icon:has-text("${icon}"))`)
+    .click();
+};
+
 const applyFriendCode = async (
   page: Page,
   friendCode: string,
@@ -46,6 +52,42 @@ const switchToEvent = async (
 };
 
 test.describe("filtering", () => {
+  test("search close button clears text and unfocuses input", async ({ page }) => {
+    test.setTimeout(60_000);
+
+    await gotoStableRunsList(page);
+
+    await clickSearchToggle(page, "search");
+
+    const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
+    await expect(searchInput).toBeVisible();
+    await searchInput.fill("zelda link");
+    await expect(searchInput).toHaveValue("zelda link");
+
+    await clickSearchToggle(page, "close");
+
+    await expect(searchInput).toHaveCount(0);
+
+    // Desired behavior: nothing remains focused after closing search.
+    const activeElementTag = await page.evaluate(() => document.activeElement?.tagName ?? "");
+    expect(activeElementTag).toBe("BODY");
+
+    // Re-open search to verify the text was cleared.
+    await clickSearchToggle(page, "search");
+    await expect(searchInput).toBeVisible();
+    await expect(searchInput).toHaveValue("");
+
+    // Intended behavior: clicking close while empty disables search and restores looking-glass icon.
+    await clickSearchToggle(page, "close");
+    await expect(searchInput).toHaveCount(0);
+    await expect(
+      page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] md-icon-button:has(md-icon:has-text("search"))'),
+    ).toBeVisible();
+    await expect(
+      page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] md-icon-button:has(md-icon:has-text("close"))'),
+    ).toHaveCount(0);
+  });
+
   test("filter label respects language setting", async ({ page }) => {
     test.setTimeout(60_000);
 

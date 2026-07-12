@@ -39,6 +39,12 @@
         "yourRuns": "Deine Runs",
         "friendsAndYourRuns": "Befreundete und deine Runs"
     },
+    "search": {
+        "headline": "Runs suchen",
+        "label": "Suchbegriffe",
+        "placeholder": "Spiel oder Runner",
+        "active": "Suche: {query}"
+    },
     "note": "Hinweis",
     "cancel": "Abbrechen",
     "apply": "OK"
