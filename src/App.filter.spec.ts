@@ -170,7 +170,7 @@ test.describe("filtering", () => {
     await expect(run20xx.locator(".runnerName")).toContainText(/KatDevsGames/i);
   });
 
-  test('searching "the legend" only underlines "the" and "leg" in game names', async ({ page }) => {
+  test('searching "the legend" updates run-name highlights while typing and deleting', async ({ page }) => {
     test.setTimeout(60_000);
 
     await gotoStableRunsList(page);
@@ -179,22 +179,47 @@ test.describe("filtering", () => {
     const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
     await expect(searchInput).toBeVisible();
     await searchInput.fill("");
-    const query = "the legend";
-    for (const char of query) {
-      await searchInput.type(char);
 
-      const legendRun = page.locator(".run", {
-        has: page.locator(".runName", { hasText: "The Legend of Zelda: The Wind Waker" }),
-      }).first();
-      await expect(legendRun).toBeVisible();
+    const legendRun = page.locator(".run", {
+      has: page.locator(".runName", { hasText: "The Legend of Zelda: The Wind Waker" }),
+    }).first();
+    await expect(legendRun).toBeVisible();
 
+    const parseTerms = (queryValue: string) => {
+      const matches = queryValue.match(/"([^"]+)"|(\S+)/g) ?? [];
+      return matches
+        .map((part) => part.replace(/^"|"$/g, "").trim().toLowerCase())
+        .filter((part) => part.length > 0);
+    };
+
+    const assertLegendRunHighlightsFollowQuery = async (queryValue: string) => {
+      const activeTerms = parseTerms(queryValue);
       const matchedRunNameParts = normalizeTexts(
         await legendRun.locator(".runName .highlightPart.matched").allTextContents(),
       ).map((part) => part.toLowerCase());
 
-      const hasFullThe = matchedRunNameParts.includes("the");
-      const hasFullLegend = matchedRunNameParts.includes("legend");
-      expect(hasFullThe && hasFullLegend).toBeFalsy();
+      if (activeTerms.length === 0) {
+        expect(matchedRunNameParts).toHaveLength(0);
+        return;
+      }
+
+      for (const term of activeTerms) {
+        expect(matchedRunNameParts.some((part) => part.includes(term))).toBeTruthy();
+      }
+    };
+
+    const query = "the legend";
+    let currentQuery = "";
+    for (const char of query) {
+      await searchInput.type(char);
+      currentQuery += char;
+      await assertLegendRunHighlightsFollowQuery(currentQuery);
+    }
+
+    while (currentQuery.length > 0) {
+      await searchInput.press("Backspace");
+      currentQuery = currentQuery.slice(0, -1);
+      await assertLegendRunHighlightsFollowQuery(currentQuery);
     }
   });
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, inject } from "vue";
+import { defineComponent, inject, toRefs } from "vue";
 import GDQRun from "./GDQRun.vue";
 import GDQDayDivider from "./GDQDayDivider.vue";
 import { GDQRunData } from "@/interfaces/GDQRun";
@@ -37,11 +37,20 @@ export default defineComponent({
     },
   },
   async setup(props) {
+    const {
+      day,
+      runsIDsInOrder,
+      runsByID,
+      matchingRunnerIndexesByRunID,
+      matchingRunNamesByRunID,
+      searchTerms,
+    } = toRefs(props);
+
     const now = inject<DateProvider>("dateProvider")!.getCurrent();
-    const endOfDay = new Date(parseInt(props.day) + 1 * 1000 * 60 * 60 * 24);
+    const endOfDay = new Date(parseInt(day.value) + 1 * 1000 * 60 * 60 * 24);
 
     const runs = computed(() =>
-      props.runsIDsInOrder.map((runPK) => {return {pk: runPK, ...props.runsByID[runPK]}})
+      runsIDsInOrder.value.map((runPK) => ({ pk: runPK, ...runsByID.value[runPK] }))
     );
 
     const generateIsOverClassName = () => {
@@ -56,7 +65,14 @@ export default defineComponent({
       return "";
     };
 
-    return { ...props, generateIsOverClassName, runs };
+    return {
+      day,
+      matchingRunnerIndexesByRunID,
+      matchingRunNamesByRunID,
+      searchTerms,
+      generateIsOverClassName,
+      runs,
+    };
   },
   components: {
     GDQRun,
