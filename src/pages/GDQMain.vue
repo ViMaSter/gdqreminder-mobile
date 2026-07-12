@@ -2,12 +2,10 @@
 import { App } from "@capacitor/app";
 import { onMounted, ref, Ref, provide, defineComponent, watch, inject, computed } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
-import "@material/mwc-drawer";
-import { MdDialog } from "@material/web/dialog/dialog";
-import { MdFilledTextField } from "@material/web/textfield/filled-text-field";
-import { MdTextButton } from "@material/web/button/text-button";
+import "@m3e/web/drawer-container";
+import "@m3e/web/icon";
+import "@m3e/web/icon-button";
 import { Theme, useThemeStore } from "@/stores/theme";
-import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
 import Snackbar from "../components/Snackbar.vue";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { GDQRunData } from "../interfaces/GDQRun";
@@ -29,7 +27,6 @@ import { useFriendRunReminderStore } from "@/stores/friendRuns";
 import { useRunReminderStore } from "@/stores/runReminders";
 import Base16 from "@/utilities/base16";
 import { useI18n } from 'vue-i18n'
-import { selectDefaultEvent } from "@/utilities/eventSelection";
 
 import {
   getAuth,
@@ -51,45 +48,23 @@ const getFirebaseAuth = async () => {
   return getAuth();
 };
 
-interface TopAppBarFixedWithOpen extends TopAppBarFixed {
-  open: boolean;
-}
+type DrawerContainerElement = HTMLElement & { start: boolean };
 
 export default defineComponent({
-  async setup(_, { emit }) {
+  async setup() {
     const { t } = useI18n()
+    const searchQuery = ref("");
+    const searchActive = ref(false);
+    const searchPlaceholder = computed(() => t("search.placeholder"));
 
     const scrollable = ref<HTMLDivElement>();
     const wrapper = ref<HTMLDivElement>();
     provide<(x: number, y: number) => void>(
       "scrollRunContainerBy",
       (x: number, y: number) => {
-        const header =
-          scrollable.value!.parentElement!.shadowRoot!.querySelector(
-            ".mdc-drawer-app-content",
-          )! as HTMLElement;
-        header.scrollTo(0, 0);
-        header.addEventListener("scroll", function () {
-          header.scrollTo(0, 0);
-        });
-        header.style.overflow = "visible";
-
         scrollable.value!.querySelector("#runs")!.scrollBy(x, y);
         wrapper.value!.scrollTop = 0;
       },
-    );
-
-    watch(
-      scrollable,
-      (newValue) => {
-        if (newValue) {
-          const header = newValue.parentElement!.shadowRoot!.querySelector(
-            ".mdc-drawer-app-content",
-          )! as HTMLElement;
-          header.style.overflow = "visible";
-        }
-      },
-      { immediate: true },
     );
 
     const currentRun: Ref<[HTMLDivElement, GDQRunData] | null> =
@@ -128,69 +103,49 @@ export default defineComponent({
     provide("jumpToYouTube", jumpToYouTube);
 
     const snackbar = ref<typeof Snackbar>();
-    const showSettings = (data?: string) => {
-      emit('setVisibility', "settings", data);
-
-      addBackButtonHook("settings", () => {
-        emit('setVisibility', "main");
-      });
-    };
-    const onboardingSnackbarAction = computed(() => ({
-      label: t("onboarding.settings.callToAction"),
-      callback: () => {
-        showSettings(ONBOARDING_DATA);
-      },
-    }));
     const showSnackbar = (text: string) => {
-      if (snackbar.value!.hasAction &&
+      if (snackbar.value!.actionButtonText == t("onboarding.settings.callToAction") && 
           snackbar.value!.isOpen) {
         return;
       }
-      snackbar.value!.setLabelText(text);
-      snackbar.value!.setAction(null);
+      snackbar.value!.labelText = text;
+      snackbar.value!.actionButtonText = null;
       snackbar.value!.timeoutMs = 10000;
       snackbar.value!.open();
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
-    const showSnackbarHtml = (html: string) => {
-      if (snackbar.value!.hasAction &&
-          snackbar.value!.isOpen) {
-        return;
-      }
-      snackbar.value!.setLabelHtml(html);
-      snackbar.value!.setAction(null);
-      snackbar.value!.timeoutMs = 10000;
-      snackbar.value!.open();
-    };
-    provide<(html: string) => void>("showSnackbarHtml", showSnackbarHtml);
 
     const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
     const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
     onMounted(() => {
-      if (!useSettingsStore().initialized)
-      {
+      const navigationEntry = performance
+        .getEntriesByType("navigation")
+        .at(0) as PerformanceNavigationTiming | undefined;
+      const shouldShowOnboardingToast = navigationEntry?.type !== "reload";
+      if (shouldShowOnboardingToast) {
+        // Defer open to ensure the snackbar service is available.
+        setTimeout(() => {
+          snackbar.value?.open();
+        }, 0);
+      }
+
+      if (!useSettingsStore().initialized) {
         useSettingsStore().setDefaults();
-        snackbar.value!.setLabelText(t('onboarding.settings.label'));
-        snackbar.value!.open();
       }
       addBackButtonHook(
         "drawer",
         () => {
-          drawer.value!.open = true;
+          drawer.value!.start = true;
         },
       );
-      drawer.value!.addEventListener("MDCDrawer:closed", () => {
+      drawer.value!.addEventListener("change", () => {
+        if (drawer.value!.start) {
+          removeBackButtonHook("drawer");
+          return;
+        }
         addBackButtonHook("drawer", () => {
-          drawer.value!.open = true;
+          drawer.value!.start = true;
         });
-      });
-      drawer.value!.addEventListener("MDCDrawer:opened", () => {
-        removeBackButtonHook("drawer");
-      });
-
-      const container = drawer.value!.parentNode;
-      container!.addEventListener("MDCTopAppBar:nav", () => {
-        drawer.value!.open = !drawer.value!.open;
       });
       setupSwipeLogic(drawer.value!);
 
@@ -204,11 +159,9 @@ export default defineComponent({
         }
       });
 
-      friendUserIDInput.value!.addEventListener("input", () => {
-        updateFriendID();
-      });
+      friendUserIDInput.value!.addEventListener("input", updateFriendID);
     });
-    const setupSwipeLogic = (drawer: TopAppBarFixedWithOpen) => {
+    const setupSwipeLogic = (drawer: DrawerContainerElement) => {
       let touchIdentifier = -1;
       const veloEstimate = 10;
       const clientXThreshold = 20;
@@ -243,7 +196,7 @@ export default defineComponent({
         if (!touchStartEvent.touches[0]) {
           return;
         }
-        if (!drawer.open) {
+        if (!drawer.start) {
           if (touchStartEvent.touches[0].clientX > clientXThreshold) {
             return;
           }
@@ -274,7 +227,7 @@ export default defineComponent({
         if (calculatedVelocity == null) {
           return;
         }
-        drawer.open = calculatedVelocity > 0;
+        drawer.start = calculatedVelocity > 0;
         velocity = [];
         touchIdentifier = -1;
       });
@@ -292,65 +245,6 @@ export default defineComponent({
     const orderedDays = ref<string[]>([]);
     const runIDsInOrder = ref<string[]>([]);
     const runsByDay = ref<{ [day: string]: string[] }>({});
-    const matchingRunnerIndexesByRunID = ref<{ [runID: string]: number[] }>({});
-    const matchingRunNamesByRunID = ref<{ [runID: string]: boolean }>({});
-
-    const filterTypes = ["", "friend+alert", "alert"] as const;
-    type RunFilter = (typeof filterTypes)[number];
-    const activeFilter = ref<RunFilter>("");
-    const searchActive = ref(false);
-    const searchQuery = ref("");
-
-    const parseSearchKeywords = (query: string): string[] => {
-      const matches = query.match(/"([^"]+)"|(\S+)/g) ?? [];
-      return matches
-        .map((part) => part.replace(/^"|"$/g, "").trim().toLowerCase())
-        .filter((part) => part.length > 0);
-    };
-
-    const getSearchMatchForRun = (run: GDQRunData) => {
-      const terms = parseSearchKeywords(searchQuery.value);
-      if (terms.length === 0) {
-        return {
-          matches: true,
-          matchingRunnerIndexes: [],
-          isRunNameMatched: false,
-        };
-      }
-
-      const runName = (run.display_name.length == 0 ? run.name : run.display_name)
-        .replaceAll("\\n", " ")
-        .toLowerCase();
-      const runnerNames = run.runners.map((runner) => runner.name.toLowerCase());
-
-      const matchingRunnerIndexes = new Set<number>();
-      let isRunNameMatched = false;
-      for (const term of terms) {
-        const inRunName = runName.includes(term);
-        const runnerIndex = runnerNames.findIndex((runnerName) => runnerName.includes(term));
-
-        if (!inRunName && runnerIndex === -1) {
-          return {
-            matches: false,
-            matchingRunnerIndexes: [],
-            isRunNameMatched: false,
-          };
-        }
-
-        if (runnerIndex !== -1) {
-          matchingRunnerIndexes.add(runnerIndex);
-        }
-        if (inRunName) {
-          isRunNameMatched = true;
-        }
-      }
-
-      return {
-        matches: true,
-        matchingRunnerIndexes: Array.from(matchingRunnerIndexes).sort((a, b) => a - b),
-        isRunNameMatched,
-      };
-    };
   
     // returns true if there are runs for this event already
     // returns false if there are no runs for this event yet
@@ -451,32 +345,19 @@ export default defineComponent({
       currentEventID.value = newEvent.id;
       reflectColor(currentEventName.value, document.body.classList.contains("dark-mode"));
       if (drawer.value) {
-        drawer.value.open = false;
+        drawer.value.start = false;
       }
 
       const orderedRuns = runsByEventID.value[newEvent.id];
       runsByDay.value = {};
-      matchingRunnerIndexesByRunID.value = {};
-      matchingRunNamesByRunID.value = {};
       orderedRuns.forEach(([runID]) => {
-        const runData = runsByID.value[runID];
-        const { matches, matchingRunnerIndexes, isRunNameMatched } = getSearchMatchForRun(runData);
-        if (!matches) {
-          return;
-        }
-
-        const timeOfRun = new Date(runData.starttime);
+        const timeOfRun = new Date(runsByID.value[runID].starttime);
         timeOfRun.setHours(0, 0, 0, 0);
         const dayOfRun = timeOfRun.getTime();
         if (!Object.keys(runsByDay.value).includes(dayOfRun.toString())) {
           runsByDay.value[dayOfRun] = [];
         }
         runsByDay.value[dayOfRun].push(runID);
-        matchingRunnerIndexesByRunID.value[runID] = matchingRunnerIndexes;
-        matchingRunNamesByRunID.value[runID] = isRunNameMatched;
-      });
-      queueMicrotask(() => {
-        refreshRuns();
       });
     };
     const now = dateProvider.getCurrent();
@@ -524,9 +405,51 @@ export default defineComponent({
         ...eventsByIDs.value,
         ...newEventsByID,
       });
+      const firstEventID = Object.keys(eventsByIDs.value)[0];
+      if (firstEventID) {
+        await loadRuns(parseInt(firstEventID));
+      }
     };
 
     const doneLoading = ref(false);
+
+    const getSortedEventsByDate = () => {
+      return Object.values(eventsByIDs.value).sort(
+        (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
+      );
+    };
+
+    const isEventWithRuns = (event: GDQEventData) => {
+      return !!runsByEventID.value[event.id] && runsByEventID.value[event.id].length > 0;
+    };
+
+    const pickInitialEvent = (eventList: GDQEventData[]) => {
+      const nowMs = now.getTime();
+      const eventsWithRuns = eventList.filter((event) => isEventWithRuns(event));
+
+      const running = eventsWithRuns.find((event) => {
+        const orderedRuns = runsByEventID.value[event.id];
+        return orderedRuns.some(([, run]) => {
+          const startMs = new Date(run.starttime).getTime();
+          const endMs = new Date(run.endtime).getTime();
+          return startMs <= nowMs && nowMs <= endMs;
+        });
+      });
+      if (running) {
+        return running;
+      }
+
+      const upcoming = [...eventsWithRuns]
+        .filter((event) => new Date(event.datetime).getTime() > nowMs)
+        .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())[0];
+      if (upcoming) {
+        return upcoming;
+      }
+
+      return [...eventsWithRuns].sort(
+        (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
+      )[0];
+    };
 
     {
       const roughly8MonthsAgo = dateProvider.getCurrent();
@@ -535,52 +458,61 @@ export default defineComponent({
         roughly8MonthsAgo.getMonth() - 8,
         1,
       );
-      await loadEventsAndRuns(roughly8MonthsAgo);
-      setTimeout(async () => {
-        const eventData = await EventsData.getEventsData(new Date("2011-01-01"));
-        const newEventsByID = Object.fromEntries(
-          eventData
-            .filter((a) => a.short.toLowerCase().includes("gdq"))
-            .filter((a) => !a.short.toLowerCase().includes("cgdq"))
-            .sort(
-              (a, b) =>
-                new Date(b.datetime).getTime() -
-                new Date(a.datetime).getTime(),
-            )
-            .map((singleEvent): [number, GDQEventData] => [
-              singleEvent.id,
-              singleEvent,
-            ]),
-        );
-        eventsByIDs.value = filterEventsWithoutRuns({
-          ...eventsByIDs.value,
-          ...newEventsByID,
-        });
-        doneLoading.value = true;
-      }, 2000);
+
+      void (async () => {
+        await loadEventsAndRuns(roughly8MonthsAgo);
+
+        const initialEvent = pickInitialEvent(getSortedEventsByDate());
+        if (initialEvent) {
+          await updateCurrentEvent(initialEvent);
+        }
+
+        setTimeout(async () => {
+          const eventData = await EventsData.getEventsData(new Date("2011-01-01"));
+          const newEventsByID = Object.fromEntries(
+            eventData
+              .filter((a) => a.short.toLowerCase().includes("gdq"))
+              .filter((a) => !a.short.toLowerCase().includes("cgdq"))
+              .sort(
+                (a, b) =>
+                  new Date(b.datetime).getTime() -
+                  new Date(a.datetime).getTime(),
+              )
+              .map((singleEvent): [number, GDQEventData] => [
+                singleEvent.id,
+                singleEvent,
+              ]),
+          );
+          eventsByIDs.value = filterEventsWithoutRuns({
+            ...eventsByIDs.value,
+            ...newEventsByID,
+          });
+          doneLoading.value = true;
+        }, 2000);
+      })();
     }
 
-    const eventsWithRuns = () => {
-      return Object.values(eventsByIDs.value)
-        .map((event) => ({
-          event,
-          runs:
-            runsByEventID.value[event.id]?.map(([, run]) => run) ?? [],
-        }))
-        .filter(({ runs }) => runs.length > 0);
+    const determineLatestEventWithRuns = (eventList: GDQEventData[]) => {
+      // return if true if shorthand is not part of eventsWithoutRuns
+      const eventWithRuns = eventList.find(
+        (event) => !eventsWithoutRuns.includes(event.id.toString()),
+      );
+      if (eventWithRuns) {
+        return eventWithRuns;
+      }
+
+      throw new Error("No event with runs found");
     };
 
-    const drawer = ref<TopAppBarFixedWithOpen>()!;
+    const drawer = ref<DrawerContainerElement>()!;
 
-    const startupEvent = selectDefaultEvent(eventsWithRuns(), now);
-    if (startupEvent) {
-      await updateCurrentEvent(startupEvent);
-    } else {
+    if (Object.keys(runsByDay.value).length === 0) {
       runsByDay.value = {};
     }
 
     const updateCurrentEventToNewest = async () => {
-      if (eventsWithRuns().length <= 0) {
+      const descendingEventList = getSortedEventsByDate();
+      if (descendingEventList.length <= 0) {
         await new Promise((resolve) => {
           const interval = setInterval(() => {
             if (doneLoading.value) {
@@ -591,28 +523,45 @@ export default defineComponent({
         });
       }
 
-      const defaultEvent = selectDefaultEvent(
-        eventsWithRuns(),
-        dateProvider.getCurrent(),
-      );
-      if (!defaultEvent) {
-        throw new Error("No event with runs found");
-      }
-
-      if (defaultEvent.short.toUpperCase() == currentEventName.value) {
+      const newestEvent = determineLatestEventWithRuns(descendingEventList);
+      if (newestEvent.short.toUpperCase() == currentEventName.value) {
         return;
       }
-      await updateCurrentEvent(defaultEvent);
+      await updateCurrentEvent(newestEvent);
     };
 
     const openFriendMenu = () => {
       addBackButtonHook(
         "friendCode",
         () => {
-          dialog.value!.open = false;
+          dialog.value!.close("cancel");
         },
       );
-      dialog.value!.open = true;
+      dialog.value!.showModal();
+    };
+
+    const toggleDrawer = () => {
+      drawer.value!.start = true;
+    };
+
+    const toggleSearch = () => {
+      if (searchActive.value) {
+        searchQuery.value = "";
+        searchActive.value = false;
+        const activeEl = document.activeElement as HTMLElement | null;
+        activeEl?.blur();
+        document.body.focus();
+        return;
+      }
+      searchActive.value = true;
+    };
+
+    const updateSearchQuery = (value: string) => {
+      searchQuery.value = value;
+    };
+
+    const searchInputBlurred = (_value: string) => {
+      // Keep blur side-effect free; close/open is controlled by explicit toggle action.
     };
 
     const toggleDarkMode = () => {
@@ -629,6 +578,9 @@ export default defineComponent({
       );
     };
 
+    const filterTypes = ["", "friend+alert", "alert"] as const;
+    type RunFilter = (typeof filterTypes)[number];
+    const activeFilter = ref<RunFilter>("");
     const activeFilterLabel = computed(() => {
       if (activeFilter.value == "friend+alert") {
         return t("filters.friendsAndYourRuns");
@@ -641,43 +593,12 @@ export default defineComponent({
 
     const reminder = useRunReminderStore();
     const friendRunStore = useFriendRunReminderStore();
-
-    const activeSearchLabel = computed(() => {
-      if (!searchQuery.value.trim()) {
-        return "";
-      }
-      return t("search.active", {
-        query: searchQuery.value.trim(),
-      });
-    });
-
-    const activeSearchTerms = computed(() => parseSearchKeywords(searchQuery.value));
-
-    const activeFilterAndSearchLabel = computed(() => {
-      const labels = [activeFilterLabel.value, activeSearchLabel.value].filter(
-        (label) => label.length > 0,
-      );
-      return labels.join(" • ");
-    });
-
     const refreshRuns = () => {
       const orderedRuns = runsByEventID.value[currentEventID.value];
       const runs: { [day: string]: string[] } = {};
-      const matchingRunnerIndexes: { [runID: string]: number[] } = {};
-      const matchingRunNames: { [runID: string]: boolean } = {};
-
-      if (!orderedRuns) {
-        runsByDay.value = {};
-        matchingRunnerIndexesByRunID.value = {};
-        matchingRunNamesByRunID.value = {};
-        return;
-      }
-
       orderedRuns.forEach(([runID]) => {
         const hasAlert = reminder.allReminders.includes(runID);
         const inFriendRuns = friendRunStore.allReminders.includes(runID);
-        const runData = runsByID.value[runID];
-        const { matches, matchingRunnerIndexes: matchedRunnerIndexes, isRunNameMatched } = getSearchMatchForRun(runData);
 
         if (activeFilter.value == "friend+alert" && !inFriendRuns && !hasAlert) {
           return;
@@ -685,23 +606,16 @@ export default defineComponent({
         if (activeFilter.value == "alert" && !hasAlert) {
           return;
         }
-        if (!matches) {
-          return;
-        }
 
-        const timeOfRun = new Date(runData.starttime);
+        const timeOfRun = new Date(runsByID.value[runID].starttime);
         timeOfRun.setHours(0, 0, 0, 0);
         const dayOfRun = timeOfRun.getTime();
         if (!Object.keys(runs).includes(dayOfRun.toString())) {
           runs[dayOfRun] = [];
         }
         runs[dayOfRun].push(runID);
-        matchingRunnerIndexes[runID] = matchedRunnerIndexes;
-        matchingRunNames[runID] = isRunNameMatched;
       });
       runsByDay.value = runs;
-      matchingRunnerIndexesByRunID.value = matchingRunnerIndexes;
-      matchingRunNamesByRunID.value = matchingRunNames;
       console.log(
         Object.entries(runsByDay.value)
           .map(
@@ -714,74 +628,21 @@ export default defineComponent({
 
     const userIDStorage = useUserIDStore();
     const encodedFriendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
-    const friendUserIDInput = ref<MdFilledTextField>();
-    const apply = ref<MdTextButton>();
+    const friendUserIDInput = ref<HTMLInputElement>();
+    const apply = ref<HTMLButtonElement>();
 
     const updateFriendID = () => {
       encodedFriendUserID.value = friendUserIDInput.value!.value.trim();
-    };
-
-    const updateSearchQuery = (newQuery: string) => {
-      searchQuery.value = newQuery;
-      refreshRuns();
-    };
-
-    let ignoreNextSearchBlur = false;
-    let enableSearchBlockedUntil = 0;
-    const searchReenableDelayMs = 100;
-
-    const onSearchInputBlurred = (queryOnBlur: string) => {
-      if (ignoreNextSearchBlur) {
-        ignoreNextSearchBlur = false;
-        return;
-      }
-      searchQuery.value = queryOnBlur;
-      if (queryOnBlur.trim().length > 0 || !searchActive.value) {
-        return;
-      }
-      toggleSearch();
-    };
-
-    const closeSearch = () => {
-      searchActive.value = false;
-      enableSearchBlockedUntil = Date.now() + searchReenableDelayMs;
-
-      const hasActiveQuery = searchQuery.value.trim().length > 0;
-      searchQuery.value = "";
-      if (hasActiveQuery) {
-        refreshRuns();
-      }
-
-      // Ensure focus does not remain on the close button after search is dismissed.
-      queueMicrotask(() => {
-        (document.activeElement as HTMLElement | null)?.blur();
-      });
-    };
-
-    const toggleSearch = () => {
-      const now = Date.now();
-      if (!searchActive.value && now < enableSearchBlockedUntil) {
-        return;
-      }
-
-      if (searchActive.value) {
-        ignoreNextSearchBlur = true;
-        closeSearch();
-        return;
-      }
-      searchActive.value = true;
     };
 
     watch(encodedFriendUserID, (newValue) => {
       try {
         Base16.decode(newValue.trim());
         apply.value!.disabled = false;
-        friendUserIDInput.value!.error = false;
-        friendUserIDInput.value!.errorText = "";
+        friendUserIDInput.value!.setCustomValidity("");
       } catch (e) {
         apply.value!.disabled = true;
-        friendUserIDInput.value!.error = true;
-        friendUserIDInput.value!.errorText = t('friendCodes.error-friendCode');
+        friendUserIDInput.value!.setCustomValidity(t('friendCodes.error-friendCode'));
       }
     });
 
@@ -806,7 +667,7 @@ export default defineComponent({
     });
 
     const eventHeader = ref<HTMLSpanElement>();
-    const dialog = ref<MdDialog>();
+    const dialog = ref<HTMLDialogElement>();
 
     let userID = ref("");
     const base16EncodedUserID = ref("");
@@ -814,7 +675,11 @@ export default defineComponent({
         base16EncodedUserID.value = Base16.encode(newUserID);
     });
     getFirebaseAuth().then(async (auth) => {
-      userID.value = (await signInAnonymously(auth)).user!.uid;
+      try {
+        userID.value = (await signInAnonymously(auth)).user!.uid;
+      } catch {
+        userID.value = localStorage.getItem("firebaseUserID") ?? "web-offline-user";
+      }
       localStorage.setItem("firebaseUserID", userID.value);
     });
 
@@ -844,30 +709,27 @@ export default defineComponent({
       currentEventName,
       currentEventID,
       activeFilter,
-      activeFilterAndSearchLabel,
+      activeFilterLabel,
+      searchQuery,
+      searchActive,
+      searchPlaceholder,
       loadRuns,
       updateCurrentEvent,
       updateCurrentEventToNewest,
       runsByID,
       runIDsInOrder,
       runsByDay,
-      matchingRunnerIndexesByRunID,
-      matchingRunNamesByRunID,
-      activeSearchTerms,
       reminder,
       scrollable,
       updateFriendID,
       wrapper,
       openFriendMenu,
-      updateSearchQuery,
-      onSearchInputBlurred,
+      toggleDrawer,
       toggleSearch,
-      searchActive,
-      searchQuery,
+      updateSearchQuery,
+      searchInputBlurred,
       toggleFilter,
       toggleDarkMode,
-      showSettings,
-      onboardingSnackbarAction,
       userID,
       generateContainerClassNames: () => {
         const classNames = ["container"];
@@ -892,26 +754,39 @@ export default defineComponent({
   inject: [
     "addBackButtonHook",
     "removeBackButtonHook"
-  ]
+  ],
+  methods: {
+    showSettings(data : string) {
+      this.$emit('setVisibility', "settings", data);
+
+      const addBackButtonHook = this.addBackButtonHook! as ((id: string, hook: () => void) => void);
+      addBackButtonHook("settings", () => {
+        this.$emit('setVisibility', "main");
+      });
+    },
+    snackbarAction (action: string) {
+      if (action == "action")  {
+        this.showSettings(ONBOARDING_DATA);
+      }
+    }
+  }
 });
 </script>
 
 <template>
   <div ref="wrapper" :class="generateContainerClassNames()">
-    <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
-    <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
-    <md-dialog ref="dialog">
-      <div slot="headline">{{$t('friendCodes.headline')}}</div>
-      <div slot="content">
+    <dialog ref="dialog" class="friendCodeDialog" data-test="friend-dialog">
+      <h2>{{$t('friendCodes.headline')}}</h2>
+      <div class="dialogContent">
         {{$t('friendCodes.content-yourCode')}}
         <br />
         <br />
-        <md-filled-text-field
+        <input
           class="yourFriendCode"
-          :label="$t('friendCodes.label-yourCode')"
+          :aria-label="$t('friendCodes.label-yourCode')"
           :value="base16EncodedUserID"
           disabled
-        ></md-filled-text-field><md-icon-button @click="copyID"><md-icon>content_copy</md-icon></md-icon-button>
+        /><m3e-icon-button @click="copyID"><m3e-icon name="content_copy"></m3e-icon></m3e-icon-button>
         <br />
         <br />
         <hr />
@@ -921,50 +796,55 @@ export default defineComponent({
           <b>{{$t('note')}}:</b> {{$t('friendCodes.note-friendCode')}}
           <br />
           <br />
-          <md-filled-text-field
-          :label="$t('friendCodes.label-friendCode')"
+          <input
+            class="friendCodeInput"
+            :aria-label="$t('friendCodes.label-friendCode')"
             placeholder="xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx"
             :value="encodedFriendUserID"
             ref="friendUserIDInput"
-          ></md-filled-text-field>
+          />
         </form>
       </div>
-      <div slot="actions">
-        <md-text-button form="form" value="cancel">{{$t("cancel")}}</md-text-button>
-        <md-text-button form="form" ref="apply" value="apply">{{$t("apply")}}</md-text-button>
+      <div class="dialogActions">
+        <button type="submit" form="form" value="cancel" class="dialogButton">{{$t("cancel")}}</button>
+        <button type="submit" form="form" ref="apply" value="apply" class="dialogButton">{{$t("apply")}}</button>
       </div>
-    </md-dialog>
+    </dialog>
     <Snackbar
       ref="snackbar"
       :labelText="$t('onboarding.settings.label')"
-      :action="onboardingSnackbarAction"
+      :actionButtonText="$t('onboarding.settings.callToAction')"
       :timeoutMs="-1"
+      @onClosing="snackbarAction"
     />
-    <mwc-drawer hasHeader type="dismissible" ref="drawer">
-      <span ref="eventHeader" slot="title">{{ $t('sidebar.headline') }}</span>
-      <GDQSidebar
-        :doneLoading="doneLoading"
-        :eventsByIDs="eventsByIDs"
-        @onUpdateCurrentEvent="updateCurrentEvent"
-      ></GDQSidebar>
-      <div id="appContent" slot="appContent" ref="scrollable">
+    <m3e-drawer-container ref="drawer" start-mode="over">
+      <div slot="start" class="sidebarPane">
+        <span ref="eventHeader" class="sidebarTitle">{{ $t('sidebar.headline') }}</span>
+        <GDQSidebar
+          :doneLoading="doneLoading"
+          :eventsByIDs="eventsByIDs"
+          @onUpdateCurrentEvent="updateCurrentEvent"
+        ></GDQSidebar>
+      </div>
+      <div id="appContent" ref="scrollable">
         <GDQHeader
           @openFriendMenu="openFriendMenu"
           @toggleDarkMode="toggleDarkMode"
           @toggleFilter="toggleFilter"
+          @toggleDrawer="toggleDrawer"
           @toggleSearch="toggleSearch"
           @updateSearchQuery="updateSearchQuery"
-          @searchInputBlurred="onSearchInputBlurred"
+          @searchInputBlurred="searchInputBlurred"
           @showSettings="showSettings"
           :currentEventName="currentEventName"
           :searchQuery="searchQuery"
+          :searchPlaceholder="searchPlaceholder"
           :searchActive="searchActive"
-          :searchPlaceholder="$t('search.placeholder')"
         ></GDQHeader>
 
-        <div class="mdc-top-app-bar--fixed-adjust" id="runs">
-          <div :class="['activeFilterBar', { hidden: activeFilterAndSearchLabel === '' }]">
-            <span class="activeFilterBarContent" data-test="active-filter-label">{{ activeFilterAndSearchLabel }}</span>
+        <div class="top-bar-adjust" id="runs">
+          <div :class="['activeFilterBar', { hidden: activeFilter === '' }]">
+            <span class="activeFilterBarContent" data-test="active-filter-label">{{ activeFilterLabel }}</span>
           </div>
           <div class="transition"></div>
           <template
@@ -975,9 +855,6 @@ export default defineComponent({
               class="gdqday"
               :runsByID="runsByID"
               :runsIDsInOrder="runs"
-              :matchingRunnerIndexesByRunID="matchingRunnerIndexesByRunID"
-              :matchingRunNamesByRunID="matchingRunNamesByRunID"
-              :searchTerms="activeSearchTerms"
               :day="day as string"
             ></GDQDay>
             <div
@@ -988,39 +865,74 @@ export default defineComponent({
           <GDQTimeIndicator></GDQTimeIndicator>
         </div>
       </div>
-    </mwc-drawer>
-    <!-- eslint-enable vue/no-deprecated-slot-attribute -->
+    </m3e-drawer-container>
   </div>
 </template>
 
 <style lang="scss" scoped>
-mwc-drawer {
+m3e-drawer-container {
   padding-top: var(--safe-area-inset-top);
 }
 
-mwc-drawer > * {
+m3e-drawer-container > * {
   color: var(--mdc-theme-on-surface);
 }
 
-md-dialog {
-  --md-dialog-container-color: var(--mdc-theme-surface);
-  --md-dialog-headline-color: var(--mdc-theme-on-surface);
-  --md-dialog-supporting-text-color: var(--mdc-theme-on-surface);
-  --md-filled-text-field-container-color: var(--mdc-theme-surface);
-  --md-filled-text-field-focus-active-indicator-color: var(--mdc-theme-primary);
-  --md-filled-text-field-label-text-color: var(--mdc-theme-on-surface);
-  --md-filled-field-active-indicator-color: var(--mdc-theme-primary);
+.friendCodeDialog {
+  width: min(42rem, 90vw);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 1rem;
+  color: var(--mdc-theme-on-surface);
+  background: var(--mdc-theme-surface);
+}
 
-  md-filled-text-field {
+.dialogContent {
+  input {
     width: 100%;
+    box-sizing: border-box;
+    border: 1px solid rgba(128, 128, 128, 0.5);
+    border-radius: 0.6rem;
+    padding: 0.65rem;
+    color: inherit;
+    background: transparent;
   }
-  md-filled-text-field.yourFriendCode {
-    width: 85%;
+
+  .yourFriendCode {
+    width: calc(100% - 3.5rem);
   }
-  md-icon-button {
-    width: 15%;
-  }
-  width: 80%;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dialogButton {
+  border: 0;
+  background: transparent;
+  color: var(--mdc-theme-primary);
+  font-weight: 600;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+}
+
+.dialogButton:hover {
+  background: color-mix(in srgb, var(--mdc-theme-primary) 14%, transparent);
+}
+
+.sidebarPane {
+  padding-top: var(--safe-area-inset-top);
+}
+
+.sidebarTitle {
+  display: block;
+  padding: 1rem;
+  font-weight: 700;
+}
+
+.top-bar-adjust {
+  padding-top: 0.5rem;
 }
 
 .padding {
@@ -1029,7 +941,7 @@ md-dialog {
 .dark-mode {
   .transition {
     --from: hsla(var(--md-sys-color-primary), 1);
-    --to: hsla(var(--mmd-sys-color-primary), 0);
+    --to: hsla(var(--md-sys-color-primary), 0);
   }
 
   .agdq .transition {

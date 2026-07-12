@@ -1,13 +1,25 @@
 <script setup lang="ts">
-import { MDCSnackbar, MDCSnackbarCloseEvent } from "@material/snackbar";
-import { PropType, computed, onMounted, onUnmounted, ref, watch } from "vue";
+import "@m3e/web/snackbar";
+import { PropType, computed, ref, watch } from "vue";
 
 type SnackbarAction = {
   label: string;
   callback: () => void;
 };
 
-let snackbar: MDCSnackbar | null = null;
+declare global {
+  interface Window {
+    M3eSnackbar?: {
+      open: (
+        message: string,
+        actionOrDismissibleOrOptions?: string | boolean | { duration?: number; actionCallback?: () => void },
+        dismissibleOrOptions?: boolean | { duration?: number; actionCallback?: () => void },
+        options?: { duration?: number; actionCallback?: () => void },
+      ) => void;
+      dismiss: () => void;
+    };
+  }
+}
 
 const props = defineProps({
   timeoutMs: {
@@ -26,6 +38,10 @@ const props = defineProps({
     type: Object as PropType<SnackbarAction | null>,
     default: null,
   },
+  actionButtonText: {
+    type: String,
+    default: "",
+  },
 });
 
 const isOpen = ref(false);
@@ -34,17 +50,10 @@ const closeOnEscape = ref(props.closeOnEscape);
 const labelText = ref(props.labelText);
 const labelHtml = ref<string | null>(null);
 const action = ref<SnackbarAction | null>(props.action);
+const actionButtonText = ref(props.actionButtonText);
 const hasAction = computed(() => {
-  return !!action.value?.label;
+  return !!(action.value?.label || actionButtonText.value);
 });
-
-const syncActionLabel = () => {
-  if (!snackbar) {
-    return;
-  }
-
-  snackbar.actionButtonText = hasAction.value ? action.value!.label : "";
-};
 
 const setAction = (newAction: SnackbarAction | null) => {
   action.value = newAction;
@@ -58,18 +67,53 @@ const setLabelHtml = (newLabelHtml: string | null) => {
 };
 
 const open = () => {
-  if (!snackbar) {
+  if (!window.M3eSnackbar) {
     return;
   }
 
-  snackbar.open();
+  isOpen.value = true;
+  emit("onOpening");
+
+  const message = labelHtml.value ?? labelText.value;
+  const duration = timeoutMs.value < 0 ? 24 * 60 * 60 * 1000 : timeoutMs.value;
+
+  if (hasAction.value) {
+    const actionLabel = action.value?.label ?? actionButtonText.value;
+    window.M3eSnackbar.open(message, actionLabel, closeOnEscape.value, {
+      duration,
+      actionCallback: () => {
+        action.value?.callback();
+        emit("onClosing", "action");
+        emit("onClosed", "action");
+        isOpen.value = false;
+      },
+    });
+  } else {
+    window.M3eSnackbar.open(message, closeOnEscape.value, {
+      duration,
+    });
+  }
+
+  emit("onOpened");
+  if (timeoutMs.value >= 0) {
+    setTimeout(() => {
+      if (!isOpen.value) {
+        return;
+      }
+      isOpen.value = false;
+      emit("onClosing", "timeout");
+      emit("onClosed", "timeout");
+    }, duration + 10);
+  }
 };
 const close = (reason?: string) => {
-  if (!snackbar) {
+  if (!window.M3eSnackbar) {
     return;
   }
-
-  snackbar.close(reason);
+  window.M3eSnackbar.dismiss();
+  isOpen.value = false;
+  emit("onClosing", reason ?? "dismiss");
+  emit("onClosed", reason ?? "dismiss");
 };
 
 const emit = defineEmits<{
@@ -79,65 +123,12 @@ const emit = defineEmits<{
   (e: "onClosed", reason: string): void;
 }>();
 
-const handleOpening = () => {
-  isOpen.value = true;
-  emit("onOpening");
-};
-const handleOpened = () => {
-  isOpen.value = true;
-  emit("onOpened");
-};
-const handleClosing = (e: MDCSnackbarCloseEvent) => {
-  isOpen.value = false;
-  const reason = e.detail.reason || "";
-  if (reason == "action" && action.value?.callback) {
-    action.value.callback();
-  }
-  emit("onClosing", reason);
-};
-const handleClosed = (e: MDCSnackbarCloseEvent) => {
-  isOpen.value = false;
-  emit("onClosed", e.detail.reason || "");
-};
-
-onMounted(() => {
-  snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar')!);
-  snackbar.timeoutMs = timeoutMs.value;
-  snackbar.closeOnEscape = closeOnEscape.value;
-  snackbar.labelText = labelText.value;
-  syncActionLabel();
-
-  snackbar.listen("MDCSnackbar:opening", handleOpening);
-  snackbar.listen("MDCSnackbar:opened", handleOpened);
-  snackbar.listen("MDCSnackbar:closing", handleClosing);
-  snackbar.listen("MDCSnackbar:closed", handleClosed);
-});
-
-onUnmounted(() => {
-  if (!snackbar) return;
-  snackbar.unlisten("MDCSnackbar:opening", handleOpening);
-  snackbar.unlisten("MDCSnackbar:opened", handleOpened);
-  snackbar.unlisten("MDCSnackbar:closing", handleClosing);
-  snackbar.unlisten("MDCSnackbar:closed", handleClosed);
-  snackbar.destroy();
-  snackbar = null;
-});
-
-watch(timeoutMs, (val) => {
-  if (snackbar) snackbar.timeoutMs = val;
-});
-watch(closeOnEscape, (val) => {
-  if (snackbar) snackbar.closeOnEscape = val;
-});
-watch(labelText, (val) => {
-  if (snackbar) snackbar.labelText = val;
-});
-watch(action, () => {
-  syncActionLabel();
-}, { deep: true });
 watch(() => props.action, (val) => {
   setAction(val);
 }, { deep: true });
+watch(() => props.actionButtonText, (val) => {
+  actionButtonText.value = val;
+});
 watch(() => props.labelText, (val) => {
   labelText.value = val;
 });
@@ -156,6 +147,7 @@ defineExpose({
   labelText,
   labelHtml,
   action,
+  actionButtonText,
   setAction,
   setLabelText,
   setLabelHtml,
@@ -164,29 +156,14 @@ defineExpose({
 });
 </script>
 <template>
-  <aside class="mdc-snackbar">
-    <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
-      <div v-if="labelHtml != null" class="mdc-snackbar__label" aria-atomic="false" v-html="labelHtml"></div>
-      <div v-else class="mdc-snackbar__label" aria-atomic="false">{{ labelText }}</div>
-      <div class="mdc-snackbar__actions" aria-atomic="true" v-show="hasAction">
-        <button class="mdc-button mdc-snackbar__action" :disabled="!hasAction">
-          <div class="mdc-button__ripple"></div>
-          <span class="mdc-button__label"></span>
-        </button>
-      </div>
-    </div>
-  </aside>
+  <span class="snackbar-anchor" aria-hidden="true"></span>
 </template>
 <style lang="scss">
-@use "@material/snackbar/mdc-snackbar";
+.snackbar-anchor {
+  display: none;
+}
 
-.mdc-snackbar__actions {
-  margin-right: 16px;
-}
-.mdc-snackbar {
-  bottom: var(--safe-area-inset-bottom) !important;
-}
-.mdc-button {
-  font-size: var(--mdc-typography-body2-font-size, 0.875rem);
+m3e-snackbar {
+  --m3e-snackbar-margin: calc(var(--safe-area-inset-bottom) + 0.75rem);
 }
 </style>

@@ -13,6 +13,7 @@ import { useUserIDStore } from "./stores/friendUserID";
 import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
+import { useRunReminderStore } from "./stores/runReminders";
 import { App } from "@capacitor/app";
 import { useSettingsStore } from "./stores/settings";
 import { ONBOARDING_DATA } from "./utilities/onboardingConstants";
@@ -133,11 +134,38 @@ const registerNotifications = async () => {
 };
 
 const friendRunStore = useFriendRunReminderStore();
+const runReminderStore = useRunReminderStore();
 let unsubscribe: Unsubscribe | null = null;
+let unsubscribeRunReminder: (() => void) | null = null;
 const subscribe = (friendUserID: string) => {
   if (friendUserID == null || friendUserID.length === 0) {
+    if (unsubscribeRunReminder) {
+      unsubscribeRunReminder();
+      unsubscribeRunReminder = null;
+    }
     friendRunStore.set([]);
     return;
+  }
+
+  const ownUserID = localStorage.getItem("firebaseUserID");
+  if (friendUserID === ownUserID) {
+    if (unsubscribe != null) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+    if (unsubscribeRunReminder) {
+      unsubscribeRunReminder();
+    }
+    friendRunStore.set(runReminderStore.allReminders);
+    unsubscribeRunReminder = runReminderStore.$subscribe((_, state) => {
+      friendRunStore.set(state.runs);
+    });
+    return;
+  }
+
+  if (unsubscribeRunReminder) {
+    unsubscribeRunReminder();
+    unsubscribeRunReminder = null;
   }
 
   const docRef = doc(store, "remindersByUserID", friendUserID);

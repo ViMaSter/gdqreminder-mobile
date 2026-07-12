@@ -133,11 +133,4 @@ span {
 span {
   color: var(--md-sys-color-on-background);
 }
-li[divider] {
-  border-bottom-color: var(--md-sys-color-background);
-}
-md-list-item {
-  justify-content: right;
-  font-size: 1.5em;
-}
 </style>
