@@ -13,9 +13,9 @@ test("switching events in sidebar updates title and shown runs", async ({ page }
     location.reload();
   });
 
-  const title = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+  const title = page.locator('[data-test="main-title"]');
 
-  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+  await page.waitForSelector('[data-test="main-title"]');
   await page.waitForSelector(".run .runName");
 
   const initialTitle = (await title.textContent())?.trim() ?? "";
@@ -24,11 +24,11 @@ test("switching events in sidebar updates title and shown runs", async ({ page }
   expect(initialTitle).not.toBe("");
   expect(initialRunNames.length).toBeGreaterThan(0);
 
-  await page.click('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="navigationIcon"]');
-  await page.waitForSelector(".mdc-drawer");
-  await expect(page.locator("md-list-item.rotating")).toHaveCount(0, { timeout: 40_000 });
+  await page.click('[data-test="toggle-drawer"]');
+  await expect(page.locator('[data-test="event-item"]').first()).toBeVisible();
+  await expect(page.locator('[data-test="event-loading-item"]')).toHaveCount(0, { timeout: 40_000 });
 
-  const sidebarItems = page.locator("md-list md-list-item:not(.rotating)");
+  const sidebarItems = page.locator('[data-test="event-item"]');
   await expect(sidebarItems.first()).toBeVisible();
 
   const eventTitles = normalizeTexts(await sidebarItems.allTextContents());
@@ -36,7 +36,7 @@ test("switching events in sidebar updates title and shown runs", async ({ page }
 
   expect(targetEventTitle).toBeTruthy();
 
-  await page.click(`md-list md-list-item:has-text("${targetEventTitle}")`);
+  await page.click(`[data-test="event-item"]:has-text("${targetEventTitle}")`);
 
   await expect(title).toHaveText(targetEventTitle as string, { timeout: 10_000 });
   await page.waitForSelector(".run .runName");
