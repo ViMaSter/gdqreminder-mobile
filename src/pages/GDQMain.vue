@@ -333,6 +333,7 @@ export default defineComponent({
           return {
             matches: false,
             matchingRunnerIndexes: [],
+            isRunNameMatched: false,
           };
         }
 
