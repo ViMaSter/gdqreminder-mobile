@@ -34,6 +34,16 @@ export default defineComponent({
       type: Array as () => number[],
       required: false,
       default: () => [],
+    },
+    searchTerms: {
+      type: Array as () => string[],
+      required: false,
+      default: () => [],
+    },
+    isRunNameMatched: {
+      type: Boolean,
+      required: false,
+      default: false,
     }
   },
   setup(props) {
@@ -59,6 +69,60 @@ export default defineComponent({
     const settingsStore = useSettingsStore();
 
     const runName = (props.runData.display_name.length == 0 ? props.runData.name : props.runData.display_name).replaceAll("\\n", " ");
+
+    const buildHighlightedParts = (text: string, terms: string[]) => {
+      const normalizedTerms = terms
+        .map((term) => term.trim().toLowerCase())
+        .filter((term) => term.length > 0);
+      if (normalizedTerms.length === 0) {
+        return [{ text, matched: false }];
+      }
+
+      const lowerText = text.toLowerCase();
+      const ranges: Array<[number, number]> = [];
+      for (const term of normalizedTerms) {
+        let startIndex = 0;
+        while (startIndex < lowerText.length) {
+          const foundAt = lowerText.indexOf(term, startIndex);
+          if (foundAt === -1) {
+            break;
+          }
+          ranges.push([foundAt, foundAt + term.length]);
+          startIndex = foundAt + 1;
+        }
+      }
+
+      if (ranges.length === 0) {
+        return [{ text, matched: false }];
+      }
+
+      ranges.sort((a, b) => a[0] - b[0]);
+      const merged: Array<[number, number]> = [];
+      for (const [start, end] of ranges) {
+        if (merged.length === 0 || start > merged[merged.length - 1][1]) {
+          merged.push([start, end]);
+          continue;
+        }
+        merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], end);
+      }
+
+      const parts: Array<{ text: string; matched: boolean }> = [];
+      let cursor = 0;
+      for (const [start, end] of merged) {
+        if (cursor < start) {
+          parts.push({ text: text.slice(cursor, start), matched: false });
+        }
+        parts.push({ text: text.slice(start, end), matched: true });
+        cursor = end;
+      }
+      if (cursor < text.length) {
+        parts.push({ text: text.slice(cursor), matched: false });
+      }
+
+      return parts.filter((part) => part.text.length > 0);
+    };
+
+    const runNameParts = computed(() => buildHighlightedParts(runName, props.searchTerms));
     const start = ref(new Date(props.runData.starttime));
     const end = new Date(props.runData.endtime);
     const duration = new Date(end.getTime() - start.value.getTime());
@@ -103,6 +167,7 @@ export default defineComponent({
         name: runnerName,
         isMatched: runnerMatchSet.value.has(index),
         index,
+        parts: buildHighlightedParts(runnerName, props.searchTerms),
       }));
 
       // Keep stable order inside each group while showing matched runners first.
@@ -225,6 +290,8 @@ export default defineComponent({
       startString,
       durationHMMSS,
       runnersWithHighlight,
+      runNameParts,
+      isRunNameMatched: props.isRunNameMatched,
       runName,
       hasActiveReminder,
       run,
@@ -286,7 +353,11 @@ export default defineComponent({
     ref="run"
   >
     <div class="content">
-      <span class="runName">{{ runName }}</span>
+      <span class="runName">
+        <template v-for="(part, partIndex) in runNameParts" :key="part.text + partIndex">
+          <span :class="['highlightPart', { matched: part.matched }]">{{ part.text }}</span>
+        </template>
+      </span>
       <span class="meta">
           <span class="meta-entry schedule"
             ><md-icon>schedule</md-icon><span class="time" ref="time">{{ startString }}</span></span
@@ -297,7 +368,11 @@ export default defineComponent({
         <span class="meta-entry person"
           ><md-icon filled>person</md-icon>
           <template v-for="(runner, index) in runnersWithHighlight" :key="runner.name + index">
-            <span :class="['runnerName', { matched: runner.isMatched }]">{{ runner.name }}</span><template v-if="index < runnersWithHighlight.length - 1">, </template>
+            <span class="runnerName">
+              <template v-for="(part, partIndex) in runner.parts" :key="runner.name + part.text + partIndex">
+                <span :class="['highlightPart', { matched: part.matched }]">{{ part.text }}</span>
+              </template>
+            </span><template v-if="index < runnersWithHighlight.length - 1">, </template>
           </template>
         </span
         >
@@ -399,13 +474,17 @@ export default defineComponent({
         .runnerName {
           display: inline;
           white-space: nowrap;
-
-          &.matched {
-            text-decoration: underline;
-            text-decoration-thickness: 0.12em;
-            text-underline-offset: 0.08em;
-          }
         }
+      }
+    }
+
+    .highlightPart {
+      display: inline;
+
+      &.matched {
+        text-decoration: underline;
+        text-decoration-thickness: 0.12em;
+        text-underline-offset: 0.08em;
       }
     }
 
