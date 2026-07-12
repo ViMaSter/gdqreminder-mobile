@@ -116,6 +116,88 @@ test.describe("filtering", () => {
     await expect(page.locator('[data-test="active-filter-label"]')).toHaveText("Deine Runs");
   });
 
+  test('searching "GAM" highlights run names and runner names in SGDQ2026', async ({ page }) => {
+    test.setTimeout(60_000);
+
+    await gotoStableRunsList(page);
+    await switchToEvent(page, "SGDQ2026");
+
+    await clickSearchToggle(page, "search");
+    const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
+    await expect(searchInput).toBeVisible();
+    await searchInput.fill("GAM");
+
+    const runDayOne = page.locator("#run-for-1783548000000");
+    await expect(runDayOne).toBeVisible();
+    await expect(runDayOne.locator(".run")).toHaveCount(2);
+
+    const dayOneRunNames = normalizeTexts(await runDayOne.locator(".run .runName").allTextContents());
+    expect(dayOneRunNames.some((name) => /BONUS GAME\s*[—-]\s*Wii Sports/i.test(name))).toBeTruthy();
+    expect(dayOneRunNames).toContain("Zelda: The Wand of Gamelon");
+
+    const bonusGameRun = runDayOne.locator(".run", {
+      has: page.locator(".runName", { hasText: /BONUS GAME\s*[—-]\s*Wii Sports/i }),
+    });
+    const zeldaRun = runDayOne.locator(".run", {
+      has: page.locator(".runName", { hasText: "Zelda: The Wand of Gamelon" }),
+    });
+    await expect(bonusGameRun).toHaveCount(1);
+    await expect(zeldaRun).toHaveCount(1);
+
+    const bonusMatchedRunParts = normalizeTexts(
+      await bonusGameRun.locator(".runName .highlightPart.matched").allTextContents(),
+    );
+    expect(bonusMatchedRunParts.some((part) => part.toLowerCase() === "gam")).toBeTruthy();
+
+    const zeldaMatchedRunParts = normalizeTexts(
+      await zeldaRun.locator(".runName .highlightPart.matched").allTextContents(),
+    );
+    expect(zeldaMatchedRunParts.some((part) => part.toLowerCase() === "gam")).toBeTruthy();
+
+    const runDayTwo = page.locator("#run-for-1783720800000");
+    await expect(runDayTwo).toBeVisible();
+
+    const run20xx = runDayTwo.locator(".run", {
+      has: page.locator(".runName", { hasText: "20XX" }),
+    });
+    await expect(run20xx).toHaveCount(1);
+
+    await expect(run20xx.locator(".runName .highlightPart.matched")).toHaveCount(0);
+    const runnerMatchedParts = normalizeTexts(
+      await run20xx.locator(".runnerName .highlightPart.matched").allTextContents(),
+    );
+    expect(runnerMatchedParts.some((part) => part.toLowerCase() === "gam")).toBeTruthy();
+    await expect(run20xx.locator(".runnerName")).toContainText(/KatDevsGames/i);
+  });
+
+  test('searching "the legend" only underlines "the" and "leg" in game names', async ({ page }) => {
+    test.setTimeout(60_000);
+
+    await gotoStableRunsList(page);
+
+    await clickSearchToggle(page, "search");
+    const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
+    await expect(searchInput).toBeVisible();
+    await searchInput.fill("");
+    const query = "the legend";
+    for (const char of query) {
+      await searchInput.type(char);
+
+      const legendRun = page.locator(".run", {
+        has: page.locator(".runName", { hasText: "The Legend of Zelda: The Wind Waker" }),
+      }).first();
+      await expect(legendRun).toBeVisible();
+
+      const matchedRunNameParts = normalizeTexts(
+        await legendRun.locator(".runName .highlightPart.matched").allTextContents(),
+      ).map((part) => part.toLowerCase());
+
+      const hasFullThe = matchedRunNameParts.includes("the");
+      const hasFullLegend = matchedRunNameParts.includes("legend");
+      expect(hasFullThe && hasFullLegend).toBeFalsy();
+    }
+  });
+
   test.describe("with no runs enabled", () => {
     test("toggles between empty and full list", async ({ page }) => {
       test.setTimeout(60_000);
