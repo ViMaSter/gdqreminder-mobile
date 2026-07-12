@@ -245,6 +245,61 @@ export default defineComponent({
     const orderedDays = ref<string[]>([]);
     const runIDsInOrder = ref<string[]>([]);
     const runsByDay = ref<{ [day: string]: string[] }>({});
+    const matchingRunnerIndexesByRunID = ref<{ [runID: string]: number[] }>({});
+    const matchingRunNamesByRunID = ref<{ [runID: string]: boolean }>({});
+
+    const parseSearchKeywords = (query: string): string[] => {
+      const matches = query.match(/"([^"]+)"|(\S+)/g) ?? [];
+      return matches
+        .map((part) => part.replace(/^"|"$/g, "").trim().toLowerCase())
+        .filter((part) => part.length > 0);
+    };
+
+    const getSearchMatchForRun = (run: GDQRunData) => {
+      const terms = parseSearchKeywords(searchQuery.value);
+      if (terms.length === 0) {
+        return {
+          matches: true,
+          matchingRunnerIndexes: [],
+          isRunNameMatched: false,
+        };
+      }
+
+      const runName = (run.display_name.length == 0 ? run.name : run.display_name)
+        .replaceAll("\\n", " ")
+        .toLowerCase();
+      const runnerNames = run.runners.map((runner) => runner.name.toLowerCase());
+
+      const matchingRunnerIndexes = new Set<number>();
+      let isRunNameMatched = false;
+
+      for (const term of terms) {
+        const inRunName = runName.includes(term);
+        const runnerIndexes = runnerNames
+          .map((runnerName, index) => ({ runnerName, index }))
+          .filter(({ runnerName }) => runnerName.includes(term))
+          .map(({ index }) => index);
+
+        if (!inRunName && runnerIndexes.length === 0) {
+          return {
+            matches: false,
+            matchingRunnerIndexes: [],
+            isRunNameMatched: false,
+          };
+        }
+
+        runnerIndexes.forEach((index) => matchingRunnerIndexes.add(index));
+        if (inRunName) {
+          isRunNameMatched = true;
+        }
+      }
+
+      return {
+        matches: true,
+        matchingRunnerIndexes: Array.from(matchingRunnerIndexes).sort((a, b) => a - b),
+        isRunNameMatched,
+      };
+    };
   
     // returns true if there are runs for this event already
     // returns false if there are no runs for this event yet
@@ -348,17 +403,7 @@ export default defineComponent({
         drawer.value.start = false;
       }
 
-      const orderedRuns = runsByEventID.value[newEvent.id];
-      runsByDay.value = {};
-      orderedRuns.forEach(([runID]) => {
-        const timeOfRun = new Date(runsByID.value[runID].starttime);
-        timeOfRun.setHours(0, 0, 0, 0);
-        const dayOfRun = timeOfRun.getTime();
-        if (!Object.keys(runsByDay.value).includes(dayOfRun.toString())) {
-          runsByDay.value[dayOfRun] = [];
-        }
-        runsByDay.value[dayOfRun].push(runID);
-      });
+      refreshRuns();
     };
     const now = dateProvider.getCurrent();
 
@@ -546,8 +591,12 @@ export default defineComponent({
 
     const toggleSearch = () => {
       if (searchActive.value) {
+        const hadQuery = searchQuery.value.trim().length > 0;
         searchQuery.value = "";
         searchActive.value = false;
+        if (hadQuery) {
+          refreshRuns();
+        }
         const activeEl = document.activeElement as HTMLElement | null;
         activeEl?.blur();
         document.body.focus();
@@ -558,6 +607,7 @@ export default defineComponent({
 
     const updateSearchQuery = (value: string) => {
       searchQuery.value = value;
+      refreshRuns();
     };
 
     const searchInputBlurred = (_value: string) => {
@@ -593,12 +643,30 @@ export default defineComponent({
 
     const reminder = useRunReminderStore();
     const friendRunStore = useFriendRunReminderStore();
-    const refreshRuns = () => {
+    const activeSearchTerms = computed(() => parseSearchKeywords(searchQuery.value));
+
+    function refreshRuns() {
       const orderedRuns = runsByEventID.value[currentEventID.value];
       const runs: { [day: string]: string[] } = {};
+      const matchingRunnerIndexes: { [runID: string]: number[] } = {};
+      const matchingRunNames: { [runID: string]: boolean } = {};
+
+      if (!orderedRuns) {
+        runsByDay.value = {};
+        matchingRunnerIndexesByRunID.value = {};
+        matchingRunNamesByRunID.value = {};
+        return;
+      }
+
       orderedRuns.forEach(([runID]) => {
         const hasAlert = reminder.allReminders.includes(runID);
         const inFriendRuns = friendRunStore.allReminders.includes(runID);
+        const runData = runsByID.value[runID];
+        const {
+          matches,
+          matchingRunnerIndexes: matchedRunnerIndexes,
+          isRunNameMatched,
+        } = getSearchMatchForRun(runData);
 
         if (activeFilter.value == "friend+alert" && !inFriendRuns && !hasAlert) {
           return;
@@ -606,16 +674,23 @@ export default defineComponent({
         if (activeFilter.value == "alert" && !hasAlert) {
           return;
         }
+        if (!matches) {
+          return;
+        }
 
-        const timeOfRun = new Date(runsByID.value[runID].starttime);
+        const timeOfRun = new Date(runData.starttime);
         timeOfRun.setHours(0, 0, 0, 0);
         const dayOfRun = timeOfRun.getTime();
         if (!Object.keys(runs).includes(dayOfRun.toString())) {
           runs[dayOfRun] = [];
         }
         runs[dayOfRun].push(runID);
+        matchingRunnerIndexes[runID] = matchedRunnerIndexes;
+        matchingRunNames[runID] = isRunNameMatched;
       });
       runsByDay.value = runs;
+      matchingRunnerIndexesByRunID.value = matchingRunnerIndexes;
+      matchingRunNamesByRunID.value = matchingRunNames;
       console.log(
         Object.entries(runsByDay.value)
           .map(
@@ -624,7 +699,7 @@ export default defineComponent({
           )
           .join("\n"),
       );
-    };
+    }
 
     const userIDStorage = useUserIDStore();
     const encodedFriendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
@@ -719,6 +794,9 @@ export default defineComponent({
       runsByID,
       runIDsInOrder,
       runsByDay,
+      matchingRunnerIndexesByRunID,
+      matchingRunNamesByRunID,
+      activeSearchTerms,
       reminder,
       scrollable,
       updateFriendID,
@@ -849,12 +927,15 @@ export default defineComponent({
           <div class="transition"></div>
           <template
             v-for="(runs, day, index) in runsByDay"
-            :key="runs.join('')"
+            :key="runs.join('') + '|' + activeSearchTerms.join('|')"
           >
             <GDQDay
               class="gdqday"
               :runsByID="runsByID"
               :runsIDsInOrder="runs"
+              :matchingRunnerIndexesByRunID="matchingRunnerIndexesByRunID"
+              :matchingRunNamesByRunID="matchingRunNamesByRunID"
+              :searchTerms="activeSearchTerms"
               :day="day as string"
             ></GDQDay>
             <div

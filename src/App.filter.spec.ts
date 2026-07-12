@@ -125,7 +125,7 @@ test.describe("filtering", () => {
     await switchToEvent(page, "SGDQ2026");
 
     await clickSearchToggle(page, "search");
-    const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
+    const searchInput = page.locator('m3e-app-bar[data-test-selector="main"] input.searchInput');
     await expect(searchInput).toBeVisible();
 
     const runs = page.locator(".run");
@@ -180,7 +180,7 @@ test.describe("filtering", () => {
     await gotoStableRunsList(page);
 
     await clickSearchToggle(page, "search");
-    const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
+    const searchInput = page.locator('m3e-app-bar[data-test-selector="main"] input.searchInput');
     await expect(searchInput).toBeVisible();
     await searchInput.fill("");
 
