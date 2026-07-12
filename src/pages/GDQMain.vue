@@ -293,6 +293,7 @@ export default defineComponent({
     const runIDsInOrder = ref<string[]>([]);
     const runsByDay = ref<{ [day: string]: string[] }>({});
     const matchingRunnerIndexesByRunID = ref<{ [runID: string]: number[] }>({});
+    const matchingRunNamesByRunID = ref<{ [runID: string]: boolean }>({});
 
     const filterTypes = ["", "friend+alert", "alert"] as const;
     type RunFilter = (typeof filterTypes)[number];
@@ -313,6 +314,7 @@ export default defineComponent({
         return {
           matches: true,
           matchingRunnerIndexes: [],
+          isRunNameMatched: false,
         };
       }
 
@@ -322,6 +324,7 @@ export default defineComponent({
       const runnerNames = run.runners.map((runner) => runner.name.toLowerCase());
 
       const matchingRunnerIndexes = new Set<number>();
+      let isRunNameMatched = false;
       for (const term of terms) {
         const inRunName = runName.includes(term);
         const runnerIndex = runnerNames.findIndex((runnerName) => runnerName.includes(term));
@@ -336,11 +339,15 @@ export default defineComponent({
         if (runnerIndex !== -1) {
           matchingRunnerIndexes.add(runnerIndex);
         }
+        if (inRunName) {
+          isRunNameMatched = true;
+        }
       }
 
       return {
         matches: true,
         matchingRunnerIndexes: Array.from(matchingRunnerIndexes).sort((a, b) => a - b),
+        isRunNameMatched,
       };
     };
   
@@ -449,9 +456,10 @@ export default defineComponent({
       const orderedRuns = runsByEventID.value[newEvent.id];
       runsByDay.value = {};
       matchingRunnerIndexesByRunID.value = {};
+      matchingRunNamesByRunID.value = {};
       orderedRuns.forEach(([runID]) => {
         const runData = runsByID.value[runID];
-        const { matches, matchingRunnerIndexes } = getSearchMatchForRun(runData);
+        const { matches, matchingRunnerIndexes, isRunNameMatched } = getSearchMatchForRun(runData);
         if (!matches) {
           return;
         }
@@ -464,6 +472,7 @@ export default defineComponent({
         }
         runsByDay.value[dayOfRun].push(runID);
         matchingRunnerIndexesByRunID.value[runID] = matchingRunnerIndexes;
+        matchingRunNamesByRunID.value[runID] = isRunNameMatched;
       });
       queueMicrotask(() => {
         refreshRuns();
@@ -641,6 +650,8 @@ export default defineComponent({
       });
     });
 
+    const activeSearchTerms = computed(() => parseSearchKeywords(searchQuery.value));
+
     const activeFilterAndSearchLabel = computed(() => {
       const labels = [activeFilterLabel.value, activeSearchLabel.value].filter(
         (label) => label.length > 0,
@@ -652,10 +663,12 @@ export default defineComponent({
       const orderedRuns = runsByEventID.value[currentEventID.value];
       const runs: { [day: string]: string[] } = {};
       const matchingRunnerIndexes: { [runID: string]: number[] } = {};
+      const matchingRunNames: { [runID: string]: boolean } = {};
 
       if (!orderedRuns) {
         runsByDay.value = {};
         matchingRunnerIndexesByRunID.value = {};
+        matchingRunNamesByRunID.value = {};
         return;
       }
 
@@ -663,7 +676,7 @@ export default defineComponent({
         const hasAlert = reminder.allReminders.includes(runID);
         const inFriendRuns = friendRunStore.allReminders.includes(runID);
         const runData = runsByID.value[runID];
-        const { matches, matchingRunnerIndexes: matchedRunnerIndexes } = getSearchMatchForRun(runData);
+        const { matches, matchingRunnerIndexes: matchedRunnerIndexes, isRunNameMatched } = getSearchMatchForRun(runData);
 
         if (activeFilter.value == "friend+alert" && !inFriendRuns && !hasAlert) {
           return;
@@ -683,9 +696,11 @@ export default defineComponent({
         }
         runs[dayOfRun].push(runID);
         matchingRunnerIndexes[runID] = matchedRunnerIndexes;
+        matchingRunNames[runID] = isRunNameMatched;
       });
       runsByDay.value = runs;
       matchingRunnerIndexesByRunID.value = matchingRunnerIndexes;
+      matchingRunNamesByRunID.value = matchingRunNames;
       console.log(
         Object.entries(runsByDay.value)
           .map(
@@ -836,6 +851,8 @@ export default defineComponent({
       runIDsInOrder,
       runsByDay,
       matchingRunnerIndexesByRunID,
+      matchingRunNamesByRunID,
+      activeSearchTerms,
       reminder,
       scrollable,
       updateFriendID,
@@ -958,6 +975,8 @@ export default defineComponent({
               :runsByID="runsByID"
               :runsIDsInOrder="runs"
               :matchingRunnerIndexesByRunID="matchingRunnerIndexesByRunID"
+              :matchingRunNamesByRunID="matchingRunNamesByRunID"
+              :searchTerms="activeSearchTerms"
               :day="day as string"
             ></GDQDay>
             <div
