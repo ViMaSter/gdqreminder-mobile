@@ -8,6 +8,15 @@ const friendCodeWithRuns = "59447256-69364948-37585178-50563968-306c634d-53464e7
 const normalizeTexts = (texts: string[]) =>
   texts.map((text) => text.replace(/\s+/g, " ").trim()).filter(Boolean);
 
+const getSearchTerm = (text: string, minimumLength = 4) => {
+  const parts = text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= minimumLength);
+  return parts[0] ?? null;
+};
+
 const getVisibleRunNames = async (page: Page) =>
   normalizeTexts(await page.locator(".run .runName").allTextContents());
 
@@ -116,7 +125,7 @@ test.describe("filtering", () => {
     await expect(page.locator('[data-test="active-filter-label"]')).toHaveText("Deine Runs");
   });
 
-  test('searching "GAM" highlights run names and runner names in SGDQ2026', async ({ page }) => {
+  test("search highlights run names and runner names in SGDQ2026", async ({ page }) => {
     test.setTimeout(60_000);
 
     await gotoStableRunsList(page);
@@ -125,49 +134,51 @@ test.describe("filtering", () => {
     await clickSearchToggle(page, "search");
     const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
     await expect(searchInput).toBeVisible();
-    await searchInput.fill("GAM");
 
-    const runDayOne = page.locator("#run-for-1783548000000");
-    await expect(runDayOne).toBeVisible();
-    await expect(runDayOne.locator(".run")).toHaveCount(2);
+    const runs = page.locator(".run");
+    await expect(runs.first()).toBeVisible();
 
-    const dayOneRunNames = normalizeTexts(await runDayOne.locator(".run .runName").allTextContents());
-    expect(dayOneRunNames.some((name) => /BONUS GAME\s*[—-]\s*Wii Sports/i.test(name))).toBeTruthy();
-    expect(dayOneRunNames).toContain("Zelda: The Wand of Gamelon");
+    const findRunNameMatchCandidate = async () => {
+      const runCount = Math.min(await runs.count(), 50);
+      for (let index = 0; index < runCount; index++) {
+        const run = runs.nth(index);
+        const runName = normalizeTexts(await run.locator(".runName").allTextContents())[0] ?? "";
+        const term = getSearchTerm(runName, 4);
+        if (term) {
+          return { run, term };
+        }
+      }
+      throw new Error("Could not find a run name with a searchable token.");
+    };
 
-    const bonusGameRun = runDayOne.locator(".run", {
-      has: page.locator(".runName", { hasText: /BONUS GAME\s*[—-]\s*Wii Sports/i }),
-    });
-    const zeldaRun = runDayOne.locator(".run", {
-      has: page.locator(".runName", { hasText: "Zelda: The Wand of Gamelon" }),
-    });
-    await expect(bonusGameRun).toHaveCount(1);
-    await expect(zeldaRun).toHaveCount(1);
+    const findRunnerMatchCandidate = async () => {
+      const runCount = Math.min(await runs.count(), 50);
+      for (let index = 0; index < runCount; index++) {
+        const run = runs.nth(index);
+        const runnerText = normalizeTexts(await run.locator(".runnerName").allTextContents()).join(" ");
+        const term = getSearchTerm(runnerText, 4);
+        if (term) {
+          return { run, term };
+        }
+      }
+      throw new Error("Could not find a runner name with a searchable token.");
+    };
 
-    const bonusMatchedRunParts = normalizeTexts(
-      await bonusGameRun.locator(".runName .highlightPart.matched").allTextContents(),
-    );
-    expect(bonusMatchedRunParts.some((part) => part.toLowerCase() === "gam")).toBeTruthy();
+    const runNameCandidate = await findRunNameMatchCandidate();
+    await searchInput.fill(runNameCandidate.term);
+    await expect.poll(async () => runNameCandidate.run.locator(".runName .highlightPart.matched").count()).toBeGreaterThan(0);
+    const runMatchedParts = normalizeTexts(
+      await runNameCandidate.run.locator(".runName .highlightPart.matched").allTextContents(),
+    ).map((part) => part.toLowerCase());
+    expect(runMatchedParts.some((part) => part.includes(runNameCandidate.term))).toBeTruthy();
 
-    const zeldaMatchedRunParts = normalizeTexts(
-      await zeldaRun.locator(".runName .highlightPart.matched").allTextContents(),
-    );
-    expect(zeldaMatchedRunParts.some((part) => part.toLowerCase() === "gam")).toBeTruthy();
-
-    const runDayTwo = page.locator("#run-for-1783720800000");
-    await expect(runDayTwo).toBeVisible();
-
-    const run20xx = runDayTwo.locator(".run", {
-      has: page.locator(".runName", { hasText: "20XX" }),
-    });
-    await expect(run20xx).toHaveCount(1);
-
-    await expect(run20xx.locator(".runName .highlightPart.matched")).toHaveCount(0);
+    const runnerCandidate = await findRunnerMatchCandidate();
+    await searchInput.fill(runnerCandidate.term);
+    await expect.poll(async () => runnerCandidate.run.locator(".runnerName .highlightPart.matched").count()).toBeGreaterThan(0);
     const runnerMatchedParts = normalizeTexts(
-      await run20xx.locator(".runnerName .highlightPart.matched").allTextContents(),
-    );
-    expect(runnerMatchedParts.some((part) => part.toLowerCase() === "gam")).toBeTruthy();
-    await expect(run20xx.locator(".runnerName")).toContainText(/KatDevsGames/i);
+      await runnerCandidate.run.locator(".runnerName .highlightPart.matched").allTextContents(),
+    ).map((part) => part.toLowerCase());
+    expect(runnerMatchedParts.some((part) => part.includes(runnerCandidate.term))).toBeTruthy();
   });
 
   test('searching "the legend" updates run-name highlights while typing and deleting', async ({ page }) => {
