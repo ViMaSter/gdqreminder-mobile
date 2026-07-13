@@ -16,7 +16,7 @@ dependencies {
     implementation project(':capacitor-device')
     implementation project(':capacitor-keyboard')
     implementation project(':capacitor-push-notifications')
-    implementation project(':capacitor-plugin-safe-area')
+    implementation project(':capawesome-capacitor-android-edge-to-edge-support')
 
 }
 

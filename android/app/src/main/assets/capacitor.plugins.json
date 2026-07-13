@@ -28,7 +28,7 @@
 		"classpath": "com.capacitorjs.plugins.pushnotifications.PushNotificationsPlugin"
 	},
 	{
-		"pkg": "capacitor-plugin-safe-area",
-		"classpath": "com.capacitor.safearea.SafeAreaPlugin"
+		"pkg": "@capawesome/capacitor-android-edge-to-edge-support",
+		"classpath": "io.capawesome.capacitorjs.plugins.androidedgetoedgesupport.EdgeToEdgePlugin"
 	}
 ]

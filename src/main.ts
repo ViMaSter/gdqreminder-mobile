@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/vue";
 
 import App from "./App.vue";
 import { Capacitor } from "@capacitor/core";
-import { SafeArea } from "capacitor-plugin-safe-area";
+import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 import { createI18n } from 'vue-i18n'
 import { useSettingsStore } from "./stores/settings";
 
@@ -20,6 +20,15 @@ async function fetchLocale(languageCode: string): Promise<any> {
   return locale;
 }
 (async () => {
+  if (Capacitor.getPlatform() === "android") {
+    try {
+      // Capawesome applies WebView margins by default; disable them for full-bleed WebView.
+      await EdgeToEdge.disable();
+    } catch (error) {
+      console.warn("Failed to disable edge-to-edge insets", error);
+    }
+  }
+
   const app = createApp(App);
 
   const pinia = createPinia();
@@ -67,5 +76,4 @@ async function fetchLocale(languageCode: string): Promise<any> {
 
   app.mount("#app");
 
-  SafeArea.setImmersiveNavigationBar();
 })();

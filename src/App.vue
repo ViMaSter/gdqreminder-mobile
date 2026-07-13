@@ -4,6 +4,7 @@ import LoadingIndicator from "./components/LoadingIndicator.vue";
 import GDQSettings from "./pages/GDQSettings.vue";
 import GDQMain from "./pages/GDQMain.vue";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { Capacitor } from "@capacitor/core";
 import { EventHandler } from "./utilities/eventHandler";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Theme, useThemeStore } from "@/stores/theme";
@@ -12,7 +13,7 @@ import { useUserIDStore } from "./stores/friendUserID";
 import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
-import { SafeArea } from "capacitor-plugin-safe-area";
+import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 import { App } from "@capacitor/app";
 import { useSettingsStore } from "./stores/settings";
 import { ONBOARDING_DATA } from "./utilities/onboardingConstants";
@@ -187,6 +188,47 @@ provide("highlightElement", (el: (HTMLElement | null)[] | HTMLElement | null) =>
   highlighter.value!.highlightElement(el);
 });
 
+const platform = Capacitor.getPlatform();
+type SafeAreaInsetsMap = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
+const applyInsets = (insets: SafeAreaInsetsMap) => {
+  for (const [key, value] of Object.entries(insets)) {
+    document.documentElement.style.setProperty(
+      `--safe-area-inset-${key}`,
+      `${value}px`,
+    );
+  }
+};
+
+const refreshSafeAreaInsets = async () => {
+  if (platform !== "android") {
+    return;
+  }
+
+  // Insets are intentionally disabled on Android to keep the WebView full-bleed.
+  applyInsets({ top: 0, right: 0, bottom: 0, left: 0 });
+};
+
+const refreshSafeAreaInsetsWithRetry = async () => {
+  await refreshSafeAreaInsets();
+
+  if (platform !== "android") {
+    return;
+  }
+
+  // Work around delayed inset availability on some Capacitor/Android combinations.
+  for (let attempt = 0; attempt < 4; attempt++) {
+    applyInsets({ top: 0, right: 0, bottom: 0, left: 0 });
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+};
+
 onMounted(() => {
   watch(mainContent, () => {
     loadingContent.value!.hide();
@@ -195,25 +237,20 @@ onMounted(() => {
     }
   });
 
-});
+  refreshSafeAreaInsetsWithRetry().catch((error) => {
+    console.warn("Failed to refresh safe area insets", error);
+  });
 
-SafeArea.getSafeAreaInsets().then(({ insets }) => {
-  for (const [key, value] of Object.entries(insets)) {
-    document.documentElement.style.setProperty(
-      `--safe-area-inset-${key}`,
-      `${value}px`,
-    );
-  }
-});
+  if (platform === "android") {
+    const refreshInsetsOnResize = () => {
+      refreshSafeAreaInsetsWithRetry().catch((error) => {
+        console.warn("Failed to refresh safe area insets", error);
+      });
+    };
 
-SafeArea.addListener("safeAreaChanged", (data) => {
-  const { insets } = data;
-  for (const [key, value] of Object.entries(insets)) {
-    document.documentElement.style.setProperty(
-      `--safe-area-inset-${key}`,
-      `${value}px`,
-    );
+    window.addEventListener("resize", refreshInsetsOnResize);
   }
+
 });
 
 const visibility = ref<Record<string, boolean>>({
@@ -267,6 +304,13 @@ provide("requireOnboarding", requireOnboarding);
   />
 </template>
 <style lang="scss">
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
 .list-move.gdq-settings, /* apply transition to moving elements */
 .list-enter-active.gdq-settings,
 .list-leave-active.gdq-settings {

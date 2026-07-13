@@ -6,6 +6,9 @@ const config: CapacitorConfig = {
   webDir: "dist",
   bundledWebRuntime: false,
   plugins: {
+    SystemBars: {
+      insetsHandling: "disable",
+    },
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ["anonymous"],
@@ -16,7 +19,7 @@ const config: CapacitorConfig = {
     Keyboard: {
       resize: "body",
       style: "DEFAULT",
-      resizeOnFullScreen: true
+      resizeOnFullScreen: false
     }
   },
   server: {
