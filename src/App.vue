@@ -13,10 +13,10 @@ import { useUserIDStore } from "./stores/friendUserID";
 import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
-import { EdgeToEdge } from "@capawesome/capacitor-android-edge-to-edge-support";
 import { App } from "@capacitor/app";
 import { useSettingsStore } from "./stores/settings";
 import { ONBOARDING_DATA } from "./utilities/onboardingConstants";
+import SafeArea from "./plugins/safeAreaPlugin";
 
 if (useThemeStore().currentTheme === Theme.Dark) {
   document.body.classList.add("dark-mode");
@@ -210,20 +210,31 @@ const refreshSafeAreaInsets = async () => {
     return;
   }
 
-  // Insets are intentionally disabled on Android to keep the WebView full-bleed.
-  applyInsets({ top: 0, right: 0, bottom: 0, left: 0 });
+  const insets = await SafeArea.getSafeAreaInsets();
+  applyInsets(insets);
 };
 
 const refreshSafeAreaInsetsWithRetry = async () => {
-  await refreshSafeAreaInsets();
-
   if (platform !== "android") {
+    await refreshSafeAreaInsets();
     return;
   }
 
   // Work around delayed inset availability on some Capacitor/Android combinations.
-  for (let attempt = 0; attempt < 4; attempt++) {
-    applyInsets({ top: 0, right: 0, bottom: 0, left: 0 });
+  let lastInsets: SafeAreaInsetsMap = { top: 0, right: 0, bottom: 0, left: 0 };
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const insets = await SafeArea.getSafeAreaInsets();
+    lastInsets = {
+      top: Math.max(lastInsets.top, insets.top),
+      right: Math.max(lastInsets.right, insets.right),
+      bottom: Math.max(lastInsets.bottom, insets.bottom),
+      left: Math.max(lastInsets.left, insets.left),
+    };
+    applyInsets(lastInsets);
+
+    if (lastInsets.top > 0 || lastInsets.right > 0 || lastInsets.bottom > 0 || lastInsets.left > 0) {
+      break;
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 100));
   }

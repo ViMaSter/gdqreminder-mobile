@@ -13,6 +13,7 @@ public class MainActivity extends BridgeActivity {
         EdgeToEdge.enable(this);
         registerPlugin(VersionPlugin.class);
         registerPlugin(CalendarPlugin.class);
+        registerPlugin(SafeAreaPlugin.class);
         super.onCreate(savedInstanceState);
     }
 
