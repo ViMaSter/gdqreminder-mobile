@@ -17,7 +17,6 @@
     "test:e2e": "playwright test -c playwright-ct.config.ts"
   },
   "dependencies": {
-    "@m3e/web": "^2.5.16",
     "@capacitor-community/fcm": "^8.1.0",
     "@capacitor-firebase/authentication": "^8.3.0",
     "@capacitor/android": "^8.0.0",
@@ -29,6 +28,8 @@
     "@capacitor/keyboard": "^8.0.0",
     "@capacitor/push-notifications": "^8.1.2",
     "@capawesome/capacitor-android-edge-to-edge-support": "^8.0.8",
+    "@m3e/web": "^2.5.16",
+    "@material/material-color-utilities": "^0.4.0",
     "@sentry/cli": "^3.6.0",
     "@sentry/vue": "^10.65.0",
     "@vitejs/plugin-legacy": "^8.2.0",
