@@ -61,15 +61,15 @@ export default defineComponent({
       />
     </div>
     <div v-else slot="title">{{ currentEventName }}</div>
+    <md-icon-button slot="actionItems" @click="$emit('toggleSearch')"
+      ><md-icon>{{ searchActive ? 'close' : 'search' }}</md-icon></md-icon-button
+    >
     <md-icon-button slot="actionItems" @click="$emit('openFriendMenu')"
       data-test="open-friend-menu"
       ><md-icon>group</md-icon></md-icon-button
     >
     <md-icon-button slot="actionItems" @click="$emit('toggleFilter')"
       ><md-icon>filter_list</md-icon></md-icon-button
-    >
-    <md-icon-button slot="actionItems" @click="$emit('toggleSearch')"
-      ><md-icon>{{ searchActive ? 'close' : 'search' }}</md-icon></md-icon-button
     >
     <md-icon-button slot="actionItems" @click="$emit('toggleDarkMode')"
       ><md-icon>dark_mode</md-icon></md-icon-button
