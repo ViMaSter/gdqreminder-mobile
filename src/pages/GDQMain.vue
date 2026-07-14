@@ -1004,16 +1004,13 @@ m3e-drawer-container > * {
 
 .sidebarPane {
   padding-top: var(--safe-area-inset-top);
+  background: var(--mdc-theme-surface);
 }
 
 .sidebarTitle {
   display: block;
   padding: 1rem;
   font-weight: 700;
-}
-
-.top-bar-adjust {
-  padding-top: 0.5rem;
 }
 
 .padding {
