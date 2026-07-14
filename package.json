@@ -65,6 +65,7 @@
     "prettier": "^3.10.1",
     "sass": "^1.108.2",
     "semantic-release": "^25.0.9",
+    "terser": "^5.49.0",
     "typescript": "~5.8.3",
     "vite": "^8.3.8",
     "vitest": "^5.1.0",
