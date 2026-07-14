@@ -993,7 +993,7 @@ m3e-drawer-container > * {
   border: 0;
   background: transparent;
   color: var(--mdc-theme-primary);
-  font-weight: 600;
+  font-weight: 500;
   padding: 0.4rem 0.7rem;
   border-radius: 0.5rem;
 }
@@ -1010,7 +1010,7 @@ m3e-drawer-container > * {
 .sidebarTitle {
   display: block;
   padding: 1rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .padding {

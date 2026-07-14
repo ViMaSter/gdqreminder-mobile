@@ -408,7 +408,13 @@ body {
   overflow-x: hidden;
 }
 
+m3e-list-action {
+  --m3e-list-item-supporting-text-color: var(--md-sys-color-on-surface-variant) !important;
+  --m3e-list-item-disabled-label-text-color: var(--m3e-list-item-supporting-text-color) !important;
+}
+
 m3e-app-bar {
+  --m3e-app-bar-title-text-color: var(--md-theme-on-primary);
   --m3e-app-bar-small-title-text-font-size: 1.25rem;
   --m3e-app-bar-padding-left: 0.25rem;
   --m3e-app-bar-padding-right: 0.75rem;
