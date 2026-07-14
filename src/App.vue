@@ -407,4 +407,18 @@ body {
 #app {
   overflow-x: hidden;
 }
+
+m3e-app-bar {
+  --m3e-app-bar-small-title-text-font-size: 1.25rem;
+  --m3e-app-bar-padding-left: 0.25rem;
+  --m3e-app-bar-padding-right: 0.75rem;
+  --m3e-app-bar-container-color: var(--mdc-theme-primary);
+  --m3e-icon-button-icon-color: var(--md-sys-color-on-surface-variant);
+  padding-top: var(--safe-area-inset-top);
+  margin-top: calc(var(--safe-area-inset-top) * -1);
+}
+
+m3e-icon-button[slot="leading"] {
+  min-width: 4rem;
+}
 </style>
