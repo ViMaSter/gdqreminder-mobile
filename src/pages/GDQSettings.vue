@@ -7,6 +7,7 @@ import "@m3e/web/icon";
 import "@m3e/web/icon-button";
 import "@m3e/web/list";
 import "@m3e/web/divider";
+import "@m3e/web/switch";
 import { useI18n } from 'vue-i18n';
 import { languages, useSettingsStore } from '@/stores/settings';
 const emit = defineEmits(['setVisibility']);
@@ -74,57 +75,76 @@ const settingsStore = useSettingsStore();
 let eventAnnouncements = computed(() => settingsStore.subscribedToEventAnnouncements);
 let eventUpdates = computed(() => settingsStore.subscribedToEventUpdates);
 
-const eventAnnouncementsSwitch = ref<HTMLInputElement>();
-const toggleEventAnnouncements = async () => {
-  if (!eventAnnouncements.value) {
-    eventAnnouncementsSwitch.value!.disabled = true;
-    try {
-      await settingsStore.setSubscriptionToEventAnnouncements(true);
-      return;
-    } catch (e) {
-      console.error(e);
-    } finally {
-      eventAnnouncementsSwitch.value!.disabled = false;
-      eventAnnouncementsSwitch.value!.checked = eventAnnouncements.value;
-    }
+type M3ESwitchElement = HTMLElement & {
+  checked: boolean;
+  disabled: boolean;
+};
+
+const eventAnnouncementsSwitch = ref<M3ESwitchElement>();
+const forwardClickToEventAnnouncementsSwitch = (event: MouseEvent) => {
+  const switchElement = eventAnnouncementsSwitch.value;
+  if (!switchElement || switchElement.disabled) {
     return;
   }
 
-  eventAnnouncementsSwitch.value!.disabled = true;
+  if (event.composedPath().includes(switchElement)) {
+    return;
+  }
+
+  switchElement.click();
+};
+
+const toggleEventAnnouncements = async (event: Event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const switchElement = eventAnnouncementsSwitch.value;
+  if (!switchElement || switchElement.disabled) {
+    return;
+  }
+
+  switchElement.disabled = true;
   try {
-      await settingsStore.setSubscriptionToEventAnnouncements(false);
+    await settingsStore.setSubscriptionToEventAnnouncements(!eventAnnouncements.value);
   } catch (e) {
     console.error(e);
   } finally {
-    eventAnnouncementsSwitch.value!.disabled = false;
-    eventAnnouncementsSwitch.value!.checked = eventAnnouncements.value;
+    switchElement.checked = eventAnnouncements.value;
+    switchElement.disabled = false;
   }
 };
 
-const eventUpdatesSwitch = ref<HTMLInputElement>();
-const toggleEventUpdates = async () => {
-  if (!eventUpdates.value) {
-    eventUpdatesSwitch.value!.disabled = true;
-    try {
-      await settingsStore.setSubscriptionToEventUpdates(true);
-      return;
-    } catch (e) {
-      console.error(e);
-    } finally {
-      eventUpdatesSwitch.value!.disabled = false;
-      eventUpdatesSwitch.value!.checked = eventUpdates.value;
-      return;
-    }
+const eventUpdatesSwitch = ref<M3ESwitchElement>();
+const forwardClickToEventUpdatesSwitch = (event: MouseEvent) => {
+  const switchElement = eventUpdatesSwitch.value;
+  if (!switchElement || switchElement.disabled) {
+    return;
   }
 
-  eventUpdatesSwitch.value!.disabled = true;
+  if (event.composedPath().includes(switchElement)) {
+    return;
+  }
+
+  switchElement.click();
+};
+
+const toggleEventUpdates = async (event: Event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const switchElement = eventUpdatesSwitch.value;
+  if (!switchElement || switchElement.disabled) {
+    return;
+  }
+
+  switchElement.disabled = true;
   try {
-    await settingsStore.setSubscriptionToEventUpdates(false);
+    await settingsStore.setSubscriptionToEventUpdates(!eventUpdates.value);
   } catch (e) {
     console.error(e);
   } finally {
-    eventUpdatesSwitch.value!.disabled = false;
-    eventUpdatesSwitch.value!.checked = eventUpdates.value;
+    switchElement.checked = eventUpdates.value;
+    switchElement.disabled = false;
   }
 };
 
@@ -140,55 +160,62 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
       <div slot="title">{{ $t('settings.headline') }}</div>
     </m3e-app-bar>
     <main class="top-bar-adjust">
-      <m3e-list>
-        <m3e-list-item ref="highlighted">
+      <m3e-action-list>
+        <m3e-list-action ref="highlighted" disabled>
           <div>{{ $t('settings.headline-generalNotifications') }}</div>
-        </m3e-list-item>
+        </m3e-list-action>
         <m3e-divider></m3e-divider>
 
-        <m3e-list-item class="interactive" @click="toggleEventAnnouncements">
+        <m3e-list-action class="interactive" @click="forwardClickToEventAnnouncementsSwitch">
           <div class="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
-          <div class="supporting">{{ $t('settings.description-eventAnnouncements') }}</div>
-          <input type="checkbox" class="switch" :checked="eventAnnouncements" ref="eventAnnouncementsSwitch" />
-        </m3e-list-item>
-        <m3e-list-item><m3e-icon name="info"></m3e-icon>
-          <div class="supporting">{{ $t('settings.info-eventAnnouncements') }}</div>
-        </m3e-list-item>
+          <div slot="supporting-text" class="supporting">{{ $t('settings.description-eventAnnouncements') }}</div>
+          <m3e-switch slot="trailing" class="switch" :checked="eventAnnouncements" ref="eventAnnouncementsSwitch" @beforeinput="toggleEventAnnouncements"></m3e-switch>
+        </m3e-list-action>
+        <m3e-list-action disabled>
+          <div class="info-content">
+            <m3e-icon class="info-icon" name="info"></m3e-icon>
+            <div class="supporting">{{ $t('settings.info-eventAnnouncements') }}</div>
+          </div>
+        </m3e-list-action>
         <m3e-divider></m3e-divider>
 
-        <m3e-list-item class="interactive" @click="toggleEventUpdates">
+        <m3e-list-action class="interactive" @click="forwardClickToEventUpdatesSwitch">
           <div class="headline">{{ $t('settings.label-eventUpdates') }}</div>
-          <div class="supporting">{{ $t('settings.description-eventUpdates') }}</div>
-          <input type="checkbox" class="switch" :checked="eventUpdates" ref="eventUpdatesSwitch" />
-        </m3e-list-item>
-        <m3e-list-item ref="highlightedEnd"><m3e-icon name="info"></m3e-icon>
-          <div class="supporting">{{ $t('settings.info-eventUpdates') }}</div>
-        </m3e-list-item>
-        <m3e-list-item>
+          <div slot="supporting-text" class="supporting">{{ $t('settings.description-eventUpdates') }}</div>
+          <m3e-switch slot="trailing" class="switch" :checked="eventUpdates" ref="eventUpdatesSwitch" @beforeinput="toggleEventUpdates"></m3e-switch>
+        </m3e-list-action>
+        <m3e-list-action ref="highlightedEnd" disabled>
+          <div class="info-content">
+            <m3e-icon class="info-icon" name="info"></m3e-icon>
+            <div class="supporting">{{ $t('settings.info-eventUpdates') }}</div>
+          </div>
+        </m3e-list-action>
+        <m3e-list-action disabled>
           <div>{{ $t('settings.headline-language') }}</div>
-        </m3e-list-item>
+        </m3e-list-action>
         <m3e-divider></m3e-divider>
 
-        <m3e-list-item class="interactive" @click="openLanguageDialog" data-test="open-language-dialog">
+        <m3e-list-action class="interactive" @click="openLanguageDialog" data-test="open-language-dialog">
           <div class="headline">{{ $t('settings.label-appLanguage') }}</div>
-          <div class="supporting">{{ $t('settings.option-'+selectedLanguage) || 'N/A' }}</div>
-        </m3e-list-item>
+          <div slot="supporting-text" class="supporting">{{ $t('settings.option-'+selectedLanguage) || 'N/A' }}</div>
+          <m3e-icon slot="trailing" name="arrow_right"></m3e-icon>
+        </m3e-list-action>
         <m3e-divider></m3e-divider>
 
-        <m3e-list-item class="interactive" @click="visitTranslationPage">
+        <m3e-list-action class="interactive" @click="visitTranslationPage">
           <div class="headline">{{ $t('settings.label-helpTranslate') }}</div>
-          <m3e-icon name="open_in_new"></m3e-icon>
-        </m3e-list-item>
-        <m3e-list-item>
+          <m3e-icon slot="trailing" name="open_in_new"></m3e-icon>
+        </m3e-list-action>
+        <m3e-list-action disabled>
           <div>{{ $t('settings.headline-information') }}</div>
-        </m3e-list-item>
+        </m3e-list-action>
         <m3e-divider></m3e-divider>
         
-        <m3e-list-item>
+        <m3e-list-action disabled>
           <div class="headline">{{ $t('settings.label-version') }}</div>
-          <div class="supporting">{{ versionCode }}</div>
-        </m3e-list-item>
-      </m3e-list>
+          <div slot="supporting-text" class="supporting">{{ versionCode }}</div>
+        </m3e-list-action>
+      </m3e-action-list>
     </main>
     <dialog ref="languageDialog" data-test="language-dialog" class="languageDialog">
       <div class="languageTitle">{{ $t('settings.label-appLanguage') }}</div>
@@ -202,13 +229,30 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
   </div>
 </template>
 <style lang="scss" scoped>
+m3e-list-action {
+  --m3e-list-item-one-line-top-space: 0.75rem;
+  --m3e-list-item-one-line-bottom-space: 0.75rem;
+}
+
+m3e-list-action[disabled] {
+  --m3e-list-item-font-size: 0.9rem;
+  --m3e-list-item-disabled-label-text-color: var(--m3e-list-item-label-text-color, var(--md-sys-color-on-surface, #1d1b20));
+  --m3e-list-item-disabled-label-text-opacity: 100%;
+  --m3e-list-item-disabled-supporting-text-color: var(--m3e-list-item-supporting-text-color, var(--md-sys-color-on-surface-variant, #49454f));
+  --m3e-list-item-disabled-supporting-text-opacity: 100%;
+  --m3e-list-item-disabled-leading-color: var(--m3e-list-item-leading-color, var(--md-sys-color-on-surface-variant, #49454f));
+  --m3e-list-item-disabled-leading-opacity: 100%;
+  --m3e-list-item-disabled-trailing-color: var(--m3e-list-item-trailing-color, var(--md-sys-color-on-surface-variant, #49454f));
+  --m3e-list-item-disabled-trailing-opacity: 100%;
+}
+
 m3e-app-bar {
   background-color: var(--mdc-theme-primary);
   padding-top: var(--safe-area-inset-top);
 }
 
 .top-bar-adjust {
-  padding-top: 1rem;
+  padding-top: 0.5rem;
 }
 
 .container {
@@ -228,16 +272,30 @@ m3e-app-bar {
 }
 
 .headline {
-  font-weight: 600;
+  font-weight: 400;
+  line-height: 1.5rem;
+  letter-spacing: normal;
 }
 
 .supporting {
-  opacity: 0.8;
-  font-size: 0.9rem;
+  opacity: 1;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: normal;
 }
 
 .switch {
   margin-left: auto;
+}
+
+.info-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.info-icon {
+  flex: 0 0 auto;
 }
 
 .languageDialog {
@@ -251,7 +309,9 @@ m3e-app-bar {
 
 .languageTitle {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 400;
+  line-height: 1.5rem;
+  letter-spacing: normal;
   margin-bottom: 0.75rem;
 }
 

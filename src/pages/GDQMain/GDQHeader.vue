@@ -83,6 +83,14 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+m3e-app-bar > div[slot="title"] {
+  font-family: Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: 0.25px;
+}
+
 .searchWrapper {
   min-width: 0;
   max-width: 100%;
@@ -97,7 +105,7 @@ export default defineComponent({
   border: 0;
   border-radius: 0.5rem;
   padding: 0 0.6rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   background-color: color-mix(in srgb, var(--md-sys-color-on-primary) 20%, transparent);
   color: var(--mdc-theme-on-surface);
   outline: transparent !important;
