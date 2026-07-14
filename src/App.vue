@@ -4,6 +4,7 @@ import LoadingIndicator from "./components/LoadingIndicator.vue";
 import GDQSettings from "./pages/GDQSettings.vue";
 import GDQMain from "./pages/GDQMain.vue";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { Capacitor } from "@capacitor/core";
 import { EventHandler } from "./utilities/eventHandler";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Theme, useThemeStore } from "@/stores/theme";
@@ -12,10 +13,10 @@ import { useUserIDStore } from "./stores/friendUserID";
 import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
-import { SafeArea } from "capacitor-plugin-safe-area";
 import { App } from "@capacitor/app";
 import { useSettingsStore } from "./stores/settings";
 import { ONBOARDING_DATA } from "./utilities/onboardingConstants";
+import SafeArea from "./plugins/safeAreaPlugin";
 
 if (useThemeStore().currentTheme === Theme.Dark) {
   document.body.classList.add("dark-mode");
@@ -187,6 +188,58 @@ provide("highlightElement", (el: (HTMLElement | null)[] | HTMLElement | null) =>
   highlighter.value!.highlightElement(el);
 });
 
+const platform = Capacitor.getPlatform();
+type SafeAreaInsetsMap = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
+const applyInsets = (insets: SafeAreaInsetsMap) => {
+  for (const [key, value] of Object.entries(insets)) {
+    document.documentElement.style.setProperty(
+      `--safe-area-inset-${key}`,
+      `${value}px`,
+    );
+  }
+};
+
+const refreshSafeAreaInsets = async () => {
+  if (platform !== "android") {
+    return;
+  }
+
+  const insets = await SafeArea.getSafeAreaInsets();
+  applyInsets(insets);
+};
+
+const refreshSafeAreaInsetsWithRetry = async () => {
+  if (platform !== "android") {
+    await refreshSafeAreaInsets();
+    return;
+  }
+
+  // Work around delayed inset availability on some Capacitor/Android combinations.
+  let lastInsets: SafeAreaInsetsMap = { top: 0, right: 0, bottom: 0, left: 0 };
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const insets = await SafeArea.getSafeAreaInsets();
+    lastInsets = {
+      top: Math.max(lastInsets.top, insets.top),
+      right: Math.max(lastInsets.right, insets.right),
+      bottom: Math.max(lastInsets.bottom, insets.bottom),
+      left: Math.max(lastInsets.left, insets.left),
+    };
+    applyInsets(lastInsets);
+
+    if (lastInsets.top > 0 || lastInsets.right > 0 || lastInsets.bottom > 0 || lastInsets.left > 0) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+};
+
 onMounted(() => {
   watch(mainContent, () => {
     loadingContent.value!.hide();
@@ -195,25 +248,20 @@ onMounted(() => {
     }
   });
 
-});
+  refreshSafeAreaInsetsWithRetry().catch((error) => {
+    console.warn("Failed to refresh safe area insets", error);
+  });
 
-SafeArea.getSafeAreaInsets().then(({ insets }) => {
-  for (const [key, value] of Object.entries(insets)) {
-    document.documentElement.style.setProperty(
-      `--safe-area-inset-${key}`,
-      `${value}px`,
-    );
-  }
-});
+  if (platform === "android") {
+    const refreshInsetsOnResize = () => {
+      refreshSafeAreaInsetsWithRetry().catch((error) => {
+        console.warn("Failed to refresh safe area insets", error);
+      });
+    };
 
-SafeArea.addListener("safeAreaChanged", (data) => {
-  const { insets } = data;
-  for (const [key, value] of Object.entries(insets)) {
-    document.documentElement.style.setProperty(
-      `--safe-area-inset-${key}`,
-      `${value}px`,
-    );
+    window.addEventListener("resize", refreshInsetsOnResize);
   }
+
 });
 
 const visibility = ref<Record<string, boolean>>({
@@ -267,6 +315,13 @@ provide("requireOnboarding", requireOnboarding);
   />
 </template>
 <style lang="scss">
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
 .list-move.gdq-settings, /* apply transition to moving elements */
 .list-enter-active.gdq-settings,
 .list-leave-active.gdq-settings {

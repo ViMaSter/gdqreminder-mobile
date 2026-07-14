@@ -26,19 +26,19 @@ def getVersionFromPackageJson() {
 
 android {
 
-    namespace 'ke.mahn.gdqreminder'
+    namespace = 'ke.mahn.gdqreminder'
+    compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "ke.mahn.gdqreminder"
-        compileSdk rootProject.ext.compileSdkVersion
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode getVersionFromPackageJson().versionCode
-        versionName getVersionFromPackageJson().versionName
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        applicationId = "ke.mahn.gdqreminder"
+        minSdk = rootProject.ext.minSdkVersion
+        targetSdk = rootProject.ext.targetSdkVersion
+        versionCode = getVersionFromPackageJson().versionCode
+        versionName = getVersionFromPackageJson().versionName
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
         vectorDrawables.useSupportLibrary = true
     }
@@ -72,7 +72,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.10.0')
     implementation "androidx.concurrent:concurrent-futures:1.2.0"
     implementation('com.google.firebase:firebase-iid:21.1.0')
-    implementation 'com.google.firebase:firebase-messaging:24.1.0'
+    implementation 'com.google.firebase:firebase-messaging:25.0.1'
     implementation("com.google.firebase:firebase-auth")
     implementation "com.android.billingclient:billing:8.0.0"
     implementation fileTree(include: ['*.jar'], dir: 'libs')

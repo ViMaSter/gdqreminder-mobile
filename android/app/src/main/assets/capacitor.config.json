@@ -4,6 +4,9 @@
 	"webDir": "dist",
 	"bundledWebRuntime": false,
 	"plugins": {
+		"SystemBars": {
+			"insetsHandling": "disable"
+		},
 		"FirebaseAuthentication": {
 			"skipNativeAuth": false,
 			"providers": [
@@ -20,7 +23,7 @@
 		"Keyboard": {
 			"resize": "body",
 			"style": "DEFAULT",
-			"resizeOnFullScreen": true
+			"resizeOnFullScreen": false
 		}
 	},
 	"server": {
