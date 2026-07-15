@@ -24,8 +24,8 @@ test("adding and removing friend code with pre-existing runs toggles friend indi
   await expect(page.locator(".with-friend")).toHaveCount(0);
 
   await page.fill('input[aria-label="Enter friend code"]', threeAGDQ2025RunId);
-  
-  await page.click('button[value="apply"]');
+
+  await page.click('m3e-dialog[data-test="friend-dialog"] m3e-dialog-action[return-value="apply"]');
 
   await expect(page.locator(".with-friend")).not.toHaveCount(0, {
     timeout: 5000,
@@ -54,7 +54,7 @@ test("adding your own friend code means clock and friend indicator are shown", a
   const friendCode = await page.evaluate(() => navigator.clipboard.readText());
 
   await page.fill('input[aria-label="Enter friend code"]', friendCode);
-  await page.click('button[value="apply"]');
+  await page.click('m3e-dialog[data-test="friend-dialog"] m3e-dialog-action[return-value="apply"]');
 
   await expect(page.locator(".is-set")).toHaveCount(1);
   await expect(page.locator(".with-friend")).toHaveCount(1);

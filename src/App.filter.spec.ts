@@ -34,7 +34,7 @@ const applyFriendCode = async (
 ) => {
   await page.click('[data-test="open-friend-menu"]');
   await page.fill('input[aria-label="Enter friend code"]', friendCode);
-  await page.click('button[value="apply"]');
+  await page.click('m3e-dialog[data-test="friend-dialog"] m3e-dialog-action[return-value="apply"]');
 };
 
 const gotoStableRunsList = async (page: Page) => {
