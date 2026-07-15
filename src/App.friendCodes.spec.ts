@@ -49,7 +49,7 @@ test("adding your own friend code means clock and friend indicator are shown", a
   await expect(page.locator(".with-friend")).toHaveCount(0);
 
   await page.click('[data-test="open-friend-menu"]');
-  await page.click('dialog[data-test="friend-dialog"] m3e-icon-button');
+  await page.click('m3e-dialog[data-test="friend-dialog"] m3e-icon-button');
 
   const friendCode = await page.evaluate(() => navigator.clipboard.readText());
 
@@ -76,12 +76,12 @@ test("back button press can close opened friend menu", async ({ page }) => {
 
   await page.click('[data-test="open-friend-menu"]');
 
-  await expect(page.locator('dialog[data-test="friend-dialog"][open]')).toHaveCount(1);
+  await expect(page.locator('m3e-dialog[data-test="friend-dialog"] dialog[open]')).toHaveCount(1);
 
   // emulates back button of phones
   await page.keyboard.down("Control");
   await page.keyboard.press("b");
   await page.keyboard.up("Control");
 
-  await expect(page.locator('dialog[data-test="friend-dialog"][open]')).toHaveCount(0);
+  await expect(page.locator('m3e-dialog[data-test="friend-dialog"] dialog[open]')).toHaveCount(0);
 });

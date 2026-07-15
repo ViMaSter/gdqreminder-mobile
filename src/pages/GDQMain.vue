@@ -2,9 +2,12 @@
 import { App } from "@capacitor/app";
 import { onMounted, ref, Ref, provide, defineComponent, watch, inject, computed } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
+import "@m3e/web/dialog";
 import "@m3e/web/drawer-container";
 import "@m3e/web/icon";
 import "@m3e/web/icon-button";
+import "@m3e/web/button";
+import "@m3e/web/form-field";
 import { Theme, useThemeStore } from "@/stores/theme";
 import Snackbar from "../components/Snackbar.vue";
 import { GDQEventData } from "../interfaces/GDQEvent";
@@ -149,7 +152,7 @@ export default defineComponent({
       });
       setupSwipeLogic(drawer.value!);
 
-      dialog.value?.addEventListener("close", async () => {
+      dialog.value?.addEventListener("closed", async () => {
         removeBackButtonHook("friendCode");
         if (dialog.value!.returnValue == "cancel") {
           return;
@@ -579,10 +582,10 @@ export default defineComponent({
       addBackButtonHook(
         "friendCode",
         () => {
-          dialog.value!.close("cancel");
+          void dialog.value?.hide("cancel");
         },
       );
-      dialog.value!.showModal();
+      void dialog.value?.show();
     };
 
     const toggleDrawer = () => {
@@ -704,7 +707,7 @@ export default defineComponent({
     const userIDStorage = useUserIDStore();
     const encodedFriendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
     const friendUserIDInput = ref<HTMLInputElement>();
-    const apply = ref<HTMLButtonElement>();
+    const apply = ref<(HTMLElement & { disabled: boolean })>();
 
     const updateFriendID = () => {
       encodedFriendUserID.value = friendUserIDInput.value!.value.trim();
@@ -742,7 +745,11 @@ export default defineComponent({
     });
 
     const eventHeader = ref<HTMLSpanElement>();
-    const dialog = ref<HTMLDialogElement>();
+    const dialog = ref<HTMLDialogElement & {
+      show: () => Promise<void>;
+      hide: (returnValue?: string) => Promise<void>;
+      returnValue: string;
+    }>();
 
     let userID = ref("");
     const base16EncodedUserID = ref("");
@@ -853,41 +860,46 @@ export default defineComponent({
 
 <template>
   <div ref="wrapper" :class="generateContainerClassNames()">
-    <dialog ref="dialog" class="friendCodeDialog" data-test="friend-dialog">
-      <h2>{{$t('friendCodes.headline')}}</h2>
+    <m3e-dialog ref="dialog" class="friendCodeDialog" data-test="friend-dialog" dismissible>
+      <span slot="header">{{$t('friendCodes.headline')}}</span>
       <div class="dialogContent">
         {{$t('friendCodes.content-yourCode')}}
         <br />
         <br />
-        <input
-          class="yourFriendCode"
-          :aria-label="$t('friendCodes.label-yourCode')"
-          :value="base16EncodedUserID"
-          disabled
-        /><m3e-icon-button @click="copyID"><m3e-icon name="content_copy"></m3e-icon></m3e-icon-button>
+        <m3e-form-field class="yourFriendCode" variant="filled" hideSubscript="always">
+          <label slot="label" for="yourFriendCodeInput">{{$t('friendCodes.label-yourCode')}}</label>
+          <input
+            id="yourFriendCodeInput"
+            :aria-label="$t('friendCodes.label-yourCode')"
+            :value="base16EncodedUserID"
+            disabled
+          />
+        </m3e-form-field>
+        <m3e-icon-button @click="copyID"><m3e-icon name="content_copy"></m3e-icon></m3e-icon-button>
         <br />
         <br />
         <hr />
         <br />
-        <form id="form" method="dialog">
-          {{$t('friendCodes.content-friendCode')}}<br /><br />
-          <b>{{$t('note')}}:</b> {{$t('friendCodes.note-friendCode')}}
-          <br />
-          <br />
+        {{$t('friendCodes.content-friendCode')}}<br /><br />
+        <b>{{$t('note')}}:</b> {{$t('friendCodes.note-friendCode')}}
+        <br />
+        <br />
+        <m3e-form-field class="friendCodeInput" variant="outlined" hideSubscript="auto">
+          <label slot="label" for="friendCodeInput">{{$t('friendCodes.label-friendCode')}}</label>
           <input
-            class="friendCodeInput"
+            id="friendCodeInput"
             :aria-label="$t('friendCodes.label-friendCode')"
             placeholder="xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx"
             :value="encodedFriendUserID"
             ref="friendUserIDInput"
           />
-        </form>
+        </m3e-form-field>
       </div>
-      <div class="dialogActions">
-        <button type="submit" form="form" value="cancel" class="dialogButton">{{$t("cancel")}}</button>
-        <button type="submit" form="form" ref="apply" value="apply" class="dialogButton">{{$t("apply")}}</button>
+      <div slot="actions" class="dialogActions">
+        <m3e-button class="dialogButton"><m3e-dialog-action return-value="cancel">{{$t("cancel")}}</m3e-dialog-action></m3e-button>
+        <m3e-button ref="apply" class="dialogButton"><m3e-dialog-action return-value="apply">{{$t("apply")}}</m3e-dialog-action></m3e-button>
       </div>
-    </dialog>
+    </m3e-dialog>
     <Snackbar
       ref="snackbar"
       :labelText="$t('onboarding.settings.label')"
@@ -962,28 +974,24 @@ m3e-drawer-container > * {
 }
 
 .friendCodeDialog {
-  width: min(42rem, 90vw);
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 1rem;
-  color: var(--mdc-theme-on-surface);
-  background: var(--mdc-theme-surface);
+  --m3e-dialog-min-width: 51vw;
+  --m3e-dialog-max-width: 51vw;
+  --m3e-dialog-shape: 1.5rem;
+  --m3e-dialog-color: var(--mdc-theme-on-surface);
+  --m3e-dialog-container-color: var(--mdc-theme-surface);
 }
 
 .dialogContent {
-  input {
-    width: 100%;
-    box-sizing: border-box;
-    border: 1px solid rgba(128, 128, 128, 0.5);
-    border-radius: 0.6rem;
-    padding: 0.65rem;
-    color: inherit;
-    background: transparent;
-  }
-
   .yourFriendCode {
     width: calc(100% - 3.5rem);
   }
 }
+
+.dialogContent m3e-form-field {
+  width: 100%;
+}
+
+
 
 .dialogActions {
   display: flex;
@@ -994,14 +1002,10 @@ m3e-drawer-container > * {
 .dialogButton {
   border: 0;
   background: transparent;
-  color: var(--mdc-theme-primary);
+  color: var(--mdc-theme-on-surface);
   font-weight: 500;
   padding: 0.4rem 0.7rem;
   border-radius: 0.5rem;
-}
-
-.dialogButton:hover {
-  background: color-mix(in srgb, var(--mdc-theme-primary) 14%, transparent);
 }
 
 .sidebarPane {
