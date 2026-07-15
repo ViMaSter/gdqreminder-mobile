@@ -952,6 +952,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 m3e-drawer-container {
+  --drawer-header-padding-left: 1rem;
+  --drawer-header-padding-right: 0.75rem;
   padding-top: var(--safe-area-inset-top);
 }
 
@@ -1009,8 +1011,12 @@ m3e-drawer-container > * {
 
 .sidebarTitle {
   display: block;
-  padding: 1rem;
+  padding: 1rem var(--drawer-header-padding-right) 1rem var(--drawer-header-padding-left);
+  font-family: Roboto, sans-serif;
+  font-size: 1.25rem;
   font-weight: 500;
+  line-height: 2rem;
+  letter-spacing: 0.015625rem;
 }
 
 .padding {
