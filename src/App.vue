@@ -425,6 +425,7 @@ m3e-app-bar {
 }
 
 m3e-icon-button[slot="leading"] {
-  min-width: 4rem;
+  min-width: 3.5rem;
+  margin-right: 0.5rem;
 }
 </style>
