@@ -13,7 +13,7 @@ const plugins = [
     template: {
       compilerOptions: {
         isCustomElement: (tag) =>
-          tag.startsWith("mwc-") || tag.startsWith("md-"),
+          tag.startsWith("mwc-") || tag.startsWith("md-") || tag.startsWith("m3e-"),
       },
     },
   }),
