@@ -3,10 +3,12 @@ import { onBeforeMount, onMounted, watch, computed, ref, inject } from 'vue';
 import { AppLauncher } from "@capacitor/app-launcher";
 import Version from "@/plugins/versionPlugin";
 import "@m3e/web/app-bar";
+import "@m3e/web/heading";
 import "@m3e/web/icon";
 import "@m3e/web/icon-button";
 import "@m3e/web/list";
 import "@m3e/web/divider";
+import "@m3e/web/dialog";
 import "@m3e/web/switch";
 import { useI18n } from 'vue-i18n';
 import { languages, useSettingsStore } from '@/stores/settings';
@@ -21,12 +23,19 @@ const closeSettings = () => {
   removeBackButtonHook("settings");
 };
 
-const languageDialog = ref<HTMLDialogElement>();
+type M3EDialogElement = HTMLElement & {
+  open: boolean;
+  close: () => void;
+};
+
+const languageDialog = ref<M3EDialogElement>();
 const openLanguageDialog = () => {
   addBackButtonHook("settings-language-dialog", () => {
     languageDialog.value?.close();
   });
-  languageDialog.value?.showModal();
+  if (languageDialog.value) {
+    languageDialog.value.open = true;
+  }
 };
 
 const highlighted = ref<HTMLElement | null>(null);
@@ -217,15 +226,15 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         </m3e-list-action>
       </m3e-action-list>
     </main>
-    <dialog ref="languageDialog" data-test="language-dialog" class="languageDialog">
-      <div class="languageTitle">{{ $t('settings.label-appLanguage') }}</div>
-      <div class="languageOptions">
-        <button type="button" class="languageOption" v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key"
-          @click="settingsStore.setLanguage(key); languageDialog?.close();">
-          <input type="radio" :checked="selectedLanguage === key" /> {{ t('settings.option-'+key) }}
-        </button>
-      </div>
-    </dialog>
+    <m3e-dialog id="dlg" ref="languageDialog" data-test="language-dialog" class="languageDialog" dismissible>
+      <span slot="header">{{ $t('settings.label-appLanguage') }}</span>
+      <m3e-selection-list hide-selection-indicator @change="(e: Event) => { settingsStore.setLanguage((e.target as HTMLElement & { value: string }).value as any); languageDialog?.close(); }">
+        <m3e-list-option v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key" :value="key" :selected="selectedLanguage === key">
+          <m3e-pseudo-radio slot="leading" :checked="selectedLanguage === key"></m3e-pseudo-radio>
+          {{ t('settings.option-'+key) }}
+        </m3e-list-option>
+      </m3e-selection-list>
+    </m3e-dialog>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -298,12 +307,12 @@ m3e-app-bar {
   flex: 0 0 auto;
 }
 
-.languageDialog {
-  width: min(28rem, 90vw);
+m3e-dialog {
+  --m3e-dialog-min-width: min(28rem, 90vw);
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 1rem;
   padding: 1rem;
-  background: var(--mdc-theme-surface);
+  --m3e-dialog-container-color: var(--mdc-theme-surface);
   color: var(--mdc-theme-on-surface);
 }
 
@@ -315,22 +324,5 @@ m3e-app-bar {
   margin-bottom: 0.75rem;
 }
 
-.languageOptions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
 
-.languageOption {
-  background: transparent;
-  color: inherit;
-  border: 0;
-  text-align: left;
-  padding: 0.5rem 0.35rem;
-  border-radius: 0.5rem;
-}
-
-.languageOption:hover {
-  background: color-mix(in srgb, var(--mdc-theme-primary) 14%, transparent);
-}
 </style>
