@@ -23,7 +23,7 @@
     "@capacitor/app": "^8.0.0",
     "@capacitor/app-launcher": "^8.0.0",
     "@capacitor/core": "^8.0.0",
-    "@capacitor/device": "^8.0.0",
+    "@capacitor/device": "^8.0.3",
     "@capacitor/ios": "^8.0.0",
     "@capacitor/keyboard": "^8.0.0",
     "@capacitor/push-notifications": "^8.0.0",
