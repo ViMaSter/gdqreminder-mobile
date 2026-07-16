@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "358208879608",
+    "project_id": "gdqreminder",
+    "storage_bucket": "gdqreminder.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358208879608:android:ab2244108955a0e188f40d",
+        "android_client_info": {
+          "package_name": "ke.mahn.gdqreminder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGTENBAzr0ztlESS_X7KNZEU8WashuOYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358208879608:android:1c7ba0d92775e83788f40d",
+        "android_client_info": {
+          "package_name": "ke.mahn.gdqreminder.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGTENBAzr0ztlESS_X7KNZEU8WashuOYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
