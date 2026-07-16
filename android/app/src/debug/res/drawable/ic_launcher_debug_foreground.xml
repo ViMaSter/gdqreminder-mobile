@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@mipmap/ic_launcher_adaptive_fore" />
+
+    <item
+        android:drawable="@drawable/ic_debug_badge_bg"
+        android:top="35dp"
+        android:right="16dp"
+        android:bottom="35dp"
+        android:left="54dp" />
+
+    <item
+        android:drawable="@drawable/ic_debug_settings_badge"
+        android:top="43dp"
+        android:right="24dp"
+        android:bottom="43dp"
+        android:left="62dp" />
+</layer-list>
