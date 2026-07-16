@@ -976,6 +976,7 @@ export default defineComponent({
 m3e-drawer-container {
   --drawer-header-padding-left: 1rem;
   --drawer-header-padding-right: 0.75rem;
+  --m3e-drawer-container-width: 256px;
 }
 
 m3e-drawer-container > * {
