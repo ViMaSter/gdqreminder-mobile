@@ -434,6 +434,13 @@ m3e-app-bar {
   background-color: var(--mdc-theme-primary);
   --m3e-icon-button-icon-color: var(--md-sys-color-on-surface-variant);
   padding-top: var(--safe-area-inset-top);
+  --m3e-app-bar-small-container-height: 64px;
+}
+
+@media (max-width: 599px) {
+    m3e-app-bar {
+        --m3e-app-bar-small-container-height: 56px;
+    }
 }
 
 m3e-icon-button[slot="leading"] {
