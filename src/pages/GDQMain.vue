@@ -40,6 +40,8 @@ import {
 import { reflectColor } from "@/utilities/colorHelper";
 import { useSettingsStore } from "@/stores/settings";
 import { ONBOARDING_DATA } from "@/utilities/onboardingConstants";
+import { seededEventsSnapshot } from "@/generated/seededEventsLoader";
+import { selectDefaultEvent } from "@/utilities/eventSelection";
 
 const getFirebaseAuth = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -135,6 +137,9 @@ export default defineComponent({
     const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
     const showOnboardingSnackbarIfNeeded = () => {
       if (useSettingsStore().initialized) {
+        return;
+      }
+      if (!snackbar.value) {
         return;
       }
 
@@ -260,6 +265,12 @@ export default defineComponent({
     const runsByDay = ref<{ [day: string]: string[] }>({});
     const matchingRunnerIndexesByRunID = ref<{ [runID: string]: number[] }>({});
     const matchingRunNamesByRunID = ref<{ [runID: string]: boolean }>({});
+    const drawer = ref<DrawerContainerElement>()!;
+    const filterTypes = ["", "friend+alert", "alert"] as const;
+    type RunFilter = (typeof filterTypes)[number];
+    const activeFilter = ref<RunFilter>("");
+    const reminder = useRunReminderStore();
+    const friendRunStore = useFriendRunReminderStore();
 
     const parseSearchKeywords = (query: string): string[] => {
       const matches = query.match(/"([^"]+)"|(\S+)/g) ?? [];
@@ -317,6 +328,11 @@ export default defineComponent({
     // returns true if there are runs for this event already
     // returns false if there are no runs for this event yet
     // Helper to process and set runs data
+    const versionNamePromise = Version.getCurrent()
+      .then((version) => version.versionName)
+      .catch(() => "unknown");
+    const inFlightRunRequests = new Map<number, Promise<[string, GDQRunData][]>>();
+
     const processRuns = (
       eventID: number,
       runs: GDQRunData[]
@@ -356,6 +372,7 @@ export default defineComponent({
 
     const loadRuns = async (eventID: number) => {
       const cacheKey = `gdq_runs_${eventID}`;
+      const cacheSourceKey = `gdq_runs_source_${eventID}`;
       let orderedRuns: [string, GDQRunData][] = [];
 
       const cached = localStorage.getItem(cacheKey);
@@ -363,23 +380,40 @@ export default defineComponent({
         try {
           const parsed = JSON.parse(cached) as GDQRunData[];
           orderedRuns = processRuns(eventID, parsed);
+          if (orderedRuns.length > 0) {
+            const cacheSource = localStorage.getItem(cacheSourceKey) || "local";
+            if (cacheSource === "seed") {
+              console.log(`[runs] event ${eventID}: loaded ${orderedRuns.length} runs from seed cache`);
+            } else {
+              console.log(`[runs] event ${eventID}: loaded ${orderedRuns.length} runs from local cache`);
+            }
+          }
         } catch (e) {
           // ignore cache parse errors
         }
       }
 
       const fetchAndProcessRuns = async () => {
+        const existingRequest = inFlightRunRequests.get(eventID);
+        if (existingRequest) {
+          return existingRequest;
+        }
+
+        const request = (async () => {
         try {
+          const versionName = await versionNamePromise;
           const response = await CapacitorHttp.get({
             url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
             headers: {
-              'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
+              'User-Agent': `GDQReminderClient/${versionName}`
             },
           });
           if (response.status === 200 && response.data?.results) {
             const freshRuns = response.data.results as GDQRunData[];
             if (freshRuns.length > 0) {
               localStorage.setItem(cacheKey, JSON.stringify(freshRuns));
+              localStorage.setItem(cacheSourceKey, "network");
+              console.log(`[runs] event ${eventID}: fetched ${freshRuns.length} runs from network`);
               return processRuns(eventID, freshRuns);
             }
           }
@@ -387,6 +421,14 @@ export default defineComponent({
           // ignore fetch errors
         }
         return [];
+        })();
+
+        inFlightRunRequests.set(eventID, request);
+        try {
+          return await request;
+        } finally {
+          inFlightRunRequests.delete(eventID);
+        }
       };
 
       // If we already have data cached, fetch in the background
@@ -432,6 +474,52 @@ export default defineComponent({
     const eventsByIDs: Ref<{ [id: number]: GDQEventData }> = ref(
       {},
     );
+
+    const hydrateSeededData = () => {
+      const seededEvents = Array.from(seededEventsSnapshot.events)
+        .map((event): GDQEventData => ({
+          id: event.id,
+          short: event.short,
+          datetime: event.datetime,
+        }))
+        .filter((event) => event.short.toLowerCase().includes("gdq"))
+        .filter((event) => !event.short.toLowerCase().includes("cgdq"));
+
+      if (seededEvents.length <= 0) {
+        return;
+      }
+
+      const seededEventsByID = Object.fromEntries(
+        seededEvents.map((singleEvent): [number, GDQEventData] => [singleEvent.id, singleEvent]),
+      );
+
+      eventsByIDs.value = {
+        ...eventsByIDs.value,
+        ...seededEventsByID,
+      };
+
+      const rawSeededRuns = seededEventsSnapshot.runsByEventID as Record<string, readonly unknown[]>;
+      for (const [eventIDText, runs] of Object.entries(rawSeededRuns)) {
+        const eventID = parseInt(eventIDText, 10);
+        if (Number.isNaN(eventID) || !Array.isArray(runs) || runs.length <= 0) {
+          continue;
+        }
+
+        const mutableRuns: GDQRunData[] = runs.map((run) => {
+          const typedRun = run as GDQRunData;
+          return {
+            ...typedRun,
+            video_links: [...typedRun.video_links],
+            runners: [...typedRun.runners],
+          };
+        });
+        processRuns(eventID, mutableRuns);
+        localStorage.setItem(`gdq_runs_${eventID}`, JSON.stringify(mutableRuns));
+        localStorage.setItem(`gdq_runs_source_${eventID}`, "seed");
+        console.log(`[runs] event ${eventID}: hydrated ${mutableRuns.length} runs from seed cache`);
+      }
+    };
+
     const loadEventsAndRuns = async (eventsAfter: Date) => {
       const eventData = await EventsData.getEventsData(eventsAfter);
       const newEventsByID = Object.fromEntries(
@@ -449,24 +537,43 @@ export default defineComponent({
           ]),
       );
 
-      for (const eventID of Object.keys(newEventsByID)) {
-        if (await loadRuns(parseInt(eventID))) {
-          continue;
+      const sortedEventIDs = Object.keys(newEventsByID).map((eventID) => parseInt(eventID));
+
+      // Only block startup until we find the first event with runs.
+      let firstEventWithRuns: number | null = null;
+      for (const eventID of sortedEventIDs) {
+        if (await loadRuns(eventID)) {
+          firstEventWithRuns = eventID;
+          break;
         }
 
-        if (eventsWithoutRuns.includes(eventID)) {
-          continue;
+        if (!eventsWithoutRuns.includes(eventID.toString())) {
+          eventsWithoutRuns.push(eventID.toString());
         }
-        eventsWithoutRuns.push(eventID);
       }
+
+      // Prefetch a few additional events without delaying initial render.
+      const prefetchCandidates = sortedEventIDs
+        .filter((eventID) => eventID !== firstEventWithRuns)
+        .slice(0, 3);
+      void Promise.all(
+        prefetchCandidates.map(async (eventID) => {
+          const hasRuns = await loadRuns(eventID);
+          if (!hasRuns && !eventsWithoutRuns.includes(eventID.toString())) {
+            eventsWithoutRuns.push(eventID.toString());
+          }
+        }),
+      ).then(() => {
+        eventsByIDs.value = filterEventsWithoutRuns({
+          ...eventsByIDs.value,
+          ...newEventsByID,
+        });
+      });
+
       eventsByIDs.value = filterEventsWithoutRuns({
         ...eventsByIDs.value,
         ...newEventsByID,
       });
-      const firstEventID = Object.keys(eventsByIDs.value)[0];
-      if (firstEventID) {
-        await loadRuns(parseInt(firstEventID));
-      }
     };
 
     const doneLoading = ref(false);
@@ -482,31 +589,19 @@ export default defineComponent({
     };
 
     const pickInitialEvent = (eventList: GDQEventData[]) => {
-      const nowMs = now.getTime();
-      const eventsWithRuns = eventList.filter((event) => isEventWithRuns(event));
+      const eventsWithRuns = eventList
+        .filter((event) => isEventWithRuns(event))
+        .map((event) => ({
+          event,
+          runs: (runsByEventID.value[event.id] || []).map(([, run]) => run),
+        }));
 
-      const running = eventsWithRuns.find((event) => {
-        const orderedRuns = runsByEventID.value[event.id];
-        return orderedRuns.some(([, run]) => {
-          const startMs = new Date(run.starttime).getTime();
-          const endMs = new Date(run.endtime).getTime();
-          return startMs <= nowMs && nowMs <= endMs;
-        });
-      });
-      if (running) {
-        return running;
+      const selected = selectDefaultEvent(eventsWithRuns, now);
+      if (selected) {
+        return selected;
       }
 
-      const upcoming = [...eventsWithRuns]
-        .filter((event) => new Date(event.datetime).getTime() > nowMs)
-        .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())[0];
-      if (upcoming) {
-        return upcoming;
-      }
-
-      return [...eventsWithRuns].sort(
-        (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
-      )[0];
+      return eventList[0];
     };
 
     {
@@ -517,12 +612,23 @@ export default defineComponent({
         1,
       );
 
+      hydrateSeededData();
+      const seededInitialEvent = pickInitialEvent(getSortedEventsByDate());
+      if (seededInitialEvent) {
+        void updateCurrentEvent(seededInitialEvent).then(() => {
+          showOnboardingSnackbarIfNeeded();
+        });
+      }
+
       void (async () => {
         await loadEventsAndRuns(roughly8MonthsAgo);
 
-        const initialEvent = pickInitialEvent(getSortedEventsByDate());
-        if (initialEvent) {
-          await updateCurrentEvent(initialEvent);
+        const refreshedInitialEvent = pickInitialEvent(getSortedEventsByDate());
+        if (refreshedInitialEvent && refreshedInitialEvent.id !== currentEventID.value) {
+          await updateCurrentEvent(refreshedInitialEvent);
+        }
+
+        if (currentEventID.value > 0) {
           showOnboardingSnackbarIfNeeded();
         }
 
@@ -562,8 +668,6 @@ export default defineComponent({
 
       throw new Error("No event with runs found");
     };
-
-    const drawer = ref<DrawerContainerElement>()!;
 
     if (Object.keys(runsByDay.value).length === 0) {
       runsByDay.value = {};
@@ -642,9 +746,6 @@ export default defineComponent({
       );
     };
 
-    const filterTypes = ["", "friend+alert", "alert"] as const;
-    type RunFilter = (typeof filterTypes)[number];
-    const activeFilter = ref<RunFilter>("");
     const activeFilterLabel = computed(() => {
       if (activeFilter.value == "friend+alert") {
         return t("filters.friendsAndYourRuns");
@@ -655,8 +756,6 @@ export default defineComponent({
       return "";
     });
 
-    const reminder = useRunReminderStore();
-    const friendRunStore = useFriendRunReminderStore();
     const activeSearchTerms = computed(() => parseSearchKeywords(searchQuery.value));
 
     function refreshRuns() {
