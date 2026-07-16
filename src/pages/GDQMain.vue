@@ -107,34 +107,44 @@ export default defineComponent({
 
     const snackbar = ref<typeof Snackbar>();
     const showSnackbar = (text: string) => {
-      if (snackbar.value!.actionButtonText == t("onboarding.settings.callToAction") && 
+      if (snackbar.value!.hasAction &&
           snackbar.value!.isOpen) {
         return;
       }
-      snackbar.value!.labelText = text;
-      snackbar.value!.actionButtonText = null;
+      snackbar.value!.setLabelText(text);
+      snackbar.value!.setAction(null);
+      snackbar.value!.actionButtonText = "";
       snackbar.value!.timeoutMs = 10000;
       snackbar.value!.open();
     };
     provide<(text: string) => void>("showSnackbar", showSnackbar);
+    const showSnackbarHtml = (html: string) => {
+      if (snackbar.value!.hasAction &&
+          snackbar.value!.isOpen) {
+        return;
+      }
+      snackbar.value!.setLabelHtml(html);
+      snackbar.value!.setAction(null);
+      snackbar.value!.actionButtonText = "";
+      snackbar.value!.timeoutMs = 10000;
+      snackbar.value!.open();
+    };
+    provide<(html: string) => void>("showSnackbarHtml", showSnackbarHtml);
 
     const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
     const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
-    onMounted(() => {
-      const navigationEntry = performance
-        .getEntriesByType("navigation")
-        .at(0) as PerformanceNavigationTiming | undefined;
-      const shouldShowOnboardingToast = navigationEntry?.type !== "reload";
-      if (shouldShowOnboardingToast) {
-        // Defer open to ensure the snackbar service is available.
-        setTimeout(() => {
-          snackbar.value?.open();
-        }, 0);
+    const showOnboardingSnackbarIfNeeded = () => {
+      if (useSettingsStore().initialized) {
+        return;
       }
 
-      if (!useSettingsStore().initialized) {
-        useSettingsStore().setDefaults();
-      }
+      useSettingsStore().setDefaults();
+      snackbar.value!.setLabelText(t("onboarding.settings.label"));
+      snackbar.value!.actionButtonText = t("onboarding.settings.callToAction");
+      snackbar.value!.timeoutMs = -1;
+      snackbar.value!.open();
+    };
+    onMounted(() => {
       addBackButtonHook(
         "drawer",
         () => {
@@ -513,6 +523,7 @@ export default defineComponent({
         const initialEvent = pickInitialEvent(getSortedEventsByDate());
         if (initialEvent) {
           await updateCurrentEvent(initialEvent);
+          showOnboardingSnackbarIfNeeded();
         }
 
         setTimeout(async () => {
@@ -903,7 +914,6 @@ export default defineComponent({
     <Snackbar
       ref="snackbar"
       :labelText="$t('onboarding.settings.label')"
-      :actionButtonText="$t('onboarding.settings.callToAction')"
       :timeoutMs="-1"
       @onClosing="snackbarAction"
     />

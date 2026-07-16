@@ -13,7 +13,7 @@ test(`toast with settings hint is shown only initially`, async ({ page }) => {
 
   await expect(page.locator('m3e-snackbar')).toHaveCount(1);
 
-  await page.click('[data-test="settings"]');
+  await page.getByRole('button', { name: 'Open settings' }).click();
 
   await expect(page.locator('.gdq-settings m3e-app-bar')).toBeVisible();
 
@@ -25,7 +25,11 @@ test(`toast with settings hint is shown only initially`, async ({ page }) => {
 
   await page.locator('.run').first().focus();
 
-  await expect(page.locator('m3e-snackbar')).toHaveCount(1);
+  const snackbarContent = page.locator('m3e-snackbar > span').first();
+  await expect(page.locator('m3e-snackbar > span > b').first()).toBeVisible();
+  await expect(snackbarContent).toContainText(' - ');
+  await expect(snackbarContent).toContainText(' by ');
+  await expect(snackbarContent).not.toContainText('<b>');
 
   await page.reload();
 

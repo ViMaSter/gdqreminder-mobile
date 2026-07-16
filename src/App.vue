@@ -269,11 +269,18 @@ const refreshSafeAreaInsetsWithRetry = async () => {
 };
 
 onMounted(() => {
-  watch(mainContent, (content) => {
-    if (content) {
-      loadingContent.value?.hide();
-    }
-  }, { immediate: true });
+  watch(
+    () => [
+      mainContent.value?.currentEventID ?? -1,
+      Object.keys(mainContent.value?.runsByDay ?? {}).length,
+    ],
+    ([eventID, dayCount]) => {
+      if (eventID > 0 && dayCount > 0) {
+        loadingContent.value?.hide();
+      }
+    },
+    { immediate: true },
+  );
 
   refreshSafeAreaInsetsWithRetry().catch((error) => {
     console.warn("Failed to refresh safe area insets", error);
