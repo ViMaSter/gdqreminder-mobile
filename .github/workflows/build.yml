@@ -37,6 +37,8 @@ jobs:
           node-version-file: '.nvmrc'
       - run: | 
           npm ci
+      - name: Generate seeded events snapshot
+        run: npm run seed:events
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Playwright tests

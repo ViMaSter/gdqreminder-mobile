@@ -13,6 +13,7 @@ import { useUserIDStore } from "./stores/friendUserID";
 import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
 import { useFriendRunReminderStore } from "./stores/friendRuns";
+import { useRunReminderStore } from "./stores/runReminders";
 import { App } from "@capacitor/app";
 import { useSettingsStore } from "./stores/settings";
 import { ONBOARDING_DATA } from "./utilities/onboardingConstants";
@@ -133,11 +134,38 @@ const registerNotifications = async () => {
 };
 
 const friendRunStore = useFriendRunReminderStore();
+const runReminderStore = useRunReminderStore();
 let unsubscribe: Unsubscribe | null = null;
+let unsubscribeRunReminder: (() => void) | null = null;
 const subscribe = (friendUserID: string) => {
   if (friendUserID == null || friendUserID.length === 0) {
+    if (unsubscribeRunReminder) {
+      unsubscribeRunReminder();
+      unsubscribeRunReminder = null;
+    }
     friendRunStore.set([]);
     return;
+  }
+
+  const ownUserID = localStorage.getItem("firebaseUserID");
+  if (friendUserID === ownUserID) {
+    if (unsubscribe != null) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+    if (unsubscribeRunReminder) {
+      unsubscribeRunReminder();
+    }
+    friendRunStore.set(runReminderStore.allReminders);
+    unsubscribeRunReminder = runReminderStore.$subscribe((_, state) => {
+      friendRunStore.set(state.runs);
+    });
+    return;
+  }
+
+  if (unsubscribeRunReminder) {
+    unsubscribeRunReminder();
+    unsubscribeRunReminder = null;
   }
 
   const docRef = doc(store, "remindersByUserID", friendUserID);
@@ -242,11 +270,23 @@ const refreshSafeAreaInsetsWithRetry = async () => {
 
 onMounted(() => {
   watch(mainContent, () => {
-    loadingContent.value!.hide();
     if (mainContent && mainContent.value) {
       App.addListener('resume', () => {mainContent.value!.loadRuns(mainContent.value!.currentEventID); });
     }
   });
+
+  watch(
+    () => [
+      mainContent.value?.currentEventID ?? -1,
+      Object.keys(mainContent.value?.runsByDay ?? {}).length,
+    ],
+    ([eventID, dayCount]) => {
+      if (eventID > 0 && dayCount > 0) {
+        loadingContent.value?.hide();
+      }
+    },
+    { immediate: true },
+  );
 
   refreshSafeAreaInsetsWithRetry().catch((error) => {
     console.warn("Failed to refresh safe area insets", error);
@@ -378,5 +418,33 @@ body {
 
 #app {
   overflow-x: hidden;
+}
+
+m3e-list-action {
+  --m3e-list-item-supporting-text-color: var(--md-sys-color-on-surface-variant) !important;
+  --m3e-list-item-disabled-label-text-color: var(--m3e-list-item-supporting-text-color) !important;
+}
+
+m3e-app-bar {
+  --m3e-app-bar-title-text-color: var(--md-theme-on-primary);
+  --m3e-app-bar-small-title-text-font-size: 1.25rem;
+  --m3e-app-bar-padding-left: 0.25rem;
+  --m3e-app-bar-padding-right: 0.75rem;
+  --m3e-app-bar-container-color: var(--mdc-theme-primary);
+  background-color: var(--mdc-theme-primary);
+  --m3e-icon-button-icon-color: var(--md-sys-color-on-surface-variant);
+  padding-top: var(--safe-area-inset-top);
+  --m3e-app-bar-small-container-height: 64px;
+}
+
+@media (max-width: 599px) {
+    m3e-app-bar {
+        --m3e-app-bar-small-container-height: 56px;
+    }
+}
+
+m3e-icon-button[slot="leading"] {
+  min-width: 3.5rem;
+  margin-right: 0.5rem;
 }
 </style>

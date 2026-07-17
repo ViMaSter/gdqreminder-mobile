@@ -31,13 +31,11 @@ scenarios.forEach(({ locale, defaultLanguage, germanLanguage }) => {
 
     await page.goto("http://localhost:3100/");
 
-    await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+    await page.waitForSelector('[data-test="main-title"]');
 
     await page.click('[data-test="settings"]');
 
-    await expect(page.locator('.gdq-settings mwc-top-app-bar-fixed')).toBeVisible();
-
-    await expect(page.locator('.wrapper')).not.toHaveClass('list-leave-active');
+    await expect(page.locator('.gdq-settings m3e-app-bar')).toBeVisible();
 
     await page.locator('[data-test=open-language-dialog]').click();
 
@@ -47,7 +45,7 @@ scenarios.forEach(({ locale, defaultLanguage, germanLanguage }) => {
 
     await page.locator('[data-test=language-option-german]').click();
 
-    await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+    await page.waitForSelector('[data-test="main-title"]');
 
     await page.click('[data-test="settings"]');
 

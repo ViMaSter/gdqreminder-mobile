@@ -33,20 +33,20 @@ timings.forEach(([testName, date, title]) => {
       location.reload();
     });
 
-    await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+    await page.waitForSelector('[data-test="main-title"]');
     await expect(
-      page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]'),
+      page.locator('[data-test="main-title"]'),
     ).toHaveText(new RegExp(title));
 
-    await page.click('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="navigationIcon"]');
+    await page.click('[data-test="toggle-drawer"]');
 
-    await page.waitForSelector(".mdc-drawer");
-    await page.waitForSelector("md-list-item.rotating");
-    await expect(page.locator("md-list-item.rotating")).toHaveCount(0, {
+    await expect(page.locator('[data-test="event-item"]').first()).toBeVisible();
+    await page.waitForSelector('[data-test="event-loading-item"]');
+    await expect(page.locator('[data-test="event-loading-item"]')).toHaveCount(0, {
       timeout: 40000,
     });
 
-    await page.click("md-list md-list-item");
+    await page.click("[data-test='event-item']");
 
     await page.waitForSelector(".day-divider");
     await expect(page.locator(".dayNumber").first()).toHaveText(/\d+/);

@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { onBeforeMount, onMounted, watch, computed, ref, inject } from 'vue';
 import { AppLauncher } from "@capacitor/app-launcher";
-import { MdDialog } from "@material/web/dialog/dialog";
 import Version from "@/plugins/versionPlugin";
-import { MdSwitch } from '@material/web/switch/switch';
+import "@m3e/web/app-bar";
+import "@m3e/web/heading";
+import "@m3e/web/icon";
+import "@m3e/web/icon-button";
+import "@m3e/web/list";
+import "@m3e/web/divider";
+import "@m3e/web/dialog";
+import "@m3e/web/switch";
 import { useI18n } from 'vue-i18n';
 import { languages, useSettingsStore } from '@/stores/settings';
 const emit = defineEmits(['setVisibility']);
@@ -17,9 +23,20 @@ const closeSettings = () => {
   removeBackButtonHook("settings");
 };
 
-const languageDialog = ref<MdDialog>();
-const openLanguageDialog = () => {
-  languageDialog.value!.open = true;
+type M3EDialogElement = HTMLElement & {
+  open: boolean;
+  show: () => Promise<void>;
+  hide: () => Promise<void>;
+};
+
+const languageDialog = ref<M3EDialogElement>();
+const openLanguageDialog = async () => {
+  addBackButtonHook("settings-language-dialog", () => {
+    void languageDialog.value?.hide();
+  });
+  if (languageDialog.value) {
+    await languageDialog.value.show();
+  }
 };
 
 const highlighted = ref<HTMLElement | null>(null);
@@ -51,12 +68,7 @@ onBeforeMount(() => {
       return;
     }
 
-    dialog!.addEventListener('open', () => {
-      addBackButtonHook("settings-language-dialog", () => {
-      dialog!.open = false;
-      });
-    });
-    dialog!.addEventListener('close', () => {
+    dialog!.addEventListener('closed', () => {
       removeBackButtonHook("settings-language-dialog");
     });
   });
@@ -73,57 +85,76 @@ const settingsStore = useSettingsStore();
 let eventAnnouncements = computed(() => settingsStore.subscribedToEventAnnouncements);
 let eventUpdates = computed(() => settingsStore.subscribedToEventUpdates);
 
-const eventAnnouncementsSwitch = ref<MdSwitch>();
-const toggleEventAnnouncements = async () => {
-  if (!eventAnnouncements.value) {
-    eventAnnouncementsSwitch.value!.disabled = true;
-    try {
-      await settingsStore.setSubscriptionToEventAnnouncements(true);
-      return;
-    } catch (e) {
-      console.error(e);
-    } finally {
-      eventAnnouncementsSwitch.value!.disabled = false;
-      eventAnnouncementsSwitch.value!.selected = eventAnnouncements.value;
-    }
+type M3ESwitchElement = HTMLElement & {
+  checked: boolean;
+  disabled: boolean;
+};
+
+const eventAnnouncementsSwitch = ref<M3ESwitchElement>();
+const forwardClickToEventAnnouncementsSwitch = (event: MouseEvent) => {
+  const switchElement = eventAnnouncementsSwitch.value;
+  if (!switchElement || switchElement.disabled) {
     return;
   }
 
-  eventAnnouncementsSwitch.value!.disabled = true;
+  if (event.composedPath().includes(switchElement)) {
+    return;
+  }
+
+  switchElement.click();
+};
+
+const toggleEventAnnouncements = async (event: Event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const switchElement = eventAnnouncementsSwitch.value;
+  if (!switchElement || switchElement.disabled) {
+    return;
+  }
+
+  switchElement.disabled = true;
   try {
-      await settingsStore.setSubscriptionToEventAnnouncements(false);
+    await settingsStore.setSubscriptionToEventAnnouncements(!eventAnnouncements.value);
   } catch (e) {
     console.error(e);
   } finally {
-    eventAnnouncementsSwitch.value!.disabled = false;
-    eventAnnouncementsSwitch.value!.selected = eventAnnouncements.value;
+    switchElement.checked = eventAnnouncements.value;
+    switchElement.disabled = false;
   }
 };
 
-const eventUpdatesSwitch = ref<MdSwitch>();
-const toggleEventUpdates = async () => {
-  if (!eventUpdates.value) {
-    eventUpdatesSwitch.value!.disabled = true;
-    try {
-      await settingsStore.setSubscriptionToEventUpdates(true);
-      return;
-    } catch (e) {
-      console.error(e);
-    } finally {
-      eventUpdatesSwitch.value!.disabled = false;
-      eventUpdatesSwitch.value!.selected = eventUpdates.value;
-      return;
-    }
+const eventUpdatesSwitch = ref<M3ESwitchElement>();
+const forwardClickToEventUpdatesSwitch = (event: MouseEvent) => {
+  const switchElement = eventUpdatesSwitch.value;
+  if (!switchElement || switchElement.disabled) {
+    return;
   }
 
-  eventUpdatesSwitch.value!.disabled = true;
+  if (event.composedPath().includes(switchElement)) {
+    return;
+  }
+
+  switchElement.click();
+};
+
+const toggleEventUpdates = async (event: Event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const switchElement = eventUpdatesSwitch.value;
+  if (!switchElement || switchElement.disabled) {
+    return;
+  }
+
+  switchElement.disabled = true;
   try {
-    await settingsStore.setSubscriptionToEventUpdates(false);
+    await settingsStore.setSubscriptionToEventUpdates(!eventUpdates.value);
   } catch (e) {
     console.error(e);
   } finally {
-    eventUpdatesSwitch.value!.disabled = false;
-    eventUpdatesSwitch.value!.selected = eventUpdates.value;
+    switchElement.checked = eventUpdates.value;
+    switchElement.disabled = false;
   }
 };
 
@@ -134,78 +165,104 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
 </script>
 <template>
   <div class="container">
-    <mwc-top-app-bar-fixed>
-      <md-icon-button slot="navigationIcon" @click="closeSettings"><md-icon>arrow_back</md-icon></md-icon-button>
+    <m3e-app-bar>
+      <m3e-icon-button slot="leading" @click="closeSettings"><m3e-icon name="arrow_back"></m3e-icon></m3e-icon-button>
       <div slot="title">{{ $t('settings.headline') }}</div>
-    </mwc-top-app-bar-fixed>
-    <main class="mdc-top-app-bar--fixed-adjust">
-      <md-list>
-        <md-list-item ref="highlighted">
-          <div slot="supporting-text">{{ $t('settings.headline-generalNotifications') }}</div>
-        </md-list-item>
-        <md-divider></md-divider>
+    </m3e-app-bar>
+    <main class="top-bar-adjust">
+      <m3e-action-list>
+        <m3e-list-action ref="highlighted" disabled>
+          <div>{{ $t('settings.headline-generalNotifications') }}</div>
+        </m3e-list-action>
+        <m3e-divider></m3e-divider>
 
-        <md-list-item type="button" @click="toggleEventAnnouncements">
-          <div slot="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
-          <div slot="supporting-text">{{ $t('settings.description-eventAnnouncements') }}</div>
-          <md-switch :selected="eventAnnouncements" ref="eventAnnouncementsSwitch"
-            slot="end"></md-switch>
-        </md-list-item>
-        <md-list-item><md-icon slot="start">info</md-icon>
-          <div slot="supporting-text">{{ $t('settings.info-eventAnnouncements') }}</div>
-        </md-list-item>
-        <md-divider></md-divider>
+        <m3e-list-action class="interactive" @click="forwardClickToEventAnnouncementsSwitch">
+          <div class="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
+          <div slot="supporting-text" class="supporting">{{ $t('settings.description-eventAnnouncements') }}</div>
+          <m3e-switch slot="trailing" class="switch" :checked="eventAnnouncements" ref="eventAnnouncementsSwitch" @beforeinput="toggleEventAnnouncements"></m3e-switch>
+        </m3e-list-action>
+        <m3e-list-action disabled>
+          <div class="info-content">
+            <m3e-icon class="info-icon" name="info"></m3e-icon>
+            <div class="supporting">{{ $t('settings.info-eventAnnouncements') }}</div>
+          </div>
+        </m3e-list-action>
+        <m3e-divider></m3e-divider>
 
-        <md-list-item type="button" @click="toggleEventUpdates">
-          <div slot="headline">{{ $t('settings.label-eventUpdates') }}</div>
-          <div slot="supporting-text">{{ $t('settings.description-eventUpdates') }}</div>
-          <md-switch :selected="eventUpdates" ref="eventUpdatesSwitch"
-            slot="end"></md-switch>
-        </md-list-item>
-        <md-list-item ref="highlightedEnd"><md-icon slot="start">info</md-icon>
-          <div slot="supporting-text">{{ $t('settings.info-eventUpdates') }}</div>
-        </md-list-item>
-        <md-list-item>
-          <div slot="supporting-text">{{ $t('settings.headline-language') }}</div>
-        </md-list-item>
-        <md-divider></md-divider>
+        <m3e-list-action class="interactive" @click="forwardClickToEventUpdatesSwitch">
+          <div class="headline">{{ $t('settings.label-eventUpdates') }}</div>
+          <div slot="supporting-text" class="supporting">{{ $t('settings.description-eventUpdates') }}</div>
+          <m3e-switch slot="trailing" class="switch" :checked="eventUpdates" ref="eventUpdatesSwitch" @beforeinput="toggleEventUpdates"></m3e-switch>
+        </m3e-list-action>
+        <m3e-list-action ref="highlightedEnd" disabled>
+          <div class="info-content">
+            <m3e-icon class="info-icon" name="info"></m3e-icon>
+            <div class="supporting">{{ $t('settings.info-eventUpdates') }}</div>
+          </div>
+        </m3e-list-action>
+        <m3e-list-action disabled>
+          <div>{{ $t('settings.headline-language') }}</div>
+        </m3e-list-action>
+        <m3e-divider></m3e-divider>
 
-        <md-list-item type="button" @click="openLanguageDialog" data-test="open-language-dialog">
-          <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
-          <div slot="supporting-text">{{ $t('settings.option-'+selectedLanguage) || 'N/A' }}</div>
-        </md-list-item>
-        <md-divider></md-divider>
+        <m3e-list-action class="interactive" @click="openLanguageDialog" data-test="open-language-dialog">
+          <div class="headline">{{ $t('settings.label-appLanguage') }}</div>
+          <div slot="supporting-text" class="supporting">{{ $t('settings.option-'+selectedLanguage) || 'N/A' }}</div>
+          <m3e-icon slot="trailing" name="arrow_right"></m3e-icon>
+        </m3e-list-action>
+        <m3e-divider></m3e-divider>
 
-        <md-list-item type="button" @click="visitTranslationPage">
-          <div slot="headline">{{ $t('settings.label-helpTranslate') }}</div>
-          <md-icon slot="end">open_in_new</md-icon>
-        </md-list-item>
-        <md-list-item>
-          <div slot="supporting-text">{{ $t('settings.headline-information') }}</div>
-        </md-list-item>
-        <md-divider></md-divider>
+        <m3e-list-action class="interactive" @click="visitTranslationPage">
+          <div class="headline">{{ $t('settings.label-helpTranslate') }}</div>
+          <m3e-icon slot="trailing" name="open_in_new"></m3e-icon>
+        </m3e-list-action>
+        <m3e-list-action disabled>
+          <div>{{ $t('settings.headline-information') }}</div>
+        </m3e-list-action>
+        <m3e-divider></m3e-divider>
         
-        <md-list-item>
-          <div slot="headline">{{ $t('settings.label-version') }}</div>
-          <div slot="supporting-text">{{ versionCode }}</div>
-        </md-list-item>
-      </md-list>
+        <m3e-list-action disabled>
+          <div class="headline">{{ $t('settings.label-version') }}</div>
+          <div slot="supporting-text" class="supporting">{{ versionCode }}</div>
+        </m3e-list-action>
+      </m3e-action-list>
     </main>
-    <md-dialog ref="languageDialog" data-test="language-dialog">
-      <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
-      <div slot="content">
-        <md-list-item type="button" v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key"
-          @click="settingsStore.setLanguage(key)">
-          <label slot="headline"><md-radio :checked="selectedLanguage === key" slot="end"></md-radio> {{ t('settings.option-'+key) }}</label>
-        </md-list-item>
-      </div>
-    </md-dialog>
+    <m3e-dialog id="dlg" ref="languageDialog" data-test="language-dialog" class="languageDialog" dismissible>
+      <span slot="header">{{ $t('settings.label-appLanguage') }}</span>
+      <m3e-selection-list hide-selection-indicator @change="(e: Event) => { settingsStore.setLanguage((e.target as HTMLElement & { value: string }).value as any); languageDialog?.hide(); }">
+        <m3e-list-option v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key" :value="key" :selected="selectedLanguage === key">
+          <m3e-pseudo-radio slot="leading" :checked="selectedLanguage === key"></m3e-pseudo-radio>
+          {{ t('settings.option-'+key) }}
+        </m3e-list-option>
+      </m3e-selection-list>
+    </m3e-dialog>
   </div>
 </template>
 <style lang="scss" scoped>
-mwc-top-app-bar-fixed {
+m3e-list-action {
+  --m3e-list-item-one-line-top-space: 0.75rem;
+  --m3e-list-item-one-line-bottom-space: 0.75rem;
+}
+
+m3e-list-action[disabled] {
+  --m3e-list-item-font-size: 0.9rem;
+  --m3e-list-item-disabled-label-text-color: var(--m3e-list-item-label-text-color, var(--md-sys-color-on-surface, #1d1b20));
+  --m3e-list-item-disabled-label-text-opacity: 100%;
+  --m3e-list-item-disabled-supporting-text-color: var(--m3e-list-item-supporting-text-color, var(--md-sys-color-on-surface-variant, #49454f));
+  --m3e-list-item-disabled-supporting-text-opacity: 100%;
+  --m3e-list-item-disabled-leading-color: var(--m3e-list-item-leading-color, var(--md-sys-color-on-surface-variant, #49454f));
+  --m3e-list-item-disabled-leading-opacity: 100%;
+  --m3e-list-item-disabled-trailing-color: var(--m3e-list-item-trailing-color, var(--md-sys-color-on-surface-variant, #49454f));
+  --m3e-list-item-disabled-trailing-opacity: 100%;
+}
+
+m3e-app-bar {
   background-color: var(--mdc-theme-primary);
   padding-top: var(--safe-area-inset-top);
+}
+
+.top-bar-adjust {
+  padding-top: 0.5rem;
 }
 
 .container {
@@ -220,27 +277,53 @@ mwc-top-app-bar-fixed {
 }
 
 
-md-dialog {
-  --md-dialog-container-color: var(--mdc-theme-surface);
-  --md-dialog-headline-color: var(--mdc-theme-on-surface);
-  --md-dialog-supporting-text-color: var(--mdc-theme-on-surface);
-  --md-filled-text-field-container-color: var(--mdc-theme-surface);
-  --md-filled-text-field-focus-active-indicator-color: var(--mdc-theme-primary);
-  --md-filled-text-field-label-text-color: var(--mdc-theme-on-surface);
-  --md-filled-field-active-indicator-color: var(--mdc-theme-primary);
-
-  md-filled-text-field {
-    width: 100%;
-  }
-
-  md-filled-text-field.yourFriendCode {
-    width: 85%;
-  }
-
-  md-icon-button {
-    width: 15%;
-  }
-
-  width: 80%;
+.interactive {
+  cursor: pointer;
 }
+
+.headline {
+  font-weight: 400;
+  line-height: 1.5rem;
+  letter-spacing: normal;
+}
+
+.supporting {
+  opacity: 1;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: normal;
+}
+
+.switch {
+  margin-left: auto;
+}
+
+.info-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.info-icon {
+  flex: 0 0 auto;
+}
+
+m3e-dialog {
+  --m3e-dialog-min-width: min(28rem, 90vw);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 1rem;
+  padding: 1rem;
+  --m3e-dialog-container-color: var(--mdc-theme-surface);
+  color: var(--mdc-theme-on-surface);
+}
+
+.languageTitle {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5rem;
+  letter-spacing: normal;
+  margin-bottom: 0.75rem;
+}
+
+
 </style>

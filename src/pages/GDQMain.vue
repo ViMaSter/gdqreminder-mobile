@@ -2,12 +2,13 @@
 import { App } from "@capacitor/app";
 import { onMounted, ref, Ref, provide, defineComponent, watch, inject, computed } from "vue";
 import { AppLauncher } from "@capacitor/app-launcher";
-import "@material/mwc-drawer";
-import { MdDialog } from "@material/web/dialog/dialog";
-import { MdFilledTextField } from "@material/web/textfield/filled-text-field";
-import { MdTextButton } from "@material/web/button/text-button";
+import "@m3e/web/dialog";
+import "@m3e/web/drawer-container";
+import "@m3e/web/icon";
+import "@m3e/web/icon-button";
+import "@m3e/web/button";
+import "@m3e/web/form-field";
 import { Theme, useThemeStore } from "@/stores/theme";
-import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
 import Snackbar from "../components/Snackbar.vue";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { GDQRunData } from "../interfaces/GDQRun";
@@ -29,7 +30,6 @@ import { useFriendRunReminderStore } from "@/stores/friendRuns";
 import { useRunReminderStore } from "@/stores/runReminders";
 import Base16 from "@/utilities/base16";
 import { useI18n } from 'vue-i18n'
-import { selectDefaultEvent } from "@/utilities/eventSelection";
 
 import {
   getAuth,
@@ -40,6 +40,8 @@ import {
 import { reflectColor } from "@/utilities/colorHelper";
 import { useSettingsStore } from "@/stores/settings";
 import { ONBOARDING_DATA } from "@/utilities/onboardingConstants";
+import { seededEventsSnapshot } from "@/generated/seededEventsLoader";
+import { selectDefaultEvent } from "@/utilities/eventSelection";
 
 const getFirebaseAuth = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -51,45 +53,23 @@ const getFirebaseAuth = async () => {
   return getAuth();
 };
 
-interface TopAppBarFixedWithOpen extends TopAppBarFixed {
-  open: boolean;
-}
+type DrawerContainerElement = HTMLElement & { start: boolean };
 
 export default defineComponent({
-  async setup(_, { emit }) {
+  async setup() {
     const { t } = useI18n()
+    const searchQuery = ref("");
+    const searchActive = ref(false);
+    const searchPlaceholder = computed(() => t("search.placeholder"));
 
     const scrollable = ref<HTMLDivElement>();
     const wrapper = ref<HTMLDivElement>();
     provide<(x: number, y: number) => void>(
       "scrollRunContainerBy",
       (x: number, y: number) => {
-        const header =
-          scrollable.value!.parentElement!.shadowRoot!.querySelector(
-            ".mdc-drawer-app-content",
-          )! as HTMLElement;
-        header.scrollTo(0, 0);
-        header.addEventListener("scroll", function () {
-          header.scrollTo(0, 0);
-        });
-        header.style.overflow = "visible";
-
         scrollable.value!.querySelector("#runs")!.scrollBy(x, y);
         wrapper.value!.scrollTop = 0;
       },
-    );
-
-    watch(
-      scrollable,
-      (newValue) => {
-        if (newValue) {
-          const header = newValue.parentElement!.shadowRoot!.querySelector(
-            ".mdc-drawer-app-content",
-          )! as HTMLElement;
-          header.style.overflow = "visible";
-        }
-      },
-      { immediate: true },
     );
 
     const currentRun: Ref<[HTMLDivElement, GDQRunData] | null> =
@@ -98,6 +78,7 @@ export default defineComponent({
 
     const parameters = new LocationHashParameters();
     const date = parameters.getKey("date");
+    const hasDateOverride = Boolean(date);
     let dateProvider = new RealDateProvider();
     if (date) {
       dateProvider = new FakeDateProvider(new Date(decodeURIComponent(date)));
@@ -128,19 +109,6 @@ export default defineComponent({
     provide("jumpToYouTube", jumpToYouTube);
 
     const snackbar = ref<typeof Snackbar>();
-    const showSettings = (data?: string) => {
-      emit('setVisibility', "settings", data);
-
-      addBackButtonHook("settings", () => {
-        emit('setVisibility', "main");
-      });
-    };
-    const onboardingSnackbarAction = computed(() => ({
-      label: t("onboarding.settings.callToAction"),
-      callback: () => {
-        showSettings(ONBOARDING_DATA);
-      },
-    }));
     const showSnackbar = (text: string) => {
       if (snackbar.value!.hasAction &&
           snackbar.value!.isOpen) {
@@ -148,6 +116,7 @@ export default defineComponent({
       }
       snackbar.value!.setLabelText(text);
       snackbar.value!.setAction(null);
+      snackbar.value!.actionButtonText = "";
       snackbar.value!.timeoutMs = 10000;
       snackbar.value!.open();
     };
@@ -159,6 +128,7 @@ export default defineComponent({
       }
       snackbar.value!.setLabelHtml(html);
       snackbar.value!.setAction(null);
+      snackbar.value!.actionButtonText = "";
       snackbar.value!.timeoutMs = 10000;
       snackbar.value!.open();
     };
@@ -166,35 +136,39 @@ export default defineComponent({
 
     const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
     const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
-    onMounted(() => {
-      if (!useSettingsStore().initialized)
-      {
-        useSettingsStore().setDefaults();
-        snackbar.value!.setLabelText(t('onboarding.settings.label'));
-        snackbar.value!.open();
+    const showOnboardingSnackbarIfNeeded = () => {
+      if (useSettingsStore().initialized) {
+        return;
       }
+      if (!snackbar.value) {
+        return;
+      }
+
+      useSettingsStore().setDefaults();
+      snackbar.value!.setLabelText(t("onboarding.settings.label"));
+      snackbar.value!.actionButtonText = t("onboarding.settings.callToAction");
+      snackbar.value!.timeoutMs = -1;
+      snackbar.value!.open();
+    };
+    onMounted(() => {
       addBackButtonHook(
         "drawer",
         () => {
-          drawer.value!.open = true;
+          drawer.value!.start = true;
         },
       );
-      drawer.value!.addEventListener("MDCDrawer:closed", () => {
+      drawer.value!.addEventListener("change", () => {
+        if (drawer.value!.start) {
+          removeBackButtonHook("drawer");
+          return;
+        }
         addBackButtonHook("drawer", () => {
-          drawer.value!.open = true;
+          drawer.value!.start = true;
         });
-      });
-      drawer.value!.addEventListener("MDCDrawer:opened", () => {
-        removeBackButtonHook("drawer");
-      });
-
-      const container = drawer.value!.parentNode;
-      container!.addEventListener("MDCTopAppBar:nav", () => {
-        drawer.value!.open = !drawer.value!.open;
       });
       setupSwipeLogic(drawer.value!);
 
-      dialog.value?.addEventListener("close", async () => {
+      dialog.value?.addEventListener("closed", async () => {
         removeBackButtonHook("friendCode");
         if (dialog.value!.returnValue == "cancel") {
           return;
@@ -204,11 +178,9 @@ export default defineComponent({
         }
       });
 
-      friendUserIDInput.value!.addEventListener("input", () => {
-        updateFriendID();
-      });
+      friendUserIDInput.value!.addEventListener("input", updateFriendID);
     });
-    const setupSwipeLogic = (drawer: TopAppBarFixedWithOpen) => {
+    const setupSwipeLogic = (drawer: DrawerContainerElement) => {
       let touchIdentifier = -1;
       const veloEstimate = 10;
       const clientXThreshold = 20;
@@ -243,7 +215,7 @@ export default defineComponent({
         if (!touchStartEvent.touches[0]) {
           return;
         }
-        if (!drawer.open) {
+        if (!drawer.start) {
           if (touchStartEvent.touches[0].clientX > clientXThreshold) {
             return;
           }
@@ -274,7 +246,7 @@ export default defineComponent({
         if (calculatedVelocity == null) {
           return;
         }
-        drawer.open = calculatedVelocity > 0;
+        drawer.start = calculatedVelocity > 0;
         velocity = [];
         touchIdentifier = -1;
       });
@@ -294,12 +266,12 @@ export default defineComponent({
     const runsByDay = ref<{ [day: string]: string[] }>({});
     const matchingRunnerIndexesByRunID = ref<{ [runID: string]: number[] }>({});
     const matchingRunNamesByRunID = ref<{ [runID: string]: boolean }>({});
-
+    const drawer = ref<DrawerContainerElement>()!;
     const filterTypes = ["", "friend+alert", "alert"] as const;
     type RunFilter = (typeof filterTypes)[number];
     const activeFilter = ref<RunFilter>("");
-    const searchActive = ref(false);
-    const searchQuery = ref("");
+    const reminder = useRunReminderStore();
+    const friendRunStore = useFriendRunReminderStore();
 
     const parseSearchKeywords = (query: string): string[] => {
       const matches = query.match(/"([^"]+)"|(\S+)/g) ?? [];
@@ -325,11 +297,15 @@ export default defineComponent({
 
       const matchingRunnerIndexes = new Set<number>();
       let isRunNameMatched = false;
+
       for (const term of terms) {
         const inRunName = runName.includes(term);
-        const runnerIndex = runnerNames.findIndex((runnerName) => runnerName.includes(term));
+        const runnerIndexes = runnerNames
+          .map((runnerName, index) => ({ runnerName, index }))
+          .filter(({ runnerName }) => runnerName.includes(term))
+          .map(({ index }) => index);
 
-        if (!inRunName && runnerIndex === -1) {
+        if (!inRunName && runnerIndexes.length === 0) {
           return {
             matches: false,
             matchingRunnerIndexes: [],
@@ -337,9 +313,7 @@ export default defineComponent({
           };
         }
 
-        if (runnerIndex !== -1) {
-          matchingRunnerIndexes.add(runnerIndex);
-        }
+        runnerIndexes.forEach((index) => matchingRunnerIndexes.add(index));
         if (inRunName) {
           isRunNameMatched = true;
         }
@@ -355,6 +329,11 @@ export default defineComponent({
     // returns true if there are runs for this event already
     // returns false if there are no runs for this event yet
     // Helper to process and set runs data
+    const versionNamePromise = Version.getCurrent()
+      .then((version) => version.versionName)
+      .catch(() => "unknown");
+    const inFlightRunRequests = new Map<number, Promise<[string, GDQRunData][]>>();
+
     const processRuns = (
       eventID: number,
       runs: GDQRunData[]
@@ -394,6 +373,7 @@ export default defineComponent({
 
     const loadRuns = async (eventID: number) => {
       const cacheKey = `gdq_runs_${eventID}`;
+      const cacheSourceKey = `gdq_runs_source_${eventID}`;
       let orderedRuns: [string, GDQRunData][] = [];
 
       const cached = localStorage.getItem(cacheKey);
@@ -401,23 +381,40 @@ export default defineComponent({
         try {
           const parsed = JSON.parse(cached) as GDQRunData[];
           orderedRuns = processRuns(eventID, parsed);
+          if (orderedRuns.length > 0) {
+            const cacheSource = localStorage.getItem(cacheSourceKey) || "local";
+            if (cacheSource === "seed") {
+              console.log(`[runs] event ${eventID}: loaded ${orderedRuns.length} runs from seed cache`);
+            } else {
+              console.log(`[runs] event ${eventID}: loaded ${orderedRuns.length} runs from local cache`);
+            }
+          }
         } catch (e) {
           // ignore cache parse errors
         }
       }
 
       const fetchAndProcessRuns = async () => {
+        const existingRequest = inFlightRunRequests.get(eventID);
+        if (existingRequest) {
+          return existingRequest;
+        }
+
+        const request = (async () => {
         try {
+          const versionName = await versionNamePromise;
           const response = await CapacitorHttp.get({
             url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
             headers: {
-              'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
+              'User-Agent': `GDQReminderClient/${versionName}`
             },
           });
           if (response.status === 200 && response.data?.results) {
             const freshRuns = response.data.results as GDQRunData[];
             if (freshRuns.length > 0) {
               localStorage.setItem(cacheKey, JSON.stringify(freshRuns));
+              localStorage.setItem(cacheSourceKey, "network");
+              console.log(`[runs] event ${eventID}: fetched ${freshRuns.length} runs from network`);
               return processRuns(eventID, freshRuns);
             }
           }
@@ -425,6 +422,14 @@ export default defineComponent({
           // ignore fetch errors
         }
         return [];
+        })();
+
+        inFlightRunRequests.set(eventID, request);
+        try {
+          return await request;
+        } finally {
+          inFlightRunRequests.delete(eventID);
+        }
       };
 
       // If we already have data cached, fetch in the background
@@ -451,33 +456,10 @@ export default defineComponent({
       currentEventID.value = newEvent.id;
       reflectColor(currentEventName.value, document.body.classList.contains("dark-mode"));
       if (drawer.value) {
-        drawer.value.open = false;
+        drawer.value.start = false;
       }
 
-      const orderedRuns = runsByEventID.value[newEvent.id];
-      runsByDay.value = {};
-      matchingRunnerIndexesByRunID.value = {};
-      matchingRunNamesByRunID.value = {};
-      orderedRuns.forEach(([runID]) => {
-        const runData = runsByID.value[runID];
-        const { matches, matchingRunnerIndexes, isRunNameMatched } = getSearchMatchForRun(runData);
-        if (!matches) {
-          return;
-        }
-
-        const timeOfRun = new Date(runData.starttime);
-        timeOfRun.setHours(0, 0, 0, 0);
-        const dayOfRun = timeOfRun.getTime();
-        if (!Object.keys(runsByDay.value).includes(dayOfRun.toString())) {
-          runsByDay.value[dayOfRun] = [];
-        }
-        runsByDay.value[dayOfRun].push(runID);
-        matchingRunnerIndexesByRunID.value[runID] = matchingRunnerIndexes;
-        matchingRunNamesByRunID.value[runID] = isRunNameMatched;
-      });
-      queueMicrotask(() => {
-        refreshRuns();
-      });
+      refreshRuns();
     };
     const now = dateProvider.getCurrent();
 
@@ -493,33 +475,163 @@ export default defineComponent({
     const eventsByIDs: Ref<{ [id: number]: GDQEventData }> = ref(
       {},
     );
-    const loadEventsAndRuns = async (eventsAfter: Date) => {
+
+    const hydrateSeededData = () => {
+      const seededEvents = Array.from(seededEventsSnapshot.events)
+        .map((event): GDQEventData => ({
+          id: event.id,
+          short: event.short,
+          datetime: event.datetime,
+        }))
+        .filter((event) => event.short.toLowerCase().includes("gdq"))
+        .filter((event) => !event.short.toLowerCase().includes("cgdq"));
+
+      if (seededEvents.length <= 0) {
+        return;
+      }
+
+      const seededEventsByID = Object.fromEntries(
+        seededEvents.map((singleEvent): [number, GDQEventData] => [singleEvent.id, singleEvent]),
+      );
+
+      eventsByIDs.value = {
+        ...eventsByIDs.value,
+        ...seededEventsByID,
+      };
+
+      const rawSeededRuns = seededEventsSnapshot.runsByEventID as Record<string, readonly unknown[]>;
+      for (const [eventIDText, runs] of Object.entries(rawSeededRuns)) {
+        const eventID = parseInt(eventIDText, 10);
+        if (Number.isNaN(eventID) || !Array.isArray(runs) || runs.length <= 0) {
+          continue;
+        }
+
+        const mutableRuns: GDQRunData[] = runs.map((run) => {
+          const typedRun = run as GDQRunData;
+          return {
+            ...typedRun,
+            video_links: [...typedRun.video_links],
+            runners: [...typedRun.runners],
+          };
+        });
+        processRuns(eventID, mutableRuns);
+        localStorage.setItem(`gdq_runs_${eventID}`, JSON.stringify(mutableRuns));
+        localStorage.setItem(`gdq_runs_source_${eventID}`, "seed");
+        console.log(`[runs] event ${eventID}: hydrated ${mutableRuns.length} runs from seed cache`);
+      }
+    };
+
+    const selectNearbyEventIDs = (
+      sortedEvents: GDQEventData[],
+      reference: Date,
+      limit: number,
+    ): number[] => {
+      if (sortedEvents.length <= limit) {
+        return sortedEvents.map((event) => event.id);
+      }
+
+      const referenceTime = reference.getTime();
+      let pivotIndex = sortedEvents.findIndex(
+        (event) => new Date(event.datetime).getTime() <= referenceTime,
+      );
+      if (pivotIndex < 0) {
+        pivotIndex = sortedEvents.length - 1;
+      }
+
+      const selectedIDs: number[] = [];
+      for (let offset = 0; selectedIDs.length < limit; offset++) {
+        const leftIndex = pivotIndex - offset;
+        if (leftIndex >= 0) {
+          const leftID = sortedEvents[leftIndex].id;
+          if (!selectedIDs.includes(leftID)) {
+            selectedIDs.push(leftID);
+            if (selectedIDs.length >= limit) {
+              break;
+            }
+          }
+        }
+
+        if (offset === 0) {
+          continue;
+        }
+
+        const rightIndex = pivotIndex + offset;
+        if (rightIndex < sortedEvents.length) {
+          const rightID = sortedEvents[rightIndex].id;
+          if (!selectedIDs.includes(rightID)) {
+            selectedIDs.push(rightID);
+          }
+        }
+      }
+
+      return selectedIDs;
+    };
+
+    const loadEventsAndRuns = async (
+      eventsAfter: Date,
+      options?: { prioritizeAroundSimulatedNow?: boolean },
+    ) => {
+      const prioritizeAroundSimulatedNow = options?.prioritizeAroundSimulatedNow ?? false;
       const eventData = await EventsData.getEventsData(eventsAfter);
+      const sortedEvents = eventData
+        .filter((a) => a.short.toLowerCase().includes("gdq"))
+        .filter((a) => !a.short.toLowerCase().includes("cgdq"))
+        .sort(
+          (a, b) =>
+            new Date(b.datetime).getTime() -
+            new Date(a.datetime).getTime(),
+        );
+
       const newEventsByID = Object.fromEntries(
-        eventData
-          .filter((a) => a.short.toLowerCase().includes("gdq"))
-          .filter((a) => !a.short.toLowerCase().includes("cgdq"))
-          .sort(
-            (a, b) =>
-              new Date(b.datetime).getTime() -
-              new Date(a.datetime).getTime(),
-          )
+        sortedEvents
           .map((singleEvent): [number, GDQEventData] => [
             singleEvent.id,
             singleEvent,
           ]),
       );
 
-      for (const eventID of Object.keys(newEventsByID)) {
-        if (await loadRuns(parseInt(eventID))) {
-          continue;
+      const sortedEventIDs = prioritizeAroundSimulatedNow
+        ? selectNearbyEventIDs(sortedEvents, now, 3)
+        : sortedEvents.map((event) => event.id);
+
+      // For normal startup, block until we find the first event with runs.
+      // For hash-based date overrides, load only a small set around simulated now
+      // so splash can disappear quickly even on cold cache.
+      let firstEventWithRuns: number | null = null;
+      for (const eventID of sortedEventIDs) {
+        const hasRuns = await loadRuns(eventID);
+        if (hasRuns && firstEventWithRuns === null) {
+          firstEventWithRuns = eventID;
+          if (!prioritizeAroundSimulatedNow) {
+            break;
+          }
         }
 
-        if (eventsWithoutRuns.includes(eventID)) {
-          continue;
+        if (!hasRuns && !eventsWithoutRuns.includes(eventID.toString())) {
+          eventsWithoutRuns.push(eventID.toString());
         }
-        eventsWithoutRuns.push(eventID);
       }
+
+      if (!prioritizeAroundSimulatedNow) {
+        // Prefetch a few additional events without delaying initial render.
+        const prefetchCandidates = sortedEventIDs
+          .filter((eventID) => eventID !== firstEventWithRuns)
+          .slice(0, 3);
+        void Promise.all(
+          prefetchCandidates.map(async (eventID) => {
+            const hasRuns = await loadRuns(eventID);
+            if (!hasRuns && !eventsWithoutRuns.includes(eventID.toString())) {
+              eventsWithoutRuns.push(eventID.toString());
+            }
+          }),
+        ).then(() => {
+          eventsByIDs.value = filterEventsWithoutRuns({
+            ...eventsByIDs.value,
+            ...newEventsByID,
+          });
+        });
+      }
+
       eventsByIDs.value = filterEventsWithoutRuns({
         ...eventsByIDs.value,
         ...newEventsByID,
@@ -528,6 +640,32 @@ export default defineComponent({
 
     const doneLoading = ref(false);
 
+    const getSortedEventsByDate = () => {
+      return Object.values(eventsByIDs.value).sort(
+        (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime(),
+      );
+    };
+
+    const isEventWithRuns = (event: GDQEventData) => {
+      return !!runsByEventID.value[event.id] && runsByEventID.value[event.id].length > 0;
+    };
+
+    const pickInitialEvent = (eventList: GDQEventData[]) => {
+      const eventsWithRuns = eventList
+        .filter((event) => isEventWithRuns(event))
+        .map((event) => ({
+          event,
+          runs: (runsByEventID.value[event.id] || []).map(([, run]) => run),
+        }));
+
+      const selected = selectDefaultEvent(eventsWithRuns, now);
+      if (selected) {
+        return selected;
+      }
+
+      return eventList[0];
+    };
+
     {
       const roughly8MonthsAgo = dateProvider.getCurrent();
       roughly8MonthsAgo.setFullYear(
@@ -535,52 +673,85 @@ export default defineComponent({
         roughly8MonthsAgo.getMonth() - 8,
         1,
       );
-      await loadEventsAndRuns(roughly8MonthsAgo);
-      setTimeout(async () => {
-        const eventData = await EventsData.getEventsData(new Date("2011-01-01"));
-        const newEventsByID = Object.fromEntries(
-          eventData
-            .filter((a) => a.short.toLowerCase().includes("gdq"))
-            .filter((a) => !a.short.toLowerCase().includes("cgdq"))
-            .sort(
-              (a, b) =>
-                new Date(b.datetime).getTime() -
-                new Date(a.datetime).getTime(),
-            )
-            .map((singleEvent): [number, GDQEventData] => [
-              singleEvent.id,
-              singleEvent,
-            ]),
-        );
-        eventsByIDs.value = filterEventsWithoutRuns({
-          ...eventsByIDs.value,
-          ...newEventsByID,
+
+      if (!hasDateOverride) {
+        hydrateSeededData();
+        const seededInitialEvent = pickInitialEvent(getSortedEventsByDate());
+        if (seededInitialEvent) {
+          void updateCurrentEvent(seededInitialEvent).then(() => {
+            showOnboardingSnackbarIfNeeded();
+          });
+        }
+      }
+
+      void (async () => {
+        await loadEventsAndRuns(roughly8MonthsAgo, {
+          prioritizeAroundSimulatedNow: hasDateOverride,
         });
-        doneLoading.value = true;
-      }, 2000);
+
+        const refreshedInitialEvent = pickInitialEvent(getSortedEventsByDate());
+        if (refreshedInitialEvent && refreshedInitialEvent.id !== currentEventID.value) {
+          await updateCurrentEvent(refreshedInitialEvent);
+        }
+
+        if (currentEventID.value > 0) {
+          showOnboardingSnackbarIfNeeded();
+        }
+
+        if (hasDateOverride && currentEventID.value > 0) {
+          const actualRecentStart = new Date();
+          actualRecentStart.setFullYear(
+            actualRecentStart.getFullYear(),
+            actualRecentStart.getMonth() - 8,
+            1,
+          );
+          void loadEventsAndRuns(actualRecentStart);
+        }
+
+        setTimeout(async () => {
+          const eventData = await EventsData.getEventsData(new Date("2011-01-01"));
+          const newEventsByID = Object.fromEntries(
+            eventData
+              .filter((a) => a.short.toLowerCase().includes("gdq"))
+              .filter((a) => !a.short.toLowerCase().includes("cgdq"))
+              .sort(
+                (a, b) =>
+                  new Date(b.datetime).getTime() -
+                  new Date(a.datetime).getTime(),
+              )
+              .map((singleEvent): [number, GDQEventData] => [
+                singleEvent.id,
+                singleEvent,
+              ]),
+          );
+          eventsByIDs.value = filterEventsWithoutRuns({
+            ...eventsByIDs.value,
+            ...newEventsByID,
+          });
+          doneLoading.value = true;
+        }, 2000);
+      })();
     }
 
-    const eventsWithRuns = () => {
-      return Object.values(eventsByIDs.value)
-        .map((event) => ({
-          event,
-          runs:
-            runsByEventID.value[event.id]?.map(([, run]) => run) ?? [],
-        }))
-        .filter(({ runs }) => runs.length > 0);
+    const determineLatestEventWithRuns = (eventList: GDQEventData[]) => {
+      // return if true if shorthand is not part of eventsWithoutRuns
+      const eventWithRuns = eventList.find(
+        (event) => !eventsWithoutRuns.includes(event.id.toString()),
+      );
+      if (eventWithRuns) {
+        return eventWithRuns;
+      }
+
+      throw new Error("No event with runs found");
     };
 
-    const drawer = ref<TopAppBarFixedWithOpen>()!;
-
-    const startupEvent = selectDefaultEvent(eventsWithRuns(), now);
-    if (startupEvent) {
-      await updateCurrentEvent(startupEvent);
-    } else {
+    if (Object.keys(runsByDay.value).length === 0) {
       runsByDay.value = {};
     }
 
     const updateCurrentEventToNewest = async () => {
-      if (eventsWithRuns().length <= 0) {
+      const descendingEventList = getSortedEventsByDate();
+      if (descendingEventList.length <= 0) {
         await new Promise((resolve) => {
           const interval = setInterval(() => {
             if (doneLoading.value) {
@@ -591,28 +762,50 @@ export default defineComponent({
         });
       }
 
-      const defaultEvent = selectDefaultEvent(
-        eventsWithRuns(),
-        dateProvider.getCurrent(),
-      );
-      if (!defaultEvent) {
-        throw new Error("No event with runs found");
-      }
-
-      if (defaultEvent.short.toUpperCase() == currentEventName.value) {
+      const newestEvent = determineLatestEventWithRuns(descendingEventList);
+      if (newestEvent.short.toUpperCase() == currentEventName.value) {
         return;
       }
-      await updateCurrentEvent(defaultEvent);
+      await updateCurrentEvent(newestEvent);
     };
 
     const openFriendMenu = () => {
       addBackButtonHook(
         "friendCode",
         () => {
-          dialog.value!.open = false;
+          void dialog.value?.hide("cancel");
         },
       );
-      dialog.value!.open = true;
+      void dialog.value?.show();
+    };
+
+    const toggleDrawer = () => {
+      drawer.value!.start = true;
+    };
+
+    const toggleSearch = () => {
+      if (searchActive.value) {
+        const hadQuery = searchQuery.value.trim().length > 0;
+        searchQuery.value = "";
+        searchActive.value = false;
+        if (hadQuery) {
+          refreshRuns();
+        }
+        const activeEl = document.activeElement as HTMLElement | null;
+        activeEl?.blur();
+        document.body.focus();
+        return;
+      }
+      searchActive.value = true;
+    };
+
+    const updateSearchQuery = (value: string) => {
+      searchQuery.value = value;
+      refreshRuns();
+    };
+
+    const searchInputBlurred = (_value: string) => {
+      // Keep blur side-effect free; close/open is controlled by explicit toggle action.
     };
 
     const toggleDarkMode = () => {
@@ -639,28 +832,9 @@ export default defineComponent({
       return "";
     });
 
-    const reminder = useRunReminderStore();
-    const friendRunStore = useFriendRunReminderStore();
-
-    const activeSearchLabel = computed(() => {
-      if (!searchQuery.value.trim()) {
-        return "";
-      }
-      return t("search.active", {
-        query: searchQuery.value.trim(),
-      });
-    });
-
     const activeSearchTerms = computed(() => parseSearchKeywords(searchQuery.value));
 
-    const activeFilterAndSearchLabel = computed(() => {
-      const labels = [activeFilterLabel.value, activeSearchLabel.value].filter(
-        (label) => label.length > 0,
-      );
-      return labels.join(" • ");
-    });
-
-    const refreshRuns = () => {
+    function refreshRuns() {
       const orderedRuns = runsByEventID.value[currentEventID.value];
       const runs: { [day: string]: string[] } = {};
       const matchingRunnerIndexes: { [runID: string]: number[] } = {};
@@ -677,7 +851,11 @@ export default defineComponent({
         const hasAlert = reminder.allReminders.includes(runID);
         const inFriendRuns = friendRunStore.allReminders.includes(runID);
         const runData = runsByID.value[runID];
-        const { matches, matchingRunnerIndexes: matchedRunnerIndexes, isRunNameMatched } = getSearchMatchForRun(runData);
+        const {
+          matches,
+          matchingRunnerIndexes: matchedRunnerIndexes,
+          isRunNameMatched,
+        } = getSearchMatchForRun(runData);
 
         if (activeFilter.value == "friend+alert" && !inFriendRuns && !hasAlert) {
           return;
@@ -710,78 +888,25 @@ export default defineComponent({
           )
           .join("\n"),
       );
-    };
+    }
 
     const userIDStorage = useUserIDStore();
     const encodedFriendUserID = ref(Base16.encode(userIDStorage.friendUserID?.trim() ?? ""));
-    const friendUserIDInput = ref<MdFilledTextField>();
-    const apply = ref<MdTextButton>();
+    const friendUserIDInput = ref<HTMLInputElement>();
+    const apply = ref<(HTMLElement & { disabled: boolean })>();
 
     const updateFriendID = () => {
       encodedFriendUserID.value = friendUserIDInput.value!.value.trim();
-    };
-
-    const updateSearchQuery = (newQuery: string) => {
-      searchQuery.value = newQuery;
-      refreshRuns();
-    };
-
-    let ignoreNextSearchBlur = false;
-    let enableSearchBlockedUntil = 0;
-    const searchReenableDelayMs = 100;
-
-    const onSearchInputBlurred = (queryOnBlur: string) => {
-      if (ignoreNextSearchBlur) {
-        ignoreNextSearchBlur = false;
-        return;
-      }
-      searchQuery.value = queryOnBlur;
-      if (queryOnBlur.trim().length > 0 || !searchActive.value) {
-        return;
-      }
-      toggleSearch();
-    };
-
-    const closeSearch = () => {
-      searchActive.value = false;
-      enableSearchBlockedUntil = Date.now() + searchReenableDelayMs;
-
-      const hasActiveQuery = searchQuery.value.trim().length > 0;
-      searchQuery.value = "";
-      if (hasActiveQuery) {
-        refreshRuns();
-      }
-
-      // Ensure focus does not remain on the close button after search is dismissed.
-      queueMicrotask(() => {
-        (document.activeElement as HTMLElement | null)?.blur();
-      });
-    };
-
-    const toggleSearch = () => {
-      const now = Date.now();
-      if (!searchActive.value && now < enableSearchBlockedUntil) {
-        return;
-      }
-
-      if (searchActive.value) {
-        ignoreNextSearchBlur = true;
-        closeSearch();
-        return;
-      }
-      searchActive.value = true;
     };
 
     watch(encodedFriendUserID, (newValue) => {
       try {
         Base16.decode(newValue.trim());
         apply.value!.disabled = false;
-        friendUserIDInput.value!.error = false;
-        friendUserIDInput.value!.errorText = "";
+        friendUserIDInput.value!.setCustomValidity("");
       } catch (e) {
         apply.value!.disabled = true;
-        friendUserIDInput.value!.error = true;
-        friendUserIDInput.value!.errorText = t('friendCodes.error-friendCode');
+        friendUserIDInput.value!.setCustomValidity(t('friendCodes.error-friendCode'));
       }
     });
 
@@ -806,7 +931,11 @@ export default defineComponent({
     });
 
     const eventHeader = ref<HTMLSpanElement>();
-    const dialog = ref<MdDialog>();
+    const dialog = ref<HTMLDialogElement & {
+      show: () => Promise<void>;
+      hide: (returnValue?: string) => Promise<void>;
+      returnValue: string;
+    }>();
 
     let userID = ref("");
     const base16EncodedUserID = ref("");
@@ -814,7 +943,11 @@ export default defineComponent({
         base16EncodedUserID.value = Base16.encode(newUserID);
     });
     getFirebaseAuth().then(async (auth) => {
-      userID.value = (await signInAnonymously(auth)).user!.uid;
+      try {
+        userID.value = (await signInAnonymously(auth)).user!.uid;
+      } catch {
+        userID.value = localStorage.getItem("firebaseUserID") ?? "web-offline-user";
+      }
       localStorage.setItem("firebaseUserID", userID.value);
     });
 
@@ -844,7 +977,10 @@ export default defineComponent({
       currentEventName,
       currentEventID,
       activeFilter,
-      activeFilterAndSearchLabel,
+      activeFilterLabel,
+      searchQuery,
+      searchActive,
+      searchPlaceholder,
       loadRuns,
       updateCurrentEvent,
       updateCurrentEventToNewest,
@@ -859,15 +995,12 @@ export default defineComponent({
       updateFriendID,
       wrapper,
       openFriendMenu,
-      updateSearchQuery,
-      onSearchInputBlurred,
+      toggleDrawer,
       toggleSearch,
-      searchActive,
-      searchQuery,
+      updateSearchQuery,
+      searchInputBlurred,
       toggleFilter,
       toggleDarkMode,
-      showSettings,
-      onboardingSnackbarAction,
       userID,
       generateContainerClassNames: () => {
         const classNames = ["container"];
@@ -892,84 +1025,106 @@ export default defineComponent({
   inject: [
     "addBackButtonHook",
     "removeBackButtonHook"
-  ]
+  ],
+  methods: {
+    showSettings(data : string) {
+      this.$emit('setVisibility', "settings", data);
+
+      const addBackButtonHook = this.addBackButtonHook! as ((id: string, hook: () => void) => void);
+      addBackButtonHook("settings", () => {
+        this.$emit('setVisibility', "main");
+      });
+    },
+    snackbarAction (action: string) {
+      if (action == "action")  {
+        this.showSettings(ONBOARDING_DATA);
+      }
+    }
+  }
 });
 </script>
 
 <template>
   <div ref="wrapper" :class="generateContainerClassNames()">
-    <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
-    <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
-    <md-dialog ref="dialog">
-      <div slot="headline">{{$t('friendCodes.headline')}}</div>
-      <div slot="content">
+    <m3e-dialog ref="dialog" class="friendCodeDialog" data-test="friend-dialog" dismissible>
+      <span slot="header">{{$t('friendCodes.headline')}}</span>
+      <div class="dialogContent">
         {{$t('friendCodes.content-yourCode')}}
         <br />
         <br />
-        <md-filled-text-field
-          class="yourFriendCode"
-          :label="$t('friendCodes.label-yourCode')"
-          :value="base16EncodedUserID"
-          disabled
-        ></md-filled-text-field><md-icon-button @click="copyID"><md-icon>content_copy</md-icon></md-icon-button>
+        <m3e-form-field class="yourFriendCode" variant="filled" hideSubscript="always">
+          <label slot="label" for="yourFriendCodeInput">{{$t('friendCodes.label-yourCode')}}</label>
+          <input
+            id="yourFriendCodeInput"
+            :aria-label="$t('friendCodes.label-yourCode')"
+            :value="base16EncodedUserID"
+            disabled
+          />
+        </m3e-form-field>
+        <m3e-icon-button @click="copyID"><m3e-icon name="content_copy"></m3e-icon></m3e-icon-button>
         <br />
         <br />
         <hr />
         <br />
-        <form id="form" method="dialog">
-          {{$t('friendCodes.content-friendCode')}}<br /><br />
-          <b>{{$t('note')}}:</b> {{$t('friendCodes.note-friendCode')}}
-          <br />
-          <br />
-          <md-filled-text-field
-          :label="$t('friendCodes.label-friendCode')"
+        {{$t('friendCodes.content-friendCode')}}<br /><br />
+        <b>{{$t('note')}}:</b> {{$t('friendCodes.note-friendCode')}}
+        <br />
+        <br />
+        <m3e-form-field class="friendCodeInput" variant="outlined" hideSubscript="auto">
+          <label slot="label" for="friendCodeInput">{{$t('friendCodes.label-friendCode')}}</label>
+          <input
+            id="friendCodeInput"
+            :aria-label="$t('friendCodes.label-friendCode')"
             placeholder="xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx-xxxxxxxx"
             :value="encodedFriendUserID"
             ref="friendUserIDInput"
-          ></md-filled-text-field>
-        </form>
+          />
+        </m3e-form-field>
       </div>
-      <div slot="actions">
-        <md-text-button form="form" value="cancel">{{$t("cancel")}}</md-text-button>
-        <md-text-button form="form" ref="apply" value="apply">{{$t("apply")}}</md-text-button>
+      <div slot="actions" class="dialogActions">
+        <m3e-button class="dialogButton"><m3e-dialog-action return-value="cancel">{{$t("cancel")}}</m3e-dialog-action></m3e-button>
+        <m3e-button ref="apply" class="dialogButton"><m3e-dialog-action return-value="apply">{{$t("apply")}}</m3e-dialog-action></m3e-button>
       </div>
-    </md-dialog>
+    </m3e-dialog>
     <Snackbar
       ref="snackbar"
       :labelText="$t('onboarding.settings.label')"
-      :action="onboardingSnackbarAction"
       :timeoutMs="-1"
+      @onClosing="snackbarAction"
     />
-    <mwc-drawer hasHeader type="dismissible" ref="drawer">
-      <span ref="eventHeader" slot="title">{{ $t('sidebar.headline') }}</span>
-      <GDQSidebar
-        :doneLoading="doneLoading"
-        :eventsByIDs="eventsByIDs"
-        @onUpdateCurrentEvent="updateCurrentEvent"
-      ></GDQSidebar>
-      <div id="appContent" slot="appContent" ref="scrollable">
+    <m3e-drawer-container ref="drawer" start-mode="over">
+      <div slot="start" class="sidebarPane">
+        <span ref="eventHeader" class="sidebarTitle">{{ $t('sidebar.headline') }}</span>
+        <GDQSidebar
+          :doneLoading="doneLoading"
+          :eventsByIDs="eventsByIDs"
+          @onUpdateCurrentEvent="updateCurrentEvent"
+        ></GDQSidebar>
+      </div>
+      <div id="appContent" ref="scrollable">
         <GDQHeader
           @openFriendMenu="openFriendMenu"
           @toggleDarkMode="toggleDarkMode"
           @toggleFilter="toggleFilter"
+          @toggleDrawer="toggleDrawer"
           @toggleSearch="toggleSearch"
           @updateSearchQuery="updateSearchQuery"
-          @searchInputBlurred="onSearchInputBlurred"
+          @searchInputBlurred="searchInputBlurred"
           @showSettings="showSettings"
           :currentEventName="currentEventName"
           :searchQuery="searchQuery"
+          :searchPlaceholder="searchPlaceholder"
           :searchActive="searchActive"
-          :searchPlaceholder="$t('search.placeholder')"
         ></GDQHeader>
 
-        <div class="mdc-top-app-bar--fixed-adjust" id="runs">
-          <div :class="['activeFilterBar', { hidden: activeFilterAndSearchLabel === '' }]">
-            <span class="activeFilterBarContent" data-test="active-filter-label">{{ activeFilterAndSearchLabel }}</span>
+        <div class="top-bar-adjust" id="runs">
+          <div :class="['activeFilterBar', { hidden: activeFilter === '' }]">
+            <span class="activeFilterBarContent" data-test="active-filter-label">{{ activeFilterLabel }}</span>
           </div>
           <div class="transition"></div>
           <template
             v-for="(runs, day, index) in runsByDay"
-            :key="runs.join('')"
+            :key="runs.join('') + '|' + activeSearchTerms.join('|')"
           >
             <GDQDay
               class="gdqday"
@@ -988,39 +1143,69 @@ export default defineComponent({
           <GDQTimeIndicator></GDQTimeIndicator>
         </div>
       </div>
-    </mwc-drawer>
-    <!-- eslint-enable vue/no-deprecated-slot-attribute -->
+    </m3e-drawer-container>
   </div>
 </template>
 
 <style lang="scss" scoped>
-mwc-drawer {
-  padding-top: var(--safe-area-inset-top);
+m3e-drawer-container {
+  --drawer-header-padding-left: 1rem;
+  --drawer-header-padding-right: 0.75rem;
+  --m3e-drawer-container-width: 256px;
 }
 
-mwc-drawer > * {
+m3e-drawer-container > * {
   color: var(--mdc-theme-on-surface);
 }
 
-md-dialog {
-  --md-dialog-container-color: var(--mdc-theme-surface);
-  --md-dialog-headline-color: var(--mdc-theme-on-surface);
-  --md-dialog-supporting-text-color: var(--mdc-theme-on-surface);
-  --md-filled-text-field-container-color: var(--mdc-theme-surface);
-  --md-filled-text-field-focus-active-indicator-color: var(--mdc-theme-primary);
-  --md-filled-text-field-label-text-color: var(--mdc-theme-on-surface);
-  --md-filled-field-active-indicator-color: var(--mdc-theme-primary);
+.friendCodeDialog {
+  --m3e-dialog-min-width: 51vw;
+  --m3e-dialog-max-width: 51vw;
+  --m3e-dialog-shape: 1.5rem;
+  --m3e-dialog-color: var(--mdc-theme-on-surface);
+  --m3e-dialog-container-color: var(--mdc-theme-surface);
+}
 
-  md-filled-text-field {
-    width: 100%;
+.dialogContent {
+  .yourFriendCode {
+    width: calc(100% - 3.5rem);
   }
-  md-filled-text-field.yourFriendCode {
-    width: 85%;
-  }
-  md-icon-button {
-    width: 15%;
-  }
-  width: 80%;
+}
+
+.dialogContent m3e-form-field {
+  width: 100%;
+}
+
+
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dialogButton {
+  border: 0;
+  background: transparent;
+  color: var(--mdc-theme-on-surface);
+  font-weight: 500;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+}
+
+.sidebarPane {
+  padding-top: var(--safe-area-inset-top);
+  background: var(--mdc-theme-surface);
+}
+
+.sidebarTitle {
+  display: block;
+  padding: 1rem var(--drawer-header-padding-right) 1rem var(--drawer-header-padding-left);
+  font-family: Roboto, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 2rem;
+  letter-spacing: 0.015625rem;
 }
 
 .padding {
@@ -1029,7 +1214,7 @@ md-dialog {
 .dark-mode {
   .transition {
     --from: hsla(var(--md-sys-color-primary), 1);
-    --to: hsla(var(--mmd-sys-color-primary), 0);
+    --to: hsla(var(--md-sys-color-primary), 0);
   }
 
   .agdq .transition {

@@ -1,6 +1,8 @@
 <script lang="ts">
 import { defineComponent, nextTick, ref, watch } from "vue";
-import "@material/mwc-top-app-bar-fixed";
+import "@m3e/web/app-bar";
+import "@m3e/web/icon";
+import "@m3e/web/icon-button";
 
 export default defineComponent({
   props: {
@@ -10,15 +12,18 @@ export default defineComponent({
     },
     searchQuery: {
       type: String,
-      required: true,
+      required: false,
+      default: "",
     },
     searchPlaceholder: {
       type: String,
-      required: true,
+      required: false,
+      default: "",
     },
     searchActive: {
       type: Boolean,
-      required: true,
+      required: false,
+      default: false,
     },
   },
   setup(props) {
@@ -43,13 +48,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-deprecated-slot-attribute false positive: -->
-  <!-- google uses 'slot' as a prop name, so we need to disable this rule, as it's a false positive -->
-  <mwc-top-app-bar-fixed data-test-selector="main">
-    <md-icon-button slot="navigationIcon"
-      ><md-icon>menu</md-icon></md-icon-button
-    >
-    <div v-if="searchActive" slot="title" class="searchWrapper">
+  <m3e-app-bar data-test-selector="main" size="small">
+    <m3e-icon-button slot="leading" @click="$emit('toggleDrawer')" data-test="toggle-drawer">
+      <m3e-icon name="menu"></m3e-icon>
+    </m3e-icon-button>
+    <div v-if="searchActive" slot="title" class="searchWrapper" data-test="main-title">
       <input
         ref="searchInput"
         class="searchInput"
@@ -60,33 +63,32 @@ export default defineComponent({
         @blur="$emit('searchInputBlurred', ($event.target as HTMLInputElement).value)"
       />
     </div>
-    <div v-else slot="title">{{ currentEventName }}</div>
-    <md-icon-button slot="actionItems" @click="$emit('toggleSearch')"
-      ><md-icon>{{ searchActive ? 'close' : 'search' }}</md-icon></md-icon-button
-    >
-    <md-icon-button slot="actionItems" @click="$emit('openFriendMenu')"
-      data-test="open-friend-menu"
-      ><md-icon>group</md-icon></md-icon-button
-    >
-    <md-icon-button slot="actionItems" @click="$emit('toggleFilter')"
-      ><md-icon>filter_list</md-icon></md-icon-button
-    >
-    <md-icon-button slot="actionItems" @click="$emit('toggleDarkMode')"
-      ><md-icon>dark_mode</md-icon></md-icon-button
-    >
-    <md-icon-button slot="actionItems" @click="$emit('showSettings')"
-      data-test="settings"
-      ><md-icon>settings</md-icon></md-icon-button
-    >
-  </mwc-top-app-bar-fixed>
-    <!-- eslint-enable vue/no-deprecated-slot-attribute false positive: -->
+    <div v-else slot="title" data-test="main-title">{{ currentEventName }}</div>
+    <m3e-icon-button slot="trailing" @click="$emit('toggleSearch')" data-test="toggle-search">
+      <m3e-icon :name="searchActive ? 'close' : 'search'"></m3e-icon>
+    </m3e-icon-button>
+    <m3e-icon-button slot="trailing" @click="$emit('openFriendMenu')" data-test="open-friend-menu">
+      <m3e-icon name="group"></m3e-icon>
+    </m3e-icon-button>
+    <m3e-icon-button slot="trailing" @click="$emit('toggleFilter')" data-test="toggle-filter">
+      <m3e-icon name="filter_list"></m3e-icon>
+    </m3e-icon-button>
+    <m3e-icon-button slot="trailing" @click="$emit('toggleDarkMode')" data-test="toggle-dark-mode">
+      <m3e-icon name="dark_mode"></m3e-icon>
+    </m3e-icon-button>
+    <m3e-icon-button slot="trailing" @click="$emit('showSettings')" data-test="settings">
+      <m3e-icon name="settings"></m3e-icon>
+    </m3e-icon-button>
+  </m3e-app-bar>
 </template>
 
 <style lang="scss" scoped>
-mwc-top-app-bar-fixed {
-  background-color: var(--mdc-theme-primary);
-  padding-top: var(--safe-area-inset-top);
-  margin-top: calc(var(--safe-area-inset-top) * -1);
+m3e-app-bar > div[slot="title"] {
+  font-family: Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: 0.25px;
 }
 
 .searchWrapper {
@@ -103,7 +105,7 @@ mwc-top-app-bar-fixed {
   border: 0;
   border-radius: 0.5rem;
   padding: 0 0.6rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   background-color: color-mix(in srgb, var(--md-sys-color-on-primary) 20%, transparent);
   color: var(--mdc-theme-on-surface);
   outline: transparent !important;

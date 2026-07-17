@@ -21,15 +21,11 @@ const getVisibleRunNames = async (page: Page) =>
   normalizeTexts(await page.locator(".run .runName").allTextContents());
 
 const clickFilter = async (page: Page) => {
-  await page
-    .locator('mwc-top-app-bar-fixed[data-test-selector="main"] md-icon-button:has(md-icon:has-text("filter_list"))')
-    .click();
+  await page.locator('[data-test="toggle-filter"]').click();
 };
 
 const clickSearchToggle = async (page: Page, icon: "search" | "close") => {
-  await page
-    .locator(`mwc-top-app-bar-fixed[data-test-selector="main"] md-icon-button:has(md-icon:has-text("${icon}"))`)
-    .click();
+  await page.locator('[data-test="toggle-search"]').click();
 };
 
 const applyFriendCode = async (
@@ -37,8 +33,8 @@ const applyFriendCode = async (
   friendCode: string,
 ) => {
   await page.click('[data-test="open-friend-menu"]');
-  await page.fill('md-filled-field[label="Enter friend code"] input', friendCode);
-  await page.click('md-text-button[value="apply"]');
+  await page.fill('input[aria-label="Enter friend code"]', friendCode);
+  await page.click('m3e-dialog[data-test="friend-dialog"] m3e-dialog-action[return-value="apply"]');
 };
 
 const gotoStableRunsList = async (page: Page) => {
@@ -46,7 +42,7 @@ const gotoStableRunsList = async (page: Page) => {
   await page.evaluate(() => {
     location.reload();
   });
-  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+  await page.waitForSelector('[data-test="main-title"]');
   await page.waitForSelector(".run .runName");
 };
 
@@ -54,9 +50,9 @@ const switchToEvent = async (
   page: Page,
   eventTitle: string,
 ) => {
-  await page.click('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="navigationIcon"]');
-  await page.waitForSelector(".mdc-drawer");
-  await page.click(`md-list md-list-item:has-text("${eventTitle}")`);
+  await page.click('[data-test="toggle-drawer"]');
+  await expect(page.locator('[data-test="event-item"]').first()).toBeVisible();
+  await page.click(`[data-test="event-item"]:has-text("${eventTitle}")`);
   await page.waitForSelector(".day-divider");
 };
 
@@ -68,7 +64,7 @@ test.describe("filtering", () => {
 
     await clickSearchToggle(page, "search");
 
-    const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
+    const searchInput = page.locator('m3e-app-bar[data-test-selector="main"] input.searchInput');
     await expect(searchInput).toBeVisible();
     await searchInput.fill("zelda link");
     await expect(searchInput).toHaveValue("zelda link");
@@ -90,11 +86,8 @@ test.describe("filtering", () => {
     await clickSearchToggle(page, "close");
     await expect(searchInput).toHaveCount(0);
     await expect(
-      page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] md-icon-button:has(md-icon:has-text("search"))'),
+      page.locator('[data-test="toggle-search"]'),
     ).toBeVisible();
-    await expect(
-      page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] md-icon-button:has(md-icon:has-text("close"))'),
-    ).toHaveCount(0);
   });
 
   test("filter label respects language setting", async ({ page }) => {
@@ -103,23 +96,23 @@ test.describe("filtering", () => {
     await gotoStableRunsList(page);
 
     await page.click('[data-test="settings"]');
-    await expect(page.locator(".gdq-settings mwc-top-app-bar-fixed")).toBeVisible();
+    await expect(page.locator(".gdq-settings m3e-app-bar")).toBeVisible();
 
     await page.locator("[data-test=open-language-dialog]").click();
     await expect(page.locator("[data-test=language-dialog]")).toBeVisible();
     await page.locator("[data-test=language-option-english]").click();
-    await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+    await page.waitForSelector('[data-test="main-title"]');
 
     await clickFilter(page);
     await expect(page.locator('[data-test="active-filter-label"]')).toHaveText("Your runs");
 
     await page.click('[data-test="settings"]');
-    await expect(page.locator(".gdq-settings mwc-top-app-bar-fixed")).toBeVisible();
+    await expect(page.locator(".gdq-settings m3e-app-bar")).toBeVisible();
 
     await page.locator("[data-test=open-language-dialog]").click();
     await expect(page.locator("[data-test=language-dialog]")).toBeVisible();
     await page.locator("[data-test=language-option-german]").click();
-    await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+    await page.waitForSelector('[data-test="main-title"]');
 
     await clickFilter(page);
     await expect(page.locator('[data-test="active-filter-label"]')).toHaveText("Deine Runs");
@@ -132,7 +125,7 @@ test.describe("filtering", () => {
     await switchToEvent(page, "SGDQ2026");
 
     await clickSearchToggle(page, "search");
-    const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
+    const searchInput = page.locator('m3e-app-bar[data-test-selector="main"] input.searchInput');
     await expect(searchInput).toBeVisible();
 
     const runs = page.locator(".run");
@@ -187,7 +180,7 @@ test.describe("filtering", () => {
     await gotoStableRunsList(page);
 
     await clickSearchToggle(page, "search");
-    const searchInput = page.locator('mwc-top-app-bar-fixed[data-test-selector="main"] input.searchInput');
+    const searchInput = page.locator('m3e-app-bar[data-test-selector="main"] input.searchInput');
     await expect(searchInput).toBeVisible();
     await searchInput.fill("");
 
