@@ -25,16 +25,17 @@ const closeSettings = () => {
 
 type M3EDialogElement = HTMLElement & {
   open: boolean;
-  close: () => void;
+  show: () => Promise<void>;
+  hide: () => Promise<void>;
 };
 
 const languageDialog = ref<M3EDialogElement>();
-const openLanguageDialog = () => {
+const openLanguageDialog = async () => {
   addBackButtonHook("settings-language-dialog", () => {
-    languageDialog.value?.close();
+    void languageDialog.value?.hide();
   });
   if (languageDialog.value) {
-    languageDialog.value.open = true;
+    await languageDialog.value.show();
   }
 };
 
@@ -67,7 +68,7 @@ onBeforeMount(() => {
       return;
     }
 
-    dialog!.addEventListener('close', () => {
+    dialog!.addEventListener('closed', () => {
       removeBackButtonHook("settings-language-dialog");
     });
   });
@@ -228,7 +229,7 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
     </main>
     <m3e-dialog id="dlg" ref="languageDialog" data-test="language-dialog" class="languageDialog" dismissible>
       <span slot="header">{{ $t('settings.label-appLanguage') }}</span>
-      <m3e-selection-list hide-selection-indicator @change="(e: Event) => { settingsStore.setLanguage((e.target as HTMLElement & { value: string }).value as any); languageDialog?.close(); }">
+      <m3e-selection-list hide-selection-indicator @change="(e: Event) => { settingsStore.setLanguage((e.target as HTMLElement & { value: string }).value as any); languageDialog?.hide(); }">
         <m3e-list-option v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key" :value="key" :selected="selectedLanguage === key">
           <m3e-pseudo-radio slot="leading" :checked="selectedLanguage === key"></m3e-pseudo-radio>
           {{ t('settings.option-'+key) }}
