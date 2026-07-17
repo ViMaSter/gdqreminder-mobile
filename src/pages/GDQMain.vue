@@ -78,6 +78,7 @@ export default defineComponent({
 
     const parameters = new LocationHashParameters();
     const date = parameters.getKey("date");
+    const hasDateOverride = Boolean(date);
     let dateProvider = new RealDateProvider();
     if (date) {
       dateProvider = new FakeDateProvider(new Date(decodeURIComponent(date)));
@@ -520,55 +521,116 @@ export default defineComponent({
       }
     };
 
-    const loadEventsAndRuns = async (eventsAfter: Date) => {
+    const selectNearbyEventIDs = (
+      sortedEvents: GDQEventData[],
+      reference: Date,
+      limit: number,
+    ): number[] => {
+      if (sortedEvents.length <= limit) {
+        return sortedEvents.map((event) => event.id);
+      }
+
+      const referenceTime = reference.getTime();
+      let pivotIndex = sortedEvents.findIndex(
+        (event) => new Date(event.datetime).getTime() <= referenceTime,
+      );
+      if (pivotIndex < 0) {
+        pivotIndex = sortedEvents.length - 1;
+      }
+
+      const selectedIDs: number[] = [];
+      for (let offset = 0; selectedIDs.length < limit; offset++) {
+        const leftIndex = pivotIndex - offset;
+        if (leftIndex >= 0) {
+          const leftID = sortedEvents[leftIndex].id;
+          if (!selectedIDs.includes(leftID)) {
+            selectedIDs.push(leftID);
+            if (selectedIDs.length >= limit) {
+              break;
+            }
+          }
+        }
+
+        if (offset === 0) {
+          continue;
+        }
+
+        const rightIndex = pivotIndex + offset;
+        if (rightIndex < sortedEvents.length) {
+          const rightID = sortedEvents[rightIndex].id;
+          if (!selectedIDs.includes(rightID)) {
+            selectedIDs.push(rightID);
+          }
+        }
+      }
+
+      return selectedIDs;
+    };
+
+    const loadEventsAndRuns = async (
+      eventsAfter: Date,
+      options?: { prioritizeAroundSimulatedNow?: boolean },
+    ) => {
+      const prioritizeAroundSimulatedNow = options?.prioritizeAroundSimulatedNow ?? false;
       const eventData = await EventsData.getEventsData(eventsAfter);
+      const sortedEvents = eventData
+        .filter((a) => a.short.toLowerCase().includes("gdq"))
+        .filter((a) => !a.short.toLowerCase().includes("cgdq"))
+        .sort(
+          (a, b) =>
+            new Date(b.datetime).getTime() -
+            new Date(a.datetime).getTime(),
+        );
+
       const newEventsByID = Object.fromEntries(
-        eventData
-          .filter((a) => a.short.toLowerCase().includes("gdq"))
-          .filter((a) => !a.short.toLowerCase().includes("cgdq"))
-          .sort(
-            (a, b) =>
-              new Date(b.datetime).getTime() -
-              new Date(a.datetime).getTime(),
-          )
+        sortedEvents
           .map((singleEvent): [number, GDQEventData] => [
             singleEvent.id,
             singleEvent,
           ]),
       );
 
-      const sortedEventIDs = Object.keys(newEventsByID).map((eventID) => parseInt(eventID));
+      const sortedEventIDs = prioritizeAroundSimulatedNow
+        ? selectNearbyEventIDs(sortedEvents, now, 3)
+        : sortedEvents.map((event) => event.id);
 
-      // Only block startup until we find the first event with runs.
+      // For normal startup, block until we find the first event with runs.
+      // For hash-based date overrides, load only a small set around simulated now
+      // so splash can disappear quickly even on cold cache.
       let firstEventWithRuns: number | null = null;
       for (const eventID of sortedEventIDs) {
-        if (await loadRuns(eventID)) {
+        const hasRuns = await loadRuns(eventID);
+        if (hasRuns && firstEventWithRuns === null) {
           firstEventWithRuns = eventID;
-          break;
+          if (!prioritizeAroundSimulatedNow) {
+            break;
+          }
         }
 
-        if (!eventsWithoutRuns.includes(eventID.toString())) {
+        if (!hasRuns && !eventsWithoutRuns.includes(eventID.toString())) {
           eventsWithoutRuns.push(eventID.toString());
         }
       }
 
-      // Prefetch a few additional events without delaying initial render.
-      const prefetchCandidates = sortedEventIDs
-        .filter((eventID) => eventID !== firstEventWithRuns)
-        .slice(0, 3);
-      void Promise.all(
-        prefetchCandidates.map(async (eventID) => {
-          const hasRuns = await loadRuns(eventID);
-          if (!hasRuns && !eventsWithoutRuns.includes(eventID.toString())) {
-            eventsWithoutRuns.push(eventID.toString());
-          }
-        }),
-      ).then(() => {
-        eventsByIDs.value = filterEventsWithoutRuns({
-          ...eventsByIDs.value,
-          ...newEventsByID,
+      if (!prioritizeAroundSimulatedNow) {
+        // Prefetch a few additional events without delaying initial render.
+        const prefetchCandidates = sortedEventIDs
+          .filter((eventID) => eventID !== firstEventWithRuns)
+          .slice(0, 3);
+        void Promise.all(
+          prefetchCandidates.map(async (eventID) => {
+            const hasRuns = await loadRuns(eventID);
+            if (!hasRuns && !eventsWithoutRuns.includes(eventID.toString())) {
+              eventsWithoutRuns.push(eventID.toString());
+            }
+          }),
+        ).then(() => {
+          eventsByIDs.value = filterEventsWithoutRuns({
+            ...eventsByIDs.value,
+            ...newEventsByID,
+          });
         });
-      });
+      }
 
       eventsByIDs.value = filterEventsWithoutRuns({
         ...eventsByIDs.value,
@@ -612,16 +674,20 @@ export default defineComponent({
         1,
       );
 
-      hydrateSeededData();
-      const seededInitialEvent = pickInitialEvent(getSortedEventsByDate());
-      if (seededInitialEvent) {
-        void updateCurrentEvent(seededInitialEvent).then(() => {
-          showOnboardingSnackbarIfNeeded();
-        });
+      if (!hasDateOverride) {
+        hydrateSeededData();
+        const seededInitialEvent = pickInitialEvent(getSortedEventsByDate());
+        if (seededInitialEvent) {
+          void updateCurrentEvent(seededInitialEvent).then(() => {
+            showOnboardingSnackbarIfNeeded();
+          });
+        }
       }
 
       void (async () => {
-        await loadEventsAndRuns(roughly8MonthsAgo);
+        await loadEventsAndRuns(roughly8MonthsAgo, {
+          prioritizeAroundSimulatedNow: hasDateOverride,
+        });
 
         const refreshedInitialEvent = pickInitialEvent(getSortedEventsByDate());
         if (refreshedInitialEvent && refreshedInitialEvent.id !== currentEventID.value) {
@@ -630,6 +696,16 @@ export default defineComponent({
 
         if (currentEventID.value > 0) {
           showOnboardingSnackbarIfNeeded();
+        }
+
+        if (hasDateOverride && currentEventID.value > 0) {
+          const actualRecentStart = new Date();
+          actualRecentStart.setFullYear(
+            actualRecentStart.getFullYear(),
+            actualRecentStart.getMonth() - 8,
+            1,
+          );
+          void loadEventsAndRuns(actualRecentStart);
         }
 
         setTimeout(async () => {
