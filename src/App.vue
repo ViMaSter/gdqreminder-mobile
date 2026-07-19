@@ -405,6 +405,7 @@ provide("requireOnboarding", requireOnboarding);
 
   /* workaround for iOS Safari, which changes run name text size if alerts or friend indicators are active */
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 body {
   font-family: Roboto;
