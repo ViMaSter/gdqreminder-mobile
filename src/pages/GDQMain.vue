@@ -1159,8 +1159,8 @@ m3e-drawer-container > * {
 }
 
 .friendCodeDialog {
-  --m3e-dialog-min-width: 51vw;
-  --m3e-dialog-max-width: 51vw;
+  --m3e-dialog-min-width: min(600px, 81vw);
+  --m3e-dialog-max-width: min(600px, 81vw);
   --m3e-dialog-shape: 1.5rem;
   --m3e-dialog-color: var(--mdc-theme-on-surface);
   --m3e-dialog-container-color: var(--mdc-theme-surface);
