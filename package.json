@@ -64,7 +64,7 @@
     "eslint-plugin-vue": "*",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.6",
-    "sass": "^1.101.4",
+    "sass": "^1.101.7",
     "semantic-release": "^25.0.8",
     "typescript": "~5.8.3",
     "vite": "^8.1.5",
