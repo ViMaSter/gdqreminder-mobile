@@ -36,7 +36,7 @@
     "@material/snackbar": "^14.0.0",
     "@material/web": "^2.5.0",
     "@sentry/cli": "^3.6.2",
-    "@sentry/vue": "^10.68.0",
+    "@sentry/vue": "^10.69.0",
     "@vitejs/plugin-legacy": "^8.2.2",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "conventional-changelog-conventionalcommits": "^10.2.1",
