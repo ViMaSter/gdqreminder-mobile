@@ -48,7 +48,7 @@
     "vue-router": "5.2.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.0.0",
+    "@capacitor/cli": "^8.5.0",
     "@playwright/experimental-ct-vue": "1.60.0",
     "@rushstack/eslint-patch": "^1.16.1",
     "@semantic-release/git": "^11.0.1",
