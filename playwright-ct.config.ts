@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/experimental-ct-vue";
 import { dirname, resolve } from "path";
-import vue from "@vitejs/plugin-vue";
-import vueJsx from "@vitejs/plugin-vue-jsx";
+
+const { default: vue } = await import("@vitejs/plugin-vue");
+const { default: vueJsx } = await import("@vitejs/plugin-vue-jsx");
 
 const isCI = !!process.env.CI;
 
@@ -45,7 +46,7 @@ export default defineConfig({
             },
           },
         }),
-        vueJsx()
+        vueJsx(),
       ],
       resolve: {
         alias: {
