@@ -1,7 +1,6 @@
 import { defineConfig, devices } from "@playwright/experimental-ct-vue";
 import { dirname, resolve } from "path";
-
-const { default: vue } = await import("@vitejs/plugin-vue");
+import vue from "@vitejs/plugin-vue";
 
 const isCI = !!process.env.CI;
 
