@@ -42,7 +42,7 @@
     "conventional-changelog-conventionalcommits": "^10.3.0",
     "firebase": "^12.17.1",
     "ky": "^2.0.2",
-    "pinia": "^4.0.2",
+    "pinia": "^4.0.3",
     "vue": "^3.5.41",
     "vue-i18n": "^11.4.8",
     "vue-router": "5.2.0"
