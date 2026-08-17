@@ -39,7 +39,7 @@
     "@sentry/vue": "^10.69.0",
     "@vitejs/plugin-legacy": "^8.2.3",
     "@webcomponents/webcomponentsjs": "^2.8.0",
-    "conventional-changelog-conventionalcommits": "^10.2.1",
+    "conventional-changelog-conventionalcommits": "^10.3.0",
     "firebase": "^12.17.1",
     "ky": "^2.0.2",
     "pinia": "^4.0.2",
