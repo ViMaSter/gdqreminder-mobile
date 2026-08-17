@@ -13,7 +13,7 @@ export class EventsData {
       }
     }
     const response = await CapacitorHttp.get({
-      url: "https://tracker.gamesdonequick.com/tracker/api/v2/events/",
+      url: "https://gdqreminder.by.vincent.mahn.ke/proxy/tracker/api/v2/events/",
       headers: {
         'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
       },

@@ -409,7 +409,7 @@ export default defineComponent({
       const fetchAndProcessRuns = async () => {
         try {
           const response = await CapacitorHttp.get({
-            url: `https://tracker.gamesdonequick.com/tracker/api/v2/events/${eventID}/runs/`,
+            url: `https://gdqreminder.by.vincent.mahn.ke/proxy/tracker/api/v2/events/${eventID}/runs/`,
             headers: {
               'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
             },
