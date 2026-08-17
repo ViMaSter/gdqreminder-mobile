@@ -40,7 +40,7 @@
     "@vitejs/plugin-legacy": "^8.2.2",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "conventional-changelog-conventionalcommits": "^10.2.1",
-    "firebase": "^12.16.0",
+    "firebase": "^12.17.1",
     "ky": "^2.0.2",
     "pinia": "^4.0.2",
     "vue": "^3.5.40",
