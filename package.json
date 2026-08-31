@@ -45,7 +45,7 @@
     "pinia": "^4.0.3",
     "vue": "^3.5.41",
     "vue-i18n": "^11.4.10",
-    "vue-router": "5.2.0"
+    "vue-router": "5.3.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.0",
