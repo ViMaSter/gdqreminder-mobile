@@ -15,6 +15,12 @@ updates:
         patterns:
           - "@vitejs/plugin-vue"
           - "@vitejs/plugin-vue*"
+    # conventional-changelog-conventionalcommits@10+ requires conventional-changelog-writer@9+,
+    # which is incompatible with the conventional-changelog-writer@8.x bundled by
+    # @semantic-release/release-notes-generator, breaking the semantic-release step in CI.
+    ignore:
+      - dependency-name: "conventional-changelog-conventionalcommits"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
