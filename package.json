@@ -67,7 +67,7 @@
     "sass": "^1.104.0",
     "semantic-release": "^25.0.9",
     "typescript": "~5.8.3",
-    "vite": "^8.2.2",
+    "vite": "^8.3.0",
     "vitest": "^4.1.11",
     "vue-tsc": "^3.3.11"
   },
