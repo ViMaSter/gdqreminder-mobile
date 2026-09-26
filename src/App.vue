@@ -8,7 +8,7 @@ import { Capacitor } from "@capacitor/core";
 import { EventHandler } from "./utilities/eventHandler";
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Theme, useThemeStore } from "@/stores/theme";
-import { onMounted, provide, ref, watch } from "vue";
+import { onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { useUserIDStore } from "./stores/friendUserID";
 import { store } from "./utilities/firebaseConfig";
 import { onSnapshot, doc, Unsubscribe } from "firebase/firestore";
@@ -241,12 +241,11 @@ const refreshSafeAreaInsetsWithRetry = async () => {
 };
 
 onMounted(() => {
-  watch(mainContent, () => {
-    loadingContent.value!.hide();
-    if (mainContent && mainContent.value) {
-      App.addListener('resume', () => {mainContent.value!.loadRuns(mainContent.value!.currentEventID); });
+  watch(mainContent, (content) => {
+    if (content) {
+      loadingContent.value?.hide();
     }
-  });
+  }, { immediate: true });
 
   refreshSafeAreaInsetsWithRetry().catch((error) => {
     console.warn("Failed to refresh safe area insets", error);
@@ -262,6 +261,21 @@ onMounted(() => {
     window.addEventListener("resize", refreshInsetsOnResize);
   }
 
+});
+
+const resumeListener = App.addListener("resume", () => {
+  const content = mainContent.value;
+  if (!content) {
+    return;
+  }
+
+  void content.loadRuns(content.currentEventID).catch((error: unknown) => {
+    console.warn("Failed to reload runs after resume", error);
+  });
+});
+
+onUnmounted(() => {
+  void resumeListener.then((listener) => listener.remove());
 });
 
 const visibility = ref<Record<string, boolean>>({
