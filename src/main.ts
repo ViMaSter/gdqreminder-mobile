@@ -70,6 +70,13 @@ async function fetchLocale(languageCode: string): Promise<any> {
           levels: ["error"],
         }),
       ],
+      // Blocked or unreachable upstreams (e.g. restricted Google IP ranges) are environment noise.
+      ignoreErrors: [
+        /^Unable to load events \(HTTP \d+\)$/,
+        /Failed to fetch/i,
+        /Network request failed/i,
+        /Load failed/i,
+      ],
       tracesSampleRate: 1.0,
     });
   }
