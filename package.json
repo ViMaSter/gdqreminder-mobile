@@ -25,7 +25,7 @@
     "@capacitor/core": "^8.5.2",
     "@capacitor/device": "^8.0.3",
     "@capacitor/ios": "^8.5.2",
-    "@capacitor/keyboard": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.6",
     "@capacitor/push-notifications": "^8.1.2",
     "@capawesome/capacitor-android-edge-to-edge-support": "^8.0.8",
     "@material/material-color-utilities": "^0.4.0",
