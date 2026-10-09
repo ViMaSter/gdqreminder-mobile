@@ -143,49 +143,46 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         <md-list-item ref="highlighted">
           <div slot="supporting-text">{{ $t('settings.headline-generalNotifications') }}</div>
         </md-list-item>
-        <md-divider></md-divider>
 
-        <md-list-item type="button" @click="toggleEventAnnouncements">
+        <md-list-item class="settings-group-item settings-group-start" type="button" @click="toggleEventAnnouncements">
           <div slot="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
           <div slot="supporting-text">{{ $t('settings.description-eventAnnouncements') }}</div>
           <md-switch :selected="eventAnnouncements" ref="eventAnnouncementsSwitch"
             slot="end"></md-switch>
         </md-list-item>
-        <md-list-item><md-icon slot="start">info</md-icon>
+        <md-list-item class="settings-group-item"><md-icon slot="start">info</md-icon>
           <div slot="supporting-text">{{ $t('settings.info-eventAnnouncements') }}</div>
         </md-list-item>
         <md-divider></md-divider>
 
-        <md-list-item type="button" @click="toggleEventUpdates">
+        <md-list-item class="settings-group-item" type="button" @click="toggleEventUpdates">
           <div slot="headline">{{ $t('settings.label-eventUpdates') }}</div>
           <div slot="supporting-text">{{ $t('settings.description-eventUpdates') }}</div>
           <md-switch :selected="eventUpdates" ref="eventUpdatesSwitch"
             slot="end"></md-switch>
         </md-list-item>
-        <md-list-item ref="highlightedEnd"><md-icon slot="start">info</md-icon>
+        <md-list-item class="settings-group-item settings-group-end" ref="highlightedEnd"><md-icon slot="start">info</md-icon>
           <div slot="supporting-text">{{ $t('settings.info-eventUpdates') }}</div>
         </md-list-item>
         <md-list-item>
           <div slot="supporting-text">{{ $t('settings.headline-language') }}</div>
         </md-list-item>
-        <md-divider></md-divider>
 
-        <md-list-item type="button" @click="openLanguageDialog" data-test="open-language-dialog">
+        <md-list-item class="settings-group-item settings-group-start" type="button" @click="openLanguageDialog" data-test="open-language-dialog">
           <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
           <div slot="supporting-text">{{ $t('settings.option-'+selectedLanguage) || 'N/A' }}</div>
         </md-list-item>
         <md-divider></md-divider>
 
-        <md-list-item type="button" @click="visitTranslationPage">
+        <md-list-item class="settings-group-item settings-group-end" type="button" @click="visitTranslationPage">
           <div slot="headline">{{ $t('settings.label-helpTranslate') }}</div>
           <md-icon slot="end">open_in_new</md-icon>
         </md-list-item>
         <md-list-item>
           <div slot="supporting-text">{{ $t('settings.headline-information') }}</div>
         </md-list-item>
-        <md-divider></md-divider>
         
-        <md-list-item>
+        <md-list-item class="settings-group-item settings-group-start settings-group-end">
           <div slot="headline">{{ $t('settings.label-version') }}</div>
           <div slot="supporting-text">{{ versionCode }}</div>
         </md-list-item>
@@ -194,7 +191,7 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
     <md-dialog ref="languageDialog" data-test="language-dialog">
       <div slot="headline">{{ $t('settings.label-appLanguage') }}</div>
       <div slot="content">
-        <md-list-item type="button" v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key"
+        <md-list-item class="language-option" type="button" v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key"
           @click="settingsStore.setLanguage(key)">
           <label slot="headline"><md-radio :checked="selectedLanguage === key" slot="end"></md-radio> {{ t('settings.option-'+key) }}</label>
         </md-list-item>
@@ -217,6 +214,33 @@ mwc-top-app-bar-fixed {
   min-height: 100vh;
   height: 100vh;
   width: 100vw;
+}
+
+.settings-group-item {
+  background: rgba(128, 128, 128, 0.1);
+  margin: 0px 0.5em;
+
+  .dark-mode & {
+    background: #80808036;
+  }
+}
+
+.language-option {
+  border-radius: 20px;
+}
+
+md-divider { 
+    padding: 0px 0.5em 0px 0.5em;
+}
+
+.settings-group-start {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.settings-group-end {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
 }
 
 
