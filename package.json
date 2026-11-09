@@ -36,7 +36,7 @@
     "@material/web": "^2.5.0",
     "@sentry/cli": "^3.8.0",
     "@sentry/vue": "^11.8.0",
-    "@vitejs/plugin-legacy": "^8.2.3",
+    "@vitejs/plugin-legacy": "^8.2.4",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "firebase": "^12.19.0",
