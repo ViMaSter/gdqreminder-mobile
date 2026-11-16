@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-const API_BASE = "https://tracker.gamesdonequick.com/tracker/api/v2";
+const API_BASE = "https://gdqreminder.by.vincent.mahn.ke/proxy/tracker/api/v2";
 const OUTPUT_FILE = resolve(process.cwd(), "src/generated/seededEvents.ts");
 
 const isLikelyGDQEvent = (event) => {
