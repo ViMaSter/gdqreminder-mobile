@@ -25,7 +25,8 @@ env:
 jobs:
   prepareCache:
     name: Pre-build + test
-    runs-on: ubuntu-latest
+    # Pinned: Playwright does not support ubuntu-26.04 (ubuntu-latest) yet
+    runs-on: ubuntu-24.04
     outputs:
       SENTRY_RELEASE: ${{ steps.version.outputs.SENTRY_RELEASE }}
     steps:
