@@ -174,14 +174,13 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         <m3e-list-action ref="highlighted" disabled>
           <div>{{ $t('settings.headline-generalNotifications') }}</div>
         </m3e-list-action>
-        <m3e-divider></m3e-divider>
 
-        <m3e-list-action class="interactive" @click="forwardClickToEventAnnouncementsSwitch">
+        <m3e-list-action class="interactive settings-group-item settings-group-start" @click="forwardClickToEventAnnouncementsSwitch">
           <div class="headline">{{ $t('settings.label-eventAnnouncements') }}</div>
           <div slot="supporting-text" class="supporting">{{ $t('settings.description-eventAnnouncements') }}</div>
           <m3e-switch slot="trailing" class="switch" :checked="eventAnnouncements" ref="eventAnnouncementsSwitch" @beforeinput="toggleEventAnnouncements"></m3e-switch>
         </m3e-list-action>
-        <m3e-list-action disabled>
+        <m3e-list-action class="settings-group-item" disabled>
           <div class="info-content">
             <m3e-icon class="info-icon" name="info"></m3e-icon>
             <div class="supporting">{{ $t('settings.info-eventAnnouncements') }}</div>
@@ -189,12 +188,12 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         </m3e-list-action>
         <m3e-divider></m3e-divider>
 
-        <m3e-list-action class="interactive" @click="forwardClickToEventUpdatesSwitch">
+        <m3e-list-action class="interactive settings-group-item" @click="forwardClickToEventUpdatesSwitch">
           <div class="headline">{{ $t('settings.label-eventUpdates') }}</div>
           <div slot="supporting-text" class="supporting">{{ $t('settings.description-eventUpdates') }}</div>
           <m3e-switch slot="trailing" class="switch" :checked="eventUpdates" ref="eventUpdatesSwitch" @beforeinput="toggleEventUpdates"></m3e-switch>
         </m3e-list-action>
-        <m3e-list-action ref="highlightedEnd" disabled>
+        <m3e-list-action class="settings-group-item settings-group-end" ref="highlightedEnd" disabled>
           <div class="info-content">
             <m3e-icon class="info-icon" name="info"></m3e-icon>
             <div class="supporting">{{ $t('settings.info-eventUpdates') }}</div>
@@ -203,25 +202,23 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
         <m3e-list-action disabled>
           <div>{{ $t('settings.headline-language') }}</div>
         </m3e-list-action>
-        <m3e-divider></m3e-divider>
 
-        <m3e-list-action class="interactive" @click="openLanguageDialog" data-test="open-language-dialog">
+        <m3e-list-action class="interactive settings-group-item settings-group-start" @click="openLanguageDialog" data-test="open-language-dialog">
           <div class="headline">{{ $t('settings.label-appLanguage') }}</div>
           <div slot="supporting-text" class="supporting">{{ $t('settings.option-'+selectedLanguage) || 'N/A' }}</div>
           <m3e-icon slot="trailing" name="arrow_right"></m3e-icon>
         </m3e-list-action>
         <m3e-divider></m3e-divider>
 
-        <m3e-list-action class="interactive" @click="visitTranslationPage">
+        <m3e-list-action class="interactive settings-group-item settings-group-end" @click="visitTranslationPage">
           <div class="headline">{{ $t('settings.label-helpTranslate') }}</div>
           <m3e-icon slot="trailing" name="open_in_new"></m3e-icon>
         </m3e-list-action>
         <m3e-list-action disabled>
           <div>{{ $t('settings.headline-information') }}</div>
         </m3e-list-action>
-        <m3e-divider></m3e-divider>
         
-        <m3e-list-action disabled>
+        <m3e-list-action class="settings-group-item settings-group-start settings-group-end" disabled>
           <div class="headline">{{ $t('settings.label-version') }}</div>
           <div slot="supporting-text" class="supporting">{{ versionCode }}</div>
         </m3e-list-action>
@@ -230,7 +227,7 @@ const selectedLanguage = computed(() => settingsStore.selectedLanguage);
     <m3e-dialog id="dlg" ref="languageDialog" data-test="language-dialog" class="languageDialog" dismissible>
       <span slot="header">{{ $t('settings.label-appLanguage') }}</span>
       <m3e-selection-list hide-selection-indicator @change="(e: Event) => { settingsStore.setLanguage((e.target as HTMLElement & { value: string }).value as any); languageDialog?.hide(); }">
-        <m3e-list-option v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key" :value="key" :selected="selectedLanguage === key">
+        <m3e-list-option class="language-option" v-for="(_, key) in languages" :key="key" :data-test="'language-option-'+key" :value="key" :selected="selectedLanguage === key">
           <m3e-pseudo-radio slot="leading" :checked="selectedLanguage === key"></m3e-pseudo-radio>
           {{ t('settings.option-'+key) }}
         </m3e-list-option>
@@ -276,6 +273,32 @@ m3e-app-bar {
   width: 100vw;
 }
 
+.settings-group-item {
+  background: rgba(128, 128, 128, 0.1);
+  margin: 0px 0.5em;
+
+  .dark-mode & {
+    background: #80808036;
+  }
+}
+
+.language-option {
+  border-radius: 20px;
+}
+
+m3e-divider {
+  padding: 0px 0.5em 0px 0.5em;
+}
+
+.settings-group-start {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.settings-group-end {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
 
 .interactive {
   cursor: pointer;
