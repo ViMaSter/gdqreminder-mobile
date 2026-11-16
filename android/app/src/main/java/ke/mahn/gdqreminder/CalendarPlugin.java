@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 @CapacitorPlugin(name = "Calendar")
 public class CalendarPlugin extends Plugin {
 
+    // TODO: Remove calling runnable, rely on background task only
     @Override
     public void load() {
         PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(RefreshTimesForCurrentEvent.class, 15, TimeUnit.MINUTES).build();
