@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, toRef } from "vue";
-import "@material/web/all.js";
+import "@m3e/web/list";
+import "@m3e/web/icon";
 import { GDQEventData } from "@/interfaces/GDQEvent";
 export default defineComponent({
   props: {
@@ -24,24 +25,21 @@ export default defineComponent({
 </script>
 
 <template>
-  <md-list>
-    <md-list-item
+  <m3e-list>
+    <m3e-list-item
       v-for="event in Object.values(eventsByIDs).sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime())"
       :key="event.short"
+      class="event-item"
+      data-test="event-item"
       @click="$emit('onUpdateCurrentEvent', event)"
-      >{{ event.short.toUpperCase() }}</md-list-item
+      >{{ event.short.toUpperCase() }}</m3e-list-item
     >
-    <md-list-item v-if="!doneLoading" class="rotating">
-      <md-icon>autorenew</md-icon>
-    </md-list-item>
-  </md-list>
+    <m3e-list-item v-if="!doneLoading" class="rotating loading-item" data-test="event-loading-item">
+      <m3e-icon name="autorenew"></m3e-icon>
+    </m3e-list-item>
+  </m3e-list>
 </template>
 
-<style lang="scss">
-.mdc-drawer__header {
-  padding-top: var(--safe-area-inset-top);
-}
-</style>
 <style lang="scss" scoped>
 @-webkit-keyframes rotating {
   from {
@@ -71,11 +69,16 @@ export default defineComponent({
     transform: rotate(360deg);
   }
 }
-.rotating md-icon {
+.rotating m3e-icon {
   -webkit-animation: rotating 2s linear infinite;
   -moz-animation: rotating 2s linear infinite;
   -ms-animation: rotating 2s linear infinite;
   -o-animation: rotating 2s linear infinite;
   animation: rotating 2s linear infinite;
+}
+
+.event-item,
+.loading-item {
+  cursor: pointer;
 }
 </style>

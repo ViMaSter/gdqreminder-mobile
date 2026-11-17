@@ -6,13 +6,14 @@ test("adding and removing friend code with pre-existing runs toggles friend indi
   test.setTimeout(60_000);
   await page.goto(page.url());
 
-  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+  await page.waitForSelector('[data-test="main-title"]');
+  await page.waitForSelector('.run .runName');
 
-  await page.click('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="navigationIcon"]');
+  await page.click('[data-test="toggle-drawer"]');
 
-  await page.waitForSelector(".mdc-drawer");
+  await expect(page.locator('[data-test="event-item"]').first()).toBeVisible();
 
-  await page.click('md-list md-list-item:has-text("AGDQ2025")');
+  await page.click('[data-test="event-item"]:has-text("AGDQ2025")');
 
   await page.waitForSelector(".day-divider");
   
@@ -22,9 +23,9 @@ test("adding and removing friend code with pre-existing runs toggles friend indi
 
   await expect(page.locator(".with-friend")).toHaveCount(0);
 
-  await page.fill('md-filled-field[label="Enter friend code"] input', threeAGDQ2025RunId);
-  
-  await page.click('md-text-button[value="apply"]');
+  await page.fill('input[aria-label="Enter friend code"]', threeAGDQ2025RunId);
+
+  await page.click('m3e-dialog[data-test="friend-dialog"] m3e-dialog-action[return-value="apply"]');
 
   await expect(page.locator(".with-friend")).not.toHaveCount(0, {
     timeout: 5000,
@@ -39,7 +40,7 @@ test("adding your own friend code means clock and friend indicator are shown", a
   // wait for firebase to be initialized
   await page.waitForFunction(() => localStorage.getItem("firebaseUserID"));
 
-  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+  await page.waitForSelector('[data-test="main-title"]');
 
   await page.waitForSelector(".day-divider");
 
@@ -48,12 +49,12 @@ test("adding your own friend code means clock and friend indicator are shown", a
   await expect(page.locator(".with-friend")).toHaveCount(0);
 
   await page.click('[data-test="open-friend-menu"]');
-  await page.click('md-dialog md-icon-button');
+  await page.click('m3e-dialog[data-test="friend-dialog"] m3e-icon-button');
 
   const friendCode = await page.evaluate(() => navigator.clipboard.readText());
 
-  await page.fill('md-filled-field[label="Enter friend code"] input', friendCode);
-  await page.click('md-text-button[value="apply"]');
+  await page.fill('input[aria-label="Enter friend code"]', friendCode);
+  await page.click('m3e-dialog[data-test="friend-dialog"] m3e-dialog-action[return-value="apply"]');
 
   await expect(page.locator(".is-set")).toHaveCount(1);
   await expect(page.locator(".with-friend")).toHaveCount(1);
@@ -71,16 +72,16 @@ test("back button press can close opened friend menu", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto(page.url());
 
-  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+  await page.waitForSelector('[data-test="main-title"]');
 
   await page.click('[data-test="open-friend-menu"]');
 
-  await expect(page.locator('md-dialog[open]')).toHaveCount(1);
+  await expect(page.locator('m3e-dialog[data-test="friend-dialog"] dialog[open]')).toHaveCount(1);
 
   // emulates back button of phones
   await page.keyboard.down("Control");
   await page.keyboard.press("b");
   await page.keyboard.up("Control");
 
-  await expect(page.locator('md-dialog[open]')).toHaveCount(0);
+  await expect(page.locator('m3e-dialog[data-test="friend-dialog"] dialog[open]')).toHaveCount(0);
 });

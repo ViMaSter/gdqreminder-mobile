@@ -57,6 +57,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            applicationIdSuffix ".debug"
+            resValue "string", "app_name", "GDQ Reminder (Debug)"
+        }
     }
     buildFeatures {
         buildConfig = true
@@ -89,7 +93,8 @@ apply from: 'capacitor.build.gradle'
 
 try {
     def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
+    def debugServicesJSON = file('debug/google-services.json')
+    if (servicesJSON.exists() || debugServicesJSON.exists()) {
         apply plugin: 'com.google.gms.google-services'
     }
 } catch(Exception e) {

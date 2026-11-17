@@ -14,7 +14,7 @@ import { useRunReminderStore } from "@/stores/runReminders";
 import { DateProvider } from "@/interfaces/DateProvider";
 import { useFriendRunReminderStore } from "@/stores/friendRuns";
 import { useSettingsStore } from "@/stores/settings";
-import "@material/web/all.js";
+import "@m3e/web/icon";
 
 export default defineComponent({
   props: {
@@ -366,13 +366,13 @@ export default defineComponent({
       </span>
       <span class="meta">
           <span class="meta-entry schedule"
-            ><md-icon>schedule</md-icon><span class="time" ref="time">{{ startString }}</span></span
+              ><m3e-icon name="schedule"></m3e-icon><span class="time" ref="time">{{ startString }}</span></span
           >
         <span class="meta-entry timer"
-          ><md-icon filled>timer</md-icon>{{ durationHMMSS }}</span
+            ><m3e-icon name="timer" filled></m3e-icon>{{ durationHMMSS }}</span
         >
         <span class="meta-entry person"
-          ><md-icon filled>person</md-icon>
+            ><m3e-icon name="person" filled></m3e-icon>
           <template v-for="(runner, index) in runnersWithHighlight" :key="runner.name + index">
             <span class="runnerName">
               <template v-for="(part, partIndex) in runner.parts" :key="runner.name + part.text + partIndex">
@@ -386,10 +386,10 @@ export default defineComponent({
     </div>
     <div :class="reminderClasses">
       <div class="alarm">
-        <md-icon>alarm</md-icon>
+        <m3e-icon name="alarm"></m3e-icon>
       </div>
       <div class="friend">
-        <md-icon filled>group</md-icon>
+        <m3e-icon name="group" filled></m3e-icon>
       </div>
     </div>
   </div>
@@ -406,7 +406,7 @@ export default defineComponent({
   margin-bottom: 14px;
   overflow: hidden;
 
-  md-icon[filled] {
+  m3e-icon[filled] {
     font-variation-settings: "FILL" 1;
   }
 
@@ -494,8 +494,8 @@ export default defineComponent({
       }
     }
 
-    md-icon {
-      --md-icon-size: 14px;
+    m3e-icon {
+      font-size: 14px;
       vertical-align: middle;
       margin-top: -2px;
       margin-right: 4px;
@@ -571,28 +571,28 @@ export default defineComponent({
       }
     }
 
-    &.is-set .alarm md-icon,
-    &.with-friend .friend md-icon {
+    &.is-set .alarm m3e-icon,
+    &.with-friend .friend m3e-icon {
       margin-left: 0px;
       transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
       transform: rotateZ(0deg);
       transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
     }
 
-    .friend md-icon {
+    .friend m3e-icon {
       margin-bottom: -3px;
-      --md-icon-size: 44px;
+      font-size: 44px;
       margin-right: 3px;
     }
 
-    md-icon {
+    m3e-icon {
       margin-left: 50px;
       transition: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) margin-left;
       transform: rotateZ(90deg);
       transition: 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) transform;
 
       transform-origin: bottom center;
-      --md-icon-size: 39px;
+      font-size: 39px;
     }
   }
 }

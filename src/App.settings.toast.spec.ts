@@ -7,39 +7,33 @@ test(`toast with settings hint is shown only initially`, async ({ page }) => {
 
   await page.goto("http://localhost:3100/");
 
-  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+  await page.waitForSelector('[data-test="main-title"]');
 
   await expect(page.locator('.run').first()).toBeVisible();
 
-  await expect(page.locator('.mdc-snackbar')).toHaveCount(1);
+  await expect(page.locator('m3e-snackbar')).toHaveCount(1);
 
-  await expect(page.locator('.mdc-snackbar--open')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Open settings' }).click();
 
-  await expect(page.locator('.mdc-snackbar__action')).toBeVisible();
+  await expect(page.locator('.gdq-settings m3e-app-bar')).toBeVisible();
 
-  await page.click('.mdc-snackbar__action');
+  await expect(page.locator('.gdq-settings')).not.toHaveClass('list-leave-active');
 
-  await expect(page.locator('.gdq-settings mwc-top-app-bar-fixed')).toBeVisible();
+  await page.click('.gdq-settings m3e-icon-button[slot="leading"]');
 
-  await expect(page.locator('.wrapper')).not.toHaveClass('list-leave-active');
-
-  await page.click('.gdq-settings mwc-top-app-bar-fixed [slot="navigationIcon"]');
-
-  await page.waitForSelector('mwc-top-app-bar-fixed[data-test-selector="main"] [slot="title"]');
+  await page.waitForSelector('[data-test="main-title"]');
 
   await page.locator('.run').first().focus();
 
-  await expect(page.locator('.mdc-snackbar--open')).toHaveCount(1);
-
-  await expect(page.locator('.mdc-snackbar__label')).toContainText(' by ');
-
-  await expect(page.locator('.mdc-snackbar__action')).toBeHidden();
+  const snackbarContent = page.locator('m3e-snackbar > span').first();
+  await expect(page.locator('m3e-snackbar > span > b').first()).toBeVisible();
+  await expect(snackbarContent).toContainText(' - ');
+  await expect(snackbarContent).toContainText(' by ');
+  await expect(snackbarContent).not.toContainText('<b>');
 
   await page.reload();
 
   await page.waitForLoadState('load');
 
-  await expect(page.locator('.mdc-snackbar')).toHaveCount(1);
-
-  await expect(page.locator('.mdc-snackbar--open')).toHaveCount(0);
+  await expect(page.locator('m3e-snackbar')).toHaveCount(0);
 })
