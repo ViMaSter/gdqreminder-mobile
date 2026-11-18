@@ -585,13 +585,6 @@ export default defineComponent({
 
     const drawer = ref<TopAppBarFixedWithOpen>()!;
 
-    const startupEvent = selectDefaultEvent(eventsWithRuns(), now);
-    if (startupEvent) {
-      await updateCurrentEvent(startupEvent);
-    } else {
-      runsByDay.value = {};
-    }
-
     const updateCurrentEventToNewest = async () => {
       if (eventsWithRuns().length <= 0) {
         await new Promise((resolve) => {
@@ -835,6 +828,14 @@ export default defineComponent({
       navigator.clipboard.writeText(base16EncodedUserID.value);
       showSnackbar("Copied your user ID to clipboard:");
     };
+
+    // only once everything updateCurrentEvent touches (e.g. refreshRuns) is initialized
+    const startupEvent = selectDefaultEvent(eventsWithRuns(), now);
+    if (startupEvent) {
+      await updateCurrentEvent(startupEvent);
+    } else {
+      runsByDay.value = {};
+    }
 
     reflectColor(
       currentEventName.value,

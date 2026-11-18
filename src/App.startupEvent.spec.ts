@@ -55,3 +55,17 @@ timings.forEach(([testName, date, title]) => {
     await expect(page.locator(".run .runName").first()).toHaveText(/\w+/);
   });
 });
+
+test("starts up without referencing uninitialized state", async ({ page }) => {
+  test.setTimeout(60_000);
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(page.url() + "#date=2024-01-15%2000:00:00");
+  await page.evaluate(() => {
+    location.reload();
+  });
+  await page.waitForSelector(".run .runName");
+
+  expect(pageErrors.filter((message) => message.includes("before initialization"))).toEqual([]);
+});
