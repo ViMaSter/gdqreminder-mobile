@@ -119,3 +119,16 @@ test("a failed refresh keeps the cached events and tells the user", async ({ pag
   await expect(page.locator('[data-test="pull-to-refresh-indicator"]')).not.toHaveClass(/visible/);
   expect(await sidebarItems.allTextContents()).toEqual(eventsBefore);
 });
+
+test("the drawer can still be swiped shut and open after pulling", async ({ page }) => {
+  test.setTimeout(90_000);
+  await openSidebar(page);
+  const drawerOpen = () => page.evaluate(() => (document.querySelector("mwc-drawer") as unknown as { open: boolean }).open);
+
+  await pullDown(page, 80);
+  await touchDrag(page, { x: 200, y: 400 }, -180, 0);
+  await expect.poll(drawerOpen).toBe(false);
+
+  await touchDrag(page, { x: 2, y: 400 }, 200, 0);
+  await expect.poll(drawerOpen).toBe(true);
+});

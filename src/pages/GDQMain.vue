@@ -271,12 +271,13 @@ export default defineComponent({
           return;
         }
         const calculatedVelocity = calculateVelocity();
+        // reset even for vertical gestures, otherwise touchstart ignores every later touch
+        velocity = [];
+        touchIdentifier = -1;
         if (calculatedVelocity == null) {
           return;
         }
         drawer.open = calculatedVelocity > 0;
-        velocity = [];
-        touchIdentifier = -1;
       });
     };
     const currentEventName = ref(
