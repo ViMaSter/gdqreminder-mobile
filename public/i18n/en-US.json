@@ -1,6 +1,8 @@
 {
     "sidebar": {
-        "headline": "Available events"
+        "headline": "Available events",
+        "refreshing": "Refreshing events",
+        "refreshFailed": "Couldn't refresh events. Check your connection and try again."
     },
     "friendCodes": {
         "headline": "Share your runs",

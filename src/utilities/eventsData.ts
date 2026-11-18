@@ -7,7 +7,14 @@ import { CapacitorHttp } from "@capacitor/core";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
 export class EventsData {
-  static async getEventsData(datetime_gte: Date): Promise<GDQEventData[]> {
+  /**
+   * @param forceRefresh skip a still valid cache entry; a failed request then
+   *   throws instead of silently handing back the cached data
+   */
+  static async getEventsData(
+    datetime_gte: Date,
+    { forceRefresh = false } = {},
+  ): Promise<GDQEventData[]> {
     datetime_gte.setHours(0, 0, 0, 0);
     const key = "eventsDataV2-" + datetime_gte.toISOString();
     let cached: { expiration: number; data: GDQEventData[] } | null = null;
@@ -16,7 +23,7 @@ export class EventsData {
     } catch (e) {
       // ignore cache parse errors
     }
-    if (cached && cached.expiration > Date.now()) {
+    if (!forceRefresh && cached && cached.expiration > Date.now()) {
       return cached.data;
     }
 
@@ -33,7 +40,7 @@ export class EventsData {
       });
     } catch (e) {
       // offline or tracker unavailable: fall back to stale data, if any
-      if (cached) {
+      if (cached && !forceRefresh) {
         return cached.data;
       }
       throw e;

@@ -493,9 +493,8 @@ export default defineComponent({
     const eventsByIDs: Ref<{ [id: number]: GDQEventData }> = ref(
       {},
     );
-    const loadEventsAndRuns = async (eventsAfter: Date) => {
-      const eventData = await EventsData.getEventsData(eventsAfter);
-      const newEventsByID = Object.fromEntries(
+    const toEventsByID = (eventData: GDQEventData[]) =>
+      Object.fromEntries(
         eventData
           .filter((a) => a.short.toLowerCase().includes("gdq"))
           .filter((a) => !a.short.toLowerCase().includes("cgdq"))
@@ -509,9 +508,17 @@ export default defineComponent({
             singleEvent,
           ]),
       );
+    const loadEventsAndRuns = async (eventsAfter: Date, forceRefresh = false) => {
+      const eventData = await EventsData.getEventsData(eventsAfter, { forceRefresh });
+      const newEventsByID = toEventsByID(eventData);
 
       for (const eventID of Object.keys(newEventsByID)) {
         if (await loadRuns(parseInt(eventID))) {
+          // an event announced without runs may have received its schedule since
+          const index = eventsWithoutRuns.indexOf(eventID);
+          if (index !== -1) {
+            eventsWithoutRuns.splice(index, 1);
+          }
           continue;
         }
 
@@ -526,39 +533,44 @@ export default defineComponent({
       });
     };
 
+    const loadAllEvents = async (forceRefresh = false) => {
+      const eventData = await EventsData.getEventsData(new Date("2011-01-01"), { forceRefresh });
+      eventsByIDs.value = filterEventsWithoutRuns({
+        ...eventsByIDs.value,
+        ...toEventsByID(eventData),
+      });
+    };
+
+    const roughly8MonthsAgo = () => {
+      const date = dateProvider.getCurrent();
+      date.setFullYear(date.getFullYear(), date.getMonth() - 8, 1);
+      return date;
+    };
+
     const doneLoading = ref(false);
 
-    {
-      const roughly8MonthsAgo = dateProvider.getCurrent();
-      roughly8MonthsAgo.setFullYear(
-        roughly8MonthsAgo.getFullYear(),
-        roughly8MonthsAgo.getMonth() - 8,
-        1,
-      );
-      await loadEventsAndRuns(roughly8MonthsAgo);
-      setTimeout(async () => {
-        const eventData = await EventsData.getEventsData(new Date("2011-01-01"));
-        const newEventsByID = Object.fromEntries(
-          eventData
-            .filter((a) => a.short.toLowerCase().includes("gdq"))
-            .filter((a) => !a.short.toLowerCase().includes("cgdq"))
-            .sort(
-              (a, b) =>
-                new Date(b.datetime).getTime() -
-                new Date(a.datetime).getTime(),
-            )
-            .map((singleEvent): [number, GDQEventData] => [
-              singleEvent.id,
-              singleEvent,
-            ]),
-        );
-        eventsByIDs.value = filterEventsWithoutRuns({
-          ...eventsByIDs.value,
-          ...newEventsByID,
-        });
-        doneLoading.value = true;
-      }, 2000);
-    }
+    await loadEventsAndRuns(roughly8MonthsAgo());
+    setTimeout(async () => {
+      await loadAllEvents();
+      doneLoading.value = true;
+    }, 2000);
+
+    const refreshingEvents = ref(false);
+    const refreshEvents = async () => {
+      if (refreshingEvents.value) {
+        return;
+      }
+      refreshingEvents.value = true;
+      try {
+        await loadEventsAndRuns(roughly8MonthsAgo(), true);
+        await loadAllEvents(true);
+      } catch (e) {
+        console.warn("Refreshing events failed", e);
+        showSnackbar(t("sidebar.refreshFailed"));
+      } finally {
+        refreshingEvents.value = false;
+      }
+    };
 
     const eventsWithRuns = () => {
       return Object.values(eventsByIDs.value)
@@ -838,6 +850,8 @@ export default defineComponent({
       eventHeader,
       doneLoading,
       eventsByIDs,
+      refreshingEvents,
+      refreshEvents,
       drawer,
       snackbar,
       orderedDays,
@@ -945,7 +959,9 @@ export default defineComponent({
       <GDQSidebar
         :doneLoading="doneLoading"
         :eventsByIDs="eventsByIDs"
+        :refreshing="refreshingEvents"
         @onUpdateCurrentEvent="updateCurrentEvent"
+        @refresh="refreshEvents"
       ></GDQSidebar>
       <div id="appContent" slot="appContent" ref="scrollable">
         <GDQHeader
