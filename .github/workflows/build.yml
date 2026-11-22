@@ -48,13 +48,22 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-      - run: | 
+      # semantic-release >=26 requires Node >=26.13; scope it to the release step only
+      - uses: actions/setup-node@v7
+        if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)
+        with:
+          node-version: '26'
+      - run: |
           npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)
+      - uses: actions/setup-node@v7
+        if: ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event.inputs.forceProductionRelease) || ((github.event_name == 'push' && github.ref == 'refs/heads/internal') || github.event.inputs.forceInternalRelease)
+        with:
+          node-version-file: '.nvmrc'
       - id: version
         run: | 
           version=v$(jq -r .version package.json)
