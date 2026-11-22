@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { MDCSnackbar, MDCSnackbarCloseEvent } from "@material/snackbar";
 import { PropType, computed, onMounted, onUnmounted, ref, watch } from "vue";
+import "@material/web/button/text-button.js";
 
 type SnackbarAction = {
   label: string;
@@ -37,14 +38,6 @@ const action = ref<SnackbarAction | null>(props.action);
 const hasAction = computed(() => {
   return !!action.value?.label;
 });
-
-const syncActionLabel = () => {
-  if (!snackbar) {
-    return;
-  }
-
-  snackbar.actionButtonText = hasAction.value ? action.value!.label : "";
-};
 
 const setAction = (newAction: SnackbarAction | null) => {
   action.value = newAction;
@@ -105,7 +98,6 @@ onMounted(() => {
   snackbar.timeoutMs = timeoutMs.value;
   snackbar.closeOnEscape = closeOnEscape.value;
   snackbar.labelText = labelText.value;
-  syncActionLabel();
 
   snackbar.listen("MDCSnackbar:opening", handleOpening);
   snackbar.listen("MDCSnackbar:opened", handleOpened);
@@ -132,9 +124,6 @@ watch(closeOnEscape, (val) => {
 watch(labelText, (val) => {
   if (snackbar) snackbar.labelText = val;
 });
-watch(action, () => {
-  syncActionLabel();
-}, { deep: true });
 watch(() => props.action, (val) => {
   setAction(val);
 }, { deep: true });
@@ -169,10 +158,8 @@ defineExpose({
       <div v-if="labelHtml != null" class="mdc-snackbar__label" aria-atomic="false" v-html="labelHtml"></div>
       <div v-else class="mdc-snackbar__label" aria-atomic="false">{{ labelText }}</div>
       <div class="mdc-snackbar__actions" aria-atomic="true" v-show="hasAction">
-        <button class="mdc-button mdc-snackbar__action" :disabled="!hasAction">
-          <div class="mdc-button__ripple"></div>
-          <span class="mdc-button__label"></span>
-        </button>
+        <!-- the label is rendered by Vue; MDCSnackbar only needs the class to route clicks -->
+        <md-text-button class="mdc-snackbar__action" :disabled="!hasAction">{{ action?.label }}</md-text-button>
       </div>
     </div>
   </aside>
@@ -186,7 +173,18 @@ defineExpose({
 .mdc-snackbar {
   bottom: var(--safe-area-inset-bottom) !important;
 }
-.mdc-button {
-  font-size: var(--mdc-typography-body2-font-size, 0.875rem);
+.mdc-snackbar__action {
+  // the snackbar surface stays dark in both themes, so the action needs the
+  // light tone of the primary color: inverse-primary in light mode, primary in dark mode
+  --snackbar-action-color: var(--md-sys-color-inverse-primary);
+  --md-text-button-label-text-color: var(--snackbar-action-color);
+  --md-text-button-hover-label-text-color: var(--snackbar-action-color);
+  --md-text-button-focus-label-text-color: var(--snackbar-action-color);
+  --md-text-button-pressed-label-text-color: var(--snackbar-action-color);
+  --md-text-button-hover-state-layer-color: var(--snackbar-action-color);
+  --md-text-button-pressed-state-layer-color: var(--snackbar-action-color);
+}
+body.dark-mode .mdc-snackbar__action {
+  --snackbar-action-color: var(--md-sys-color-primary);
 }
 </style>

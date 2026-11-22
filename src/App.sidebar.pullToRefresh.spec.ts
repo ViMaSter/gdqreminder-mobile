@@ -116,8 +116,40 @@ test("a failed refresh keeps the cached events and tells the user", async ({ pag
   await expect(page.locator(".mdc-snackbar--open .mdc-snackbar__label")).toContainText(
     "Couldn't refresh events",
   );
+  // the toast itself stays vague
+  await expect(page.locator(".mdc-snackbar--open .mdc-snackbar__label")).not.toContainText("internet");
   await expect(page.locator('[data-test="pull-to-refresh-indicator"]')).not.toHaveClass(/visible/);
   expect(await sidebarItems.allTextContents()).toEqual(eventsBefore);
+});
+
+test("the details of a failed refresh can be opened and copied as markdown", async ({ page, context }) => {
+  test.setTimeout(90_000);
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await openSidebar(page);
+
+  await page.route(
+    (url) => isEventsListRequest(url.toString()),
+    (route) => route.fulfill({ status: 503, contentType: "text/html", body: "<html>upstream down</html>" }),
+  );
+  await pullDown(page, 300);
+
+  const action = page.locator(".mdc-snackbar--open md-text-button.mdc-snackbar__action");
+  await expect(action).toHaveText("More info");
+  await action.click();
+
+  const dialog = page.locator('[data-test="error-details-dialog"]');
+  await expect(dialog).toHaveAttribute("open", "");
+  const report = page.locator('[data-test="error-details-report"]');
+  await expect(report).toContainText("### GDQ Reminder: refreshing events failed");
+  await expect(report).toContainText("| HTTP status | 503 |");
+  await expect(report).toContainText("upstream down");
+  await expect(report).toContainText("| Connection type |");
+
+  await page.locator('[data-test="error-details-copy"]').click();
+  await expect(page.locator('[data-test="error-details-copy"]')).toHaveText("Copied");
+  const clipboard = await page.evaluate(() => navigator.clipboard.readText());
+  expect(clipboard).toContain("**Environment**");
+  expect(clipboard).toContain("| HTTP status | 503 |");
 });
 
 test("the drawer can still be swiped shut and open after pulling", async ({ page }) => {

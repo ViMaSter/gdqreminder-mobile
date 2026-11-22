@@ -2,7 +2,8 @@
     "sidebar": {
         "headline": "Verfügbare Events",
         "refreshing": "Events werden aktualisiert",
-        "refreshFailed": "Events konnten nicht aktualisiert werden. Prüfe deine Verbindung und versuche es erneut."
+        "refreshFailed": "Events konnten nicht aktualisiert werden. Prüfe deine Verbindung und versuche es erneut.",
+        "moreInfo": "Mehr Infos"
     },
     "friendCodes": {
         "headline": "Runs teilen",
@@ -49,5 +50,12 @@
     },
     "note": "Hinweis",
     "cancel": "Abbrechen",
-    "apply": "OK"
+    "apply": "OK",
+    "errorDetails": {
+        "headline": "Fehlerdetails",
+        "description": "Falls das Problem bestehen bleibt, kopiere diese Details und schicke sie mit deiner Meldung mit.",
+        "copy": "Kopieren",
+        "copied": "Kopiert"
+    },
+    "close": "Schließen"
 }

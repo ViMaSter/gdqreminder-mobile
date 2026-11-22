@@ -9,6 +9,8 @@ import { MdTextButton } from "@material/web/button/text-button";
 import { Theme, useThemeStore } from "@/stores/theme";
 import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
 import Snackbar from "../components/Snackbar.vue";
+import ErrorDetailsDialog from "../components/ErrorDetailsDialog.vue";
+import { buildDiagnosticsReport } from "@/utilities/requestDiagnostics";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { GDQRunData } from "../interfaces/GDQRun";
 import Version from "@/plugins/versionPlugin";
@@ -163,6 +165,17 @@ export default defineComponent({
       snackbar.value!.open();
     };
     provide<(html: string) => void>("showSnackbarHtml", showSnackbarHtml);
+    const showSnackbarWithAction = (text: string, action: { label: string; callback: () => void }) => {
+      if (snackbar.value!.hasAction &&
+          snackbar.value!.isOpen) {
+        return;
+      }
+      snackbar.value!.setLabelText(text);
+      snackbar.value!.setAction(action);
+      snackbar.value!.timeoutMs = 10000;
+      snackbar.value!.open();
+    };
+    const errorDetailsDialog = ref<InstanceType<typeof ErrorDetailsDialog>>();
 
     const addBackButtonHook = inject<(id: string, hook: () => void) => void>("addBackButtonHook")!;
     const removeBackButtonHook = inject<(id: string) => void>("removeBackButtonHook")!;
@@ -567,7 +580,14 @@ export default defineComponent({
         await loadAllEvents(true);
       } catch (e) {
         console.warn("Refreshing events failed", e);
-        showSnackbar(t("sidebar.refreshFailed"));
+        // keep the toast vague; the details are one tap away for anyone who wants to report it
+        const report = buildDiagnosticsReport("GDQ Reminder: refreshing events failed", e);
+        showSnackbarWithAction(t("sidebar.refreshFailed"), {
+          label: t("sidebar.moreInfo"),
+          callback: async () => {
+            errorDetailsDialog.value?.show(await report);
+          },
+        });
       } finally {
         refreshingEvents.value = false;
       }
@@ -854,6 +874,7 @@ export default defineComponent({
       eventsByIDs,
       refreshingEvents,
       refreshEvents,
+      errorDetailsDialog,
       drawer,
       snackbar,
       orderedDays,
@@ -903,7 +924,8 @@ export default defineComponent({
     GDQHeader,
     GDQSidebar,
     GDQTimeIndicator,
-    Snackbar
+    Snackbar,
+    ErrorDetailsDialog
   },
   inject: [
     "addBackButtonHook",
@@ -956,6 +978,7 @@ export default defineComponent({
       :action="onboardingSnackbarAction"
       :timeoutMs="-1"
     />
+    <ErrorDetailsDialog ref="errorDetailsDialog" />
     <mwc-drawer hasHeader type="dismissible" ref="drawer">
       <span ref="eventHeader" slot="title">{{ $t('sidebar.headline') }}</span>
       <GDQSidebar

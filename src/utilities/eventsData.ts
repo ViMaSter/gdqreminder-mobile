@@ -1,15 +1,24 @@
 import Version from "@/plugins/versionPlugin";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { CapacitorHttp } from "@capacitor/core";
+import {
+  RequestAttempt,
+  RequestFailedError,
+  describeError,
+  excerpt,
+  pickRelevantHeaders,
+} from "./requestDiagnostics";
 
 // keep this short: new events (e.g. GDQX) get added to the tracker at any time
 // and must show up without waiting for the cache key to roll over
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
+const EVENTS_URL = "https://gdqreminder.by.vincent.mahn.ke/proxy/tracker/api/v2/events/";
+
 export class EventsData {
   /**
    * @param forceRefresh skip a still valid cache entry; a failed request then
-   *   throws instead of silently handing back the cached data
+   *   throws a {@link RequestFailedError} instead of silently handing back the cached data
    */
   static async getEventsData(
     datetime_gte: Date,
@@ -27,14 +36,35 @@ export class EventsData {
       return cached.data;
     }
 
+    const attempt: RequestAttempt = {
+      url: EVENTS_URL,
+      method: "GET",
+      startedAt: new Date(),
+      durationMs: 0,
+      cacheEntry: {
+        hadData: !!cached?.data,
+        storedUntil: cached?.expiration ? new Date(cached.expiration) : undefined,
+      },
+    };
     let data: GDQEventData[];
     try {
       const response = await CapacitorHttp.get({
-        url: "https://gdqreminder.by.vincent.mahn.ke/proxy/tracker/api/v2/events/",
+        url: EVENTS_URL,
         headers: {
           'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
         },
+        // without these, a stalled connection keeps the refresh spinner going forever
+        connectTimeout: 15_000,
+        readTimeout: 30_000,
       });
+      attempt.status = response.status;
+      attempt.responseHeaders = pickRelevantHeaders(response.headers);
+      // CapacitorHttp resolves on HTTP errors, and non-JSON bodies (e.g. an
+      // upstream challenge page) arrive as a string
+      if (response.status !== 200 || !Array.isArray(response.data?.results)) {
+        attempt.bodyExcerpt = excerpt(response.data);
+        throw new Error(`Unexpected events response (HTTP ${response.status})`);
+      }
       data = (response.data.results as GDQEventData[]).filter((event) => {
         return new Date(event.datetime) >= datetime_gte;
       });
@@ -43,7 +73,9 @@ export class EventsData {
       if (cached && !forceRefresh) {
         return cached.data;
       }
-      throw e;
+      attempt.durationMs = Date.now() - attempt.startedAt.getTime();
+      attempt.error = describeError(e);
+      throw new RequestFailedError(`Loading events failed: ${attempt.error.message}`, attempt);
     }
 
     localStorage.setItem(
