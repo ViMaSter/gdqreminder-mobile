@@ -69,6 +69,8 @@ async function fetchLocale(languageCode: string): Promise<any> {
         Sentry.captureConsoleIntegration({
           levels: ["error"],
         }),
+        // sends RequestFailedError.attempt (status, headers, body excerpt) along with the event
+        Sentry.extraErrorDataIntegration({ depth: 4 }),
       ],
       // Blocked or unreachable upstreams (e.g. restricted Google IP ranges) are environment noise.
       ignoreErrors: [

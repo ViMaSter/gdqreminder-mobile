@@ -6,6 +6,7 @@ import {
   RequestFailedError,
   describeError,
   excerpt,
+  parseJsonBody,
   pickRelevantHeaders,
 } from "./requestDiagnostics";
 
@@ -59,13 +60,14 @@ export class EventsData {
       });
       attempt.status = response.status;
       attempt.responseHeaders = pickRelevantHeaders(response.headers);
-      // CapacitorHttp resolves on HTTP errors, and non-JSON bodies (e.g. an
-      // upstream challenge page) arrive as a string
-      if (response.status !== 200 || !Array.isArray(response.data?.results)) {
+      // CapacitorHttp resolves on HTTP errors, and bodies without a JSON
+      // content-type (e.g. an upstream challenge page) arrive as a string
+      const body = parseJsonBody(response.data) as { results?: unknown } | null;
+      if (response.status !== 200 || !Array.isArray(body?.results)) {
         attempt.bodyExcerpt = excerpt(response.data);
         throw new Error(`Unexpected events response (HTTP ${response.status})`);
       }
-      data = (response.data.results as GDQEventData[]).filter((event) => {
+      data = (body.results as GDQEventData[]).filter((event) => {
         return new Date(event.datetime) >= datetime_gte;
       });
     } catch (e) {

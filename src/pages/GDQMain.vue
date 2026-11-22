@@ -10,7 +10,7 @@ import { Theme, useThemeStore } from "@/stores/theme";
 import { TopAppBarFixed } from "@material/mwc-top-app-bar-fixed";
 import Snackbar from "../components/Snackbar.vue";
 import ErrorDetailsDialog from "../components/ErrorDetailsDialog.vue";
-import { buildDiagnosticsReport } from "@/utilities/requestDiagnostics";
+import { buildDiagnosticsReport, parseJsonBody } from "@/utilities/requestDiagnostics";
 import { GDQEventData } from "../interfaces/GDQEvent";
 import { GDQRunData } from "../interfaces/GDQRun";
 import Version from "@/plugins/versionPlugin";
@@ -428,8 +428,9 @@ export default defineComponent({
               'User-Agent': `GDQReminderClient/${(await Version.getCurrent()).versionName}`
             },
           });
-          if (response.status === 200 && response.data?.results) {
-            const freshRuns = response.data.results as GDQRunData[];
+          const body = parseJsonBody(response.data) as { results?: unknown } | null;
+          if (response.status === 200 && Array.isArray(body?.results)) {
+            const freshRuns = body.results as GDQRunData[];
             if (freshRuns.length > 0) {
               localStorage.setItem(cacheKey, JSON.stringify(freshRuns));
               return processRuns(eventID, freshRuns);

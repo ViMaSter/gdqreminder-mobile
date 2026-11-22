@@ -49,6 +49,21 @@ export const excerpt = (data: unknown, maxLength = 500) => {
   return text.length > maxLength ? `${text.slice(0, maxLength)}… (${text.length} chars)` : text;
 };
 
+/**
+ * CapacitorHttp only parses the body when the response is labelled as JSON;
+ * a proxy or CDN that drops or rewrites the content-type hands us the raw string.
+ */
+export const parseJsonBody = (data: unknown): unknown => {
+  if (typeof data !== "string") {
+    return data;
+  }
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    return data;
+  }
+};
+
 export const describeError = (e: unknown) =>
   e instanceof Error
     ? { name: e.name, message: e.message }
