@@ -1,10 +1,22 @@
 import { FCM } from "@capacitor-community/fcm";
 
+const eventUpdateTopic = (eventShort: string) => {
+  const short = eventShort.toLowerCase();
+  if (!/^[a-z0-9_.~%-]+$/.test(short)) {
+    throw new Error(`'${eventShort}' is not a valid event short!`);
+  }
+  return `event.update.${short}`;
+};
+
 export default class PushNotificationHelper {
-  public static scheduleUpdates = {
-    subscribe: async () => {
-      await FCM.subscribeTo({ topic: "event.schedule" }); // legacy global channel; replaced with `event.announcement` + `event.update`
-    }
+  // topics older app versions subscribed to; only ever unsubscribed from
+  public static legacy = {
+    unsubscribeFromScheduleUpdates: async () => {
+      await FCM.unsubscribeFrom({ topic: "event.schedule" }); // replaced with `event.announcement` + `event.update`
+    },
+    unsubscribeFromAllEventUpdates: async () => {
+      await FCM.unsubscribeFrom({ topic: "event.update" }); // replaced with `event.update.<event short>`
+    },
   };
   public static eventAnnouncements = {
     subscribe: async () => {
@@ -14,12 +26,17 @@ export default class PushNotificationHelper {
       await FCM.unsubscribeFrom({ topic: "event.announcement" });
     }
   };
+  // new runs are only announced for events the user has run reminders for
   public static eventUpdates = {
-    subscribe: async () => {
-      await FCM.subscribeTo({ topic: "event.update" });
+    subscribe: async (eventShort: string) => {
+      const topic = eventUpdateTopic(eventShort);
+      console.log("subscribing to schedule updates via " + topic);
+      await FCM.subscribeTo({ topic });
     },
-    unsubscribe: async () => {
-      await FCM.unsubscribeFrom({ topic: "event.update" });
+    unsubscribe: async (eventShort: string) => {
+      const topic = eventUpdateTopic(eventShort);
+      console.log("unsubscribing from schedule updates via " + topic);
+      await FCM.unsubscribeFrom({ topic });
     }
   };
   public static startOfRun = {

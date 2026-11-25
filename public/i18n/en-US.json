@@ -21,7 +21,7 @@
         "description-eventAnnouncements": "Receive a push notification when the initial schedule for a new GDQ event is announced",
         "info-eventAnnouncements": "To also receive a push notification when the new event starts, you need to set a reminder for the pre-show in the schedule after it's announced.",
         "label-eventUpdates": "Schedule updates",
-        "description-eventUpdates": "Receive a push notification when a new run is added to an existing event",
+        "description-eventUpdates": "Receive a push notification when a new run is added to an existing event you have reminders for",
         "info-eventUpdates": "To also receive a push notification when the new run starts, you need to set a reminder for it, after it's announced.",
         "headline-language": "Language",
         "label-appLanguage": "App language",

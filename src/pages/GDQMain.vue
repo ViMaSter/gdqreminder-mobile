@@ -32,6 +32,7 @@ import { useRunReminderStore } from "@/stores/runReminders";
 import Base16 from "@/utilities/base16";
 import { useI18n } from 'vue-i18n'
 import { selectDefaultEvent } from "@/utilities/eventSelection";
+import { eventShortsToFollow } from "@/utilities/scheduleUpdateTopics";
 
 import {
   getAuth,
@@ -579,6 +580,7 @@ export default defineComponent({
       try {
         await loadEventsAndRuns(roughly8MonthsAgo(), true);
         await loadAllEvents(true);
+        syncFollowedEvents();
       } catch (e) {
         console.warn("Refreshing events failed", e);
         // keep the toast vague; the details are one tap away for anyone who wants to report it
@@ -849,6 +851,29 @@ export default defineComponent({
       navigator.clipboard.writeText(base16EncodedUserID.value);
       showSnackbar("Copied your user ID to clipboard:");
     };
+
+    // "Schedule updates" only covers upcoming events the user has run reminders for
+    const syncFollowedEvents = () => {
+      const settingsStore = useSettingsStore();
+      const followed = eventShortsToFollow(
+        eventsWithRuns(),
+        reminder.allReminders,
+        dateProvider.getCurrent(),
+        settingsStore.followedEventShorts,
+      );
+      // without run data (e.g. offline), keep the legacy topic until per-event ones can be determined
+      const hasRunData = eventsWithRuns().length > 0;
+      settingsStore
+        .syncScheduleUpdateTopics(followed)
+        .then(() => (hasRunData ? settingsStore.migrateTopics() : undefined))
+        .catch((error: unknown) => {
+          console.warn("Failed to sync schedule update subscriptions", error);
+        });
+    };
+    syncFollowedEvents();
+    reminder.$subscribe(() => {
+      syncFollowedEvents();
+    });
 
     // only once everything updateCurrentEvent touches (e.g. refreshRuns) is initialized
     const startupEvent = selectDefaultEvent(eventsWithRuns(), now);
