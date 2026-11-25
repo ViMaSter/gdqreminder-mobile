@@ -12,10 +12,10 @@ Besides run starts, the backend sends these notifications, depending on the swit
 
 | Notification | Setting | Firebase topic |
 |---|---|---|
-| A new event's schedule is announced | Schedule announcements | `event.announcement` |
-| A run is added to an existing event | Schedule updates | `event.update.<event short>` (e.g. `event.update.agdq2027`), subscribed to only for upcoming events the user has set at least one reminder for |
+| GamesDoneQuick announces the schedule of a new event | Schedule announcements | `event.announcement` |
+| GamesDoneQuick adds a run to an existing event | Schedule updates | `event.update.<event short>`, for example `event.update.agdq2027`; the app subscribes only for upcoming events with at least one reminder |
 
-Older app versions subscribe to `event.update` instead, which receives new runs of every event. The backend reaches both with a single [condition](https://firebase.google.com/docs/cloud-messaging/send-message#send-messages-to-topics) (`'event.update' in topics || 'event.update.agdq2027' in topics`), so a device subscribed to both still gets the notification only once.
+Older app versions subscribe to `event.update` instead, which receives new runs of every event. The backend reaches both with a single [condition](https://firebase.google.com/docs/cloud-messaging/send-message#send-messages-to-topics): `'event.update' in topics || 'event.update.agdq2027' in topics`. A device subscribed to both still gets the notification only once.
 
 The [Google Play Store version of this app](https://play.google.com/store/apps/details?id=ke.mahn.gdqreminder) uses a firebase project maintained by @ViMaSter by default.
 
