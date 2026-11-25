@@ -8,6 +8,15 @@ The [dedicated backend](https://github.com/mahn-ke/gdqreminder-by-vincent/) cont
 - the game on `twitch.tv/gamesdonequick` matches the game of a run
 - the official GamesDoneQuick schedule via API has a run scheduled to start in 5 minutes
 
+Besides run starts, the backend sends these notifications, depending on the switches in the app settings:
+
+| Notification | Setting | Firebase topic |
+|---|---|---|
+| A new event's schedule is announced | Schedule announcements | `event.announcement` |
+| A run is added to an existing event | Schedule updates | `event.update.<event short>` (e.g. `event.update.agdq2027`), subscribed to only for upcoming events the user has set at least one reminder for |
+
+Older app versions subscribe to `event.update` instead, which receives new runs of every event. The backend reaches both with a single [condition](https://firebase.google.com/docs/cloud-messaging/send-message#send-messages-to-topics) (`'event.update' in topics || 'event.update.agdq2027' in topics`), so a device subscribed to both still gets the notification only once.
+
 The [Google Play Store version of this app](https://play.google.com/store/apps/details?id=ke.mahn.gdqreminder) uses a firebase project maintained by @ViMaSter by default.
 
 # Setting up a custom backend
